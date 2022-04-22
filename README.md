@@ -23,31 +23,35 @@ This is a work-in-progress but the following features are already supported.
 - [x] Caching of dashboard data to reduce database queries and improve latency
 - [x] Dashboard is responsive and works on tablet and mobile
 
-![Dashibase Dashboard](https://raw.githubusercontent.com/dashibase/dashibase/main/assets/dashibase-screenshot.png)
+**Have suggestions for what to work on next? Support us by joining our [beta](https://dashibase.com#join-beta)!**
 
-**Have suggestions for what to work on next? Support us by joining our [beta](https://dashibase.com)!**
+![Dashibase Dashboard](https://raw.githubusercontent.com/dashibase/dashibase/main/assets/dashibase-screenshot.png)
 
 ## Getting Started
 
-1. Clone this repository and go to the Dashibase directory
+**1. Clone this repository and go to the Dashibase directory**
 
 ```bash
 git clone https://github.com/dashibase/dashibase
 cd dashibase
 ```
 
-2. Open `src/dashibaseConfig.ts` to configure your dashboard.
+**2. Edit `src/dashibaseConfig.ts` to configure your dashboard.**
 
 See [here](https://github.com/dashibase/dashibase/blob/main/src/dashibaseConfig.ts) for documentation on the config file.
 
-3. Test it locally - we currently don't have a staging mode yet but you should be able to test it with your own account
+**3. Test it locally**
+
+We currently don't have a staging mode yet but you should be able to test it locally with your own account
 
 ```bash
 npm run dev
 ```
 
-4. Deploy to your favorite server!
+**4. Deploy to your favorite server!**
 
-Remember to add your dashboard URL to your list of your sign-up redirect URLs in Supabase.
+**Important!** Remember to add your dashboard URL to your list of your sign-up redirect URLs in Supabase. You can find it at https://app.supabase.io/project/YOUR_PROJECT_ID/auth/settings.
 
-You can find it at https://app.supabase.io/project/YOUR_PROJECT_ID/auth/settings
+## Like what you're seeing?
+
+We're hoping to turn this into our full-time job! Support us by [joining our beta](https://dashibase.com#join-beta) and let us know what you'd love to see.
