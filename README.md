@@ -10,6 +10,8 @@ This repo contains the open-source code for setting up your own Dashibase dashbo
 
 Contributions welcome!
 
+**Have suggestions for what to work on next? Support us by joining our [beta](https://dashibase.com#join-beta)!**
+
 ---
 
 ## Features
@@ -22,8 +24,6 @@ This is a work-in-progress but the following features are already supported.
 - [x] Simple form validation during item creation by checking that required fields are filled in (required attributes are configured in `src/dashibaseConfig.ts`)
 - [x] Caching of dashboard data to reduce database queries and improve latency
 - [x] Dashboard is responsive and works on tablet and mobile
-
-**Have suggestions for what to work on next? Support us by joining our [beta](https://dashibase.com#join-beta)!**
 
 ![Dashibase Dashboard](https://raw.githubusercontent.com/dashibase/dashibase/main/assets/dashibase-screenshot.png)
 
