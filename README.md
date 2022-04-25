@@ -4,7 +4,7 @@
 
 # Dashibase
 
-[![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Just%20found%20out%20about%20Dashibase%20-%20a%20super%20simple%20way%20to%20build%20dashboards%20for%20Supabase%20users!&url=https://dashibase.com) [![We're open for beta!](https://img.shields.io/badge/We're open for beta!-Join-%2322c55e)](https://dashibase.com#join-beta) [![GPL-3.0](https://img.shields.io/github/license/dashibase/dashibase)]()
+[![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Just%20found%20out%20about%20Dashibase%20-%20a%20super%20simple%20way%20to%20build%20dashboards%20for%20Supabase%20users!&url=https://dashibase.com) [![We're open for beta!](https://img.shields.io/badge/We're%20open%20for%20beta!-Join-%2322c55e)](https://dashibase.com#join-beta) [![GPL-3.0](https://img.shields.io/github/license/dashibase/dashibase)]()
 
 **[Dashibase](https://dashibase.com) is a no-code tool to build user dashboards supported by Supabase.**
 
