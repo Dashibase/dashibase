@@ -75,6 +75,7 @@
                   <a :href="`/${view.view_id}`" class="px-4 sm:px-6 py-4 block w-full truncate">{{ view.name }}</a>
                 </template>
               </template>
+              <a class="cursor-pointer hover:bg-gray-100 font-medium px-4 sm:px-6 py-4 block w-full truncate" @click="signOut">Sign out</a>
             </div>
           </div>
         </div>
