@@ -1,6 +1,6 @@
 <template>
   <Loading v-model="loading" />
-  <div class="relative min-h-screen flex flex-col">
+  <div v-if="supabase.auth.user()" class="relative min-h-screen flex flex-col">
     <div class="flex-grow w-full max-w-7xl mx-auto sm:flex border">
       <div class="flex-1 min-w-0 bg-white sm:flex">
         <SidePanel :loading="loading" @update:loading="(value:boolean) => loading=value" />
@@ -36,6 +36,7 @@ export default defineComponent({
       store.user = session?.user as User
     })
     return {
+      supabase,
       store,
     }
   },
