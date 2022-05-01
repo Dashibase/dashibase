@@ -2,6 +2,8 @@
 <img width="300" src="https://raw.githubusercontent.com/dashibase/dashibase/main/assets/dashibase-logo.png"/>
 </p>
 
+### Announcement: Dashibase Beta is [now free](https://medium.com/dashibase/we-got-3-paid-signups-within-a-week-of-launching-then-we-refunded-them-and-made-dashibase-free-8a9e7c4b744a)!
+
 # Dashibase
 
 [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Just%20found%20out%20about%20Dashibase%20-%20a%20super%20simple%20way%20to%20build%20dashboards%20for%20Supabase%20users!&url=https://dashibase.com) [![We're open for beta!](https://img.shields.io/badge/We're%20open%20for%20beta!-Join-%2322c55e)](https://dashibase.com#join-beta) [![GPL-3.0](https://img.shields.io/github/license/dashibase/dashibase)](https://github.com/Dashibase/dashibase/blob/main/LICENSE)
