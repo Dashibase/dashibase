@@ -12,8 +12,9 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { User } from '@supabase/supabase-js'
 import { supabase } from '../../utils/supabase'
 import { store } from '../../utils/store'
@@ -22,38 +23,23 @@ import SidePanel from './SidePanel.vue'
 import MainPanel from './MainPanel.vue'
 import Loading from './Loading.vue'
 
-export default defineComponent({
-  props: {
-    viewId: {
-      type: String,
-      default: '',
-    },
-  },
-  setup() {
-    const user = supabase.auth.user()
-    if (user) store.user = user
-    supabase.auth.onAuthStateChange((_, session) => {
-      store.user = session?.user as User
-    })
-    return {
-      supabase,
-      store,
-    }
-  },
-  async mounted () {
-    if (!store.user.id) window.location.href = '/signin'
-    if (this.$route.path === '/' && this.views.length) window.location.href = `/${this.views[0].view_id}`
-  },
-  components: {
-    SidePanel,
-    MainPanel,
-    Loading,
-  },
-  data () {
-    return {
-      loading: false,
-      views: config.views,
-    }
-  },
+const user = supabase.auth.user()
+if (user) store.user = user
+supabase.auth.onAuthStateChange((_, session) => {
+  store.user = session?.user as User
 })
+
+const props = defineProps({
+  viewId: {
+    type: String,
+    default: '',
+  }
+})
+
+const views = ref(config.views)
+const loading = ref(false)
+
+if (!store.user.id) window.location.href = '/signin'
+const route = useRoute()
+if (route.path === '/' && views.value.length) window.location.href = `/${views.value[0].view_id}`
 </script>

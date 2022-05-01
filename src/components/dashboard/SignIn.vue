@@ -1,5 +1,5 @@
 <template>
-  <Placeholder v-if="!appName" />
+  <Placeholder v-if="!config.name" />
   <div v-else class="h-screen min-h-full flex flex-col justify-center py-12 sm:px-6 lg:px-8">
     <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
       <div class="bg-white py-8 px-4 shadow-center sm:rounded-lg sm:px-10">
@@ -46,8 +46,8 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script setup lang="ts">
+import { ref } from 'vue'
 import { UserCircleIcon } from '@heroicons/vue/solid'
 import { User } from '@supabase/supabase-js'
 import { supabase } from '../../utils/supabase'
@@ -57,59 +57,36 @@ import Placeholder from './Placeholder.vue'
 import AppLogo from '../branding/AppLogo.vue'
 import PoweredBy from '../branding/PoweredBy.vue'
 
-export default defineComponent({
-  setup() {
-    if (supabase) {
-      const user = supabase.auth.user()
-      if (user) store.user = user
-      supabase.auth.onAuthStateChange((_, session) => {
-        store.user = session?.user as User
-      })
-      return {
-        store,
-      }
-    }
-  },
-  mounted () {
-    if (store.user.id) window.location.href = '/'
-    this.loading = false
-  },
-  components: {
-    UserCircleIcon,
-    PoweredBy,
-    Placeholder,
-    AppLogo,
-  },
-  data () {
-    return {
-      loading: true,
-      success: false,
-      email: '',
-      password: '',
-      warning: '',
-      appName: config.name,
-    }
-  },
-  methods: {
-    async signIn () {
-      if (!(this.email && this.password)) {
-        this.warning = 'Please fill in your details'
-        return
-      }
-      this.loading = true
-      const { error } = await supabase.auth.signIn({
-        email: this.email,
-        password: this.password,
-      })
-      this.loading = false
-      if (error) {
-        this.warning = error.message
-      } else {
-        this.success = true
-        // Redirect to dashboard
-        window.location.href = '/'
-      }
-    },
-  },
+const user = supabase.auth.user()
+if (user) store.user = user
+supabase.auth.onAuthStateChange((_, session) => {
+  store.user = session?.user as User
 })
+if (store.user.id) window.location.href = '/'
+
+const loading = ref(false)
+const success = ref(false)
+const email = ref('')
+const password = ref('')
+const warning = ref('')
+
+async function signIn () {
+  if (!(email && password)) {
+    warning.value = 'Please fill in your details'
+    return
+  }
+  loading.value = true
+  const { error } = await supabase.auth.signIn({
+    email: email.value,
+    password: password.value,
+  })
+  loading.value = false
+  if (error) {
+    warning.value = error.message
+  } else {
+    success.value = true
+    // Redirect to dashboard
+    window.location.href = '/'
+  }
+}
 </script>

@@ -1,16 +1,7 @@
 <template>
-  <h2 class="text-lg text-center font-bold text-gray-700 select-none">{{ appName }}</h2>
+  <h2 class="text-lg text-center font-bold text-gray-700 select-none">{{ config.name }}</h2>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script setup lang="ts">
 import config from '../../dashibaseConfig'
-
-export default defineComponent({
-  data () {
-    return {
-      appName: config.name
-    }
-  }
-})
 </script>
