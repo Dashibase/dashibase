@@ -20,11 +20,11 @@
         <!-- Buttons -->
         <div class="px-4 md:px-10 flex justify-end gap-4">
           <button :disabled="loading" class="bg-white border border-transparent rounded-md py-2 px-4 inline-flex justify-center text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-            @click="back">
+            @click="router.go(-1)">
             Back
           </button>
           <button :disabled="loading" class="bg-green-500 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-            @click="save">
+            @click="createItem">
             {{ loading ? 'Loading...' : 'Save' }}
           </button>
         </div>
@@ -33,70 +33,24 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script setup lang="ts">
+import { PropType } from 'vue'
 import { ChevronRightIcon } from '@heroicons/vue/solid'
 import router from '../../router'
-import { supabase } from '../../utils/supabase'
-import { store } from '../../utils/store'
+import { Page } from '../../dashibaseConfig'
+import { initLoading, initCrud } from '../../utils/dashboard'
 
-export default defineComponent({
-  props: {
-    view: {
-      type: Object,
-      required: true,
-    },
+const props = defineProps({
+  loading: {
+    type: Boolean,
+    default: false,
   },
-  components: {
-    ChevronRightIcon,
-  },
-  data () {
-    return {
-      loading: false,
-      warning: '',
-    }
-  },
-  methods: {
-    back () {
-      router.go(-1)
-    },
-    async save () {
-      this.loading = true
-      // Check required attributes
-      const unfilledRequiredAttributes = this.view.attributes.filter((attribute:any) => {
-        if (attribute.required) {
-          const inputEl = document.getElementById(attribute.id) as HTMLInputElement
-          if (inputEl?.value) return false
-          else return true
-        } else {
-          return false
-        }
-      })
-      if (unfilledRequiredAttributes.length) {
-        this.warning = `${unfilledRequiredAttributes.map((attribute:any) => attribute.label).join(', ')} need${unfilledRequiredAttributes.length === 1 ? 's' : ''} to be filled`
-        this.loading = false
-        return
-      }
-      // Construct new item
-      const newItem = Object.fromEntries(this.view.attributes.map((attribute:any) => {
-        const inputEl = document.getElementById(attribute.id) as HTMLInputElement
-        return [attribute.id, inputEl?.value]
-      }))
-      newItem.user = store.user.id
-      // Insert new item
-      const { error } = await supabase
-        .from(this.view.table_id)
-        .insert([
-          newItem
-        ])
-      this.loading = false
-      if (error) {
-        this.warning = error.message
-      } else {
-        window.localStorage.removeItem(this.view.table_id)
-        router.push({path: `/${this.view.view_id}`})
-      }
-    },
+  view: {
+    type: Object as PropType<Page>,
+    required: true,
   },
 })
+
+const { loading } = initLoading(props.loading)
+const { view, warning, createItem } = initCrud(loading, props.view)
 </script>

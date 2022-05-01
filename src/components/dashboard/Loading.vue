@@ -23,8 +23,8 @@
   </TransitionRoot>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script setup lang="ts">
+import { computed } from 'vue'
 import {
   Dialog,
   DialogOverlay,
@@ -34,30 +34,21 @@ import {
 } from '@headlessui/vue'
 import { ClockIcon } from '@heroicons/vue/outline'
 
-export default defineComponent({
-  props: {
-    modelValue: {
-      type: Boolean,
-      default: false,
-    }
+const props = defineProps({
+  modelValue: {
+    type: Boolean,
+    default: false,
   },
-  components: {
-    Dialog,
-    DialogOverlay,
-    DialogTitle,
-    TransitionChild,
-    TransitionRoot,
-    ClockIcon,
+})
+
+const emits = defineEmits(['update:modelValue'])
+
+const show = computed({
+  get () {
+    return props.modelValue
   },
-  computed: {
-    show: {
-      get () {
-        return this.modelValue
-      },
-      set (newValue:boolean) {
-        this.$emit('update:modelValue')
-      }
-    }
+  set (newValue:boolean) {
+    emits('update:modelValue')
   }
 })
 </script>
