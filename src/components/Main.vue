@@ -2,13 +2,6 @@
   <Dashboard />
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script setup lang="ts">
 import Dashboard from './dashboard/Dashboard.vue'
-
-export default defineComponent({
-  components: {
-    Dashboard,
-  },
-})
 </script>

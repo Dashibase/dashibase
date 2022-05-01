@@ -84,12 +84,11 @@
   </Popover>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script setup lang="ts">
+import { ref } from 'vue'
 import {
   Popover,
   PopoverButton,
-  PopoverGroup,
   PopoverPanel
 } from '@headlessui/vue'
 import {
@@ -101,53 +100,25 @@ import { store } from '../../utils/store'
 import { supabase } from '../../utils/supabase'
 import config from '../../dashibaseConfig'
 import AppLogo from '../branding/AppLogo.vue'
+import { initLoading } from '../../utils/dashboard'
 
-export default defineComponent({
-  props: {
-    loading: {
-      type: Boolean,
-      default: false,
-    },
+const props = defineProps({
+  loading: {
+    type: Boolean,
+    default: false,
   },
-  components: {
-    Popover,
-    PopoverButton,
-    PopoverGroup,
-    PopoverPanel,
-    MenuIcon,
-    UserCircleIcon,
-    XIcon,
-    AppLogo,
-  },
-  setup () {
-    return {
-      store
-    }
-  },
-  data () {
-    return {
-      appName: config.name,
-      views: config.views,
-    }
-  },
-  computed: {
-    innerLoading: {
-      get () {
-        return this.loading
-      },
-      set (value:boolean) {
-        this.$emit('update:loading', value)
-      }
-    }
-  },
-  methods: {
-    async signOut () {
-      this.innerLoading = true
-      window.localStorage.clear()
-      const { error } = await supabase.auth.signOut()
-      if (error) console.error(error)
-      else window.location.href = '/signin'
-    },
-  }
 })
+
+const appName = ref(config.name)
+const views = ref(config.views)
+
+const { loading } = initLoading(props.loading)
+
+async function signOut () {
+  loading.value = true
+  window.localStorage.clear()
+  const { error } = await supabase.auth.signOut()
+  if (error) console.error(error)
+  else window.location.href = '/signin'
+}
 </script>

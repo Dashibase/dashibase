@@ -1,5 +1,5 @@
 <template>
-  <Placeholder v-if="!appName" />
+  <Placeholder v-if="!config.name" />
   <div v-else class="h-screen min-h-full flex flex-col justify-center py-12 sm:px-6 lg:px-8">
     <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
       <div class="bg-white py-8 px-4 shadow-center sm:rounded-lg sm:px-10">
@@ -41,8 +41,8 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script setup lang="ts">
+import { ref } from 'vue'
 import { UserCircleIcon } from '@heroicons/vue/solid'
 import { User } from '@supabase/supabase-js'
 import { supabase } from '../../utils/supabase'
@@ -52,64 +52,43 @@ import Placeholder from './Placeholder.vue'
 import AppLogo from '../branding/AppLogo.vue'
 import PoweredBy from '../branding/PoweredBy.vue'
 
-export default defineComponent({
-  setup() {
-    if (supabase) {
-      const user = supabase.auth.user()
-      if (user) store.user = user
-      supabase.auth.onAuthStateChange((_, session) => {
-        store.user = session?.user as User
-      })
-      return {
-        store,
-      }
-    }
-  },
-  mounted () {
-    if (store.user.id) window.location.href = '/'
-  },
-  components: {
-    UserCircleIcon,
-    PoweredBy,
-    Placeholder,
-    AppLogo,
-  },
-  data () {
-    return {
-      loading: false,
-      success: false,
-      email: '',
-      password: '',
-      warning: '',
-      appName: config.name,
-      minPasswordLength: 6, // Set to minimum password length in Supabase
-      confirmEmail: true, // Assuming confirm email is set to True in Supabase
-    }
-  },
-  methods: {
-    async signUp () {
-      this.loading = true
-      if (this.password.length < this.minPasswordLength) {
-        this.warning = `Password needs to be at least ${this.minPasswordLength} characters`
-      } else {
-        const { error } = await supabase.auth.signUp({
-          email: this.email,
-          password: this.password,
-        }, {
-          redirectTo: window.location.origin
-        })
-        this.loading = false
-        if (error) {
-          this.warning = error.message
-        } else {
-          this.success = true
-          if (!this.confirmEmail) {
-            // Redirect user if confirmEmail is false
-            window.location.href = '/'
-          }
-        }
-      }
-    }
-  },
+const user = supabase.auth.user()
+if (user) store.user = user
+supabase.auth.onAuthStateChange((_, session) => {
+  store.user = session?.user as User
 })
+if (store.user.id) window.location.href = '/'
+
+const minPasswordLength = 6 // Set to minimum password length in Supabase
+const confirmEmail = true // Assuming confirm email is set to True in Supabase
+
+const loading = ref(false)
+const success = ref(false)
+const email = ref('')
+const password = ref('')
+const warning = ref('')
+
+async function signUp () {
+  loading.value = true
+  if (password.value.length < minPasswordLength) {
+    warning.value = `Password needs to be at least ${minPasswordLength} characters`
+  } else {
+    const { error } = await supabase.auth.signUp({
+      email: email.value,
+      password: password.value,
+    }, {
+      redirectTo: window.location.origin
+    })
+    loading.value = false
+    if (error) {
+      warning.value = error.message
+    } else {
+      success.value = true
+      if (!confirmEmail) {
+        // Redirect user if confirmEmail is false
+        window.location.href = '/'
+      }
+    }
+  }
+}
 </script>

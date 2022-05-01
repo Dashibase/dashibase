@@ -2,15 +2,8 @@
   <router-view />
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script setup lang="ts">
 import config from './dashibaseConfig'
 
-export default defineComponent({
-  mounted () {
-    // Set page title to app name
-    const appName = config.name
-    if (appName) document.title = appName
-  }
-})
+if (config.name) document.title = config.name
 </script>

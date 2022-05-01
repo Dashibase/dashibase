@@ -9,7 +9,7 @@
     </div>
     <div class="px-4 md:px-10 grid grid-cols-1 md:grid-cols-2 gap-2">
       <!-- Cards -->
-      <a v-for="(item, i) in items" :key="item.id" class="bg-white block relative hover:bg-gray-50 cursor-pointer border rounded px-2 py-1" :href="`/${view.table_id}/view/${item.id}`">
+      <a v-for="(item, i) in items" :key="item.id" class="bg-white block relative hover:bg-gray-50 cursor-pointer border rounded px-2 py-1" :href="`/${view.view_id}/view/${item.id}`">
         <div class="absolute top-0 left-0 w-full text-sm text-gray-300 text-right px-1">
           #{{ i + 1 }}
         </div>
@@ -34,86 +34,28 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script setup lang="ts">
+import { PropType } from 'vue'
 import {
   PlusIcon,
   TrashIcon,
 } from '@heroicons/vue/solid'
-import { supabase } from '../../utils/supabase'
-import { store } from '../../utils/store'
+import { Page } from '../../dashibaseConfig';
+import { initLoading, initCrud } from '../../utils/dashboard'
 
-export default defineComponent({
-  props: {
-    view: {
-      type: Object,
-      required: true,
-    },
-    loading: {
-      type: Boolean,
-      default: false,
-    }
+const props = defineProps({
+  loading: {
+    type: Boolean,
+    default: false,
   },
-  components: {
-    PlusIcon,
-    TrashIcon,
-  },
-  mounted () {
-    this.getItems()
-  },
-  data () {
-    return {
-      warning: '',
-      items: [] as any[],
-    }
-  },
-  computed: {
-    innerLoading: {
-      get () {
-        return this.loading
-      },
-      set (value:boolean) {
-        this.$emit('update:loading', value)
-      }
-    }
-  },
-  methods: {
-    async getItems (refresh:boolean=false) {
-      if (!this.view.attributes) return
-      let items = window.localStorage.getItem(this.view.table_id)
-      if (!items || refresh) {
-        this.innerLoading = true
-        const { data, error } = await supabase
-          .from(this.view.table_id)
-          .select(this.view.attributes.map((attribute:any) => attribute.id).join(',') + ',id')
-          .eq('user', store.user.id)
-        this.innerLoading = false
-        if (error) {
-          this.warning = error.message
-        } else {
-          this.items = data as any[]
-          window.localStorage.setItem(this.view.table_id, JSON.stringify(data));
-          (data as any[]).forEach(item => {
-            window.localStorage.setItem(item.id, JSON.stringify(item))
-          })
-        }
-      } else {
-        this.items = JSON.parse(items)
-      }
-    },
-    async deleteItem (itemId:string, event:Event) {
-      event.preventDefault()
-      this.innerLoading = true
-      const { error } = await supabase
-        .from(this.view.table_id)
-        .delete()
-        .match({ id: itemId })
-      if (error) {
-        this.warning = error.message
-      } else {
-        this.getItems(true).then(() => this.innerLoading = false)
-      }
-    },
+  view: {
+    type: Object as PropType<Page>,
+    required: true,
   },
 })
+
+const { loading } = initLoading(props.loading)
+const { view, warning, items, getItems, deleteItem } = initCrud(loading, props.view)
+
+getItems()
 </script>
