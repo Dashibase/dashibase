@@ -31,6 +31,19 @@
           <PlusIcon class="w-5 h-5" />
         </div>
       </a>
+      <div class="block border border-x-0 border-t-0 border-b-1 border-t-gray-100">
+        <div class="flex justify-between px-4 py-3 text-sm font-medium text-gray-400 items-center">
+          <div class="flex items-center gap-1">
+            Page
+            <DropDown :options="pages" v-model="page" />
+            of {{ maxPage }}
+          </div>
+          <div class="flex gap-2">
+            <button class="border rounded px-2 py-1 hover:bg-neutral-50 disabled:hover:bg-white disabled:text-gray-300" :disabled="page === 1" @click="page === 1 ? '' : page -= 1">Prev</button>
+            <button class="border rounded px-2 py-1 hover:bg-neutral-50 disabled:hover:bg-white disabled:text-gray-300" :disabled="page === maxPage" @click="page === maxPage ? '' : page += 1">Next</button>
+          </div>
+        </div>
+      </div>
     </div>
     <!-- Normal view -->
     <div class="hidden sm:block mb-24">
@@ -48,7 +61,7 @@
           <tbody class="bg-white divide-y divide-gray-100">
             <a v-for="(item, i) in items" :key="item.id" class="table-row hover:bg-gray-50 cursor-pointer" :href="`/${view.view_id}/view/${item.id}`">
               <td class="hidden md:table-cell w-10 px-2 pl-4 py-3 whitespace-nowrap text-sm text-gray-500 text-center">
-                {{ i + 1 }}
+                {{ i + 1 + ((page - 1) * maxItems) }}
               </td>
               <td v-for="attribute in view.attributes" :key="attribute.id"
                 class="px-2 py-3 max-w-0 whitespace-nowrap text-sm font-medium text-gray-900">
@@ -72,6 +85,19 @@
           <PlusIcon class="w-5 h-5" />
         </div>
       </a>
+      <div class="block border border-x-0 border-t-0 border-b-1 border-t-gray-100">
+        <div class="flex justify-between px-4 py-3 text-sm font-medium text-gray-400 items-center">
+          <div class="flex items-center gap-1">
+            Page
+            <DropDown :options="pages" v-model="page" />
+            of {{ maxPage }}
+          </div>
+          <div class="flex gap-2">
+            <button class="border rounded px-2 py-1 hover:bg-neutral-50 disabled:hover:bg-white disabled:text-gray-300" :disabled="page === 1" @click="page === 1 ? '' : page -= 1">Prev</button>
+            <button class="border rounded px-2 py-1 hover:bg-neutral-50 disabled:hover:bg-white disabled:text-gray-300" :disabled="page === maxPage" @click="page === maxPage ? '' : page += 1">Next</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -85,6 +111,7 @@ import {
 } from '@heroicons/vue/solid'
 import { Page } from '../../dashibaseConfig'
 import { initLoading, initCrud } from '../../utils/dashboard'
+import DropDown from './form-elements/DropDown.vue'
 
 const props = defineProps({
   loading: {
@@ -97,8 +124,10 @@ const props = defineProps({
   },
 })
 
+const maxItems = 20
+
 const { loading } = initLoading(props.loading)
-const { view, warning, items, getItems, deleteItem } = initCrud(loading, props.view)
+const { view, warning, items, page, maxPage, pages, getItems, deleteItem } = initCrud(loading, props.view, maxItems)
 
 getItems()
 </script>

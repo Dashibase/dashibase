@@ -4,7 +4,9 @@ import {
   getCurrentInstance,
   ComponentInternalInstance,
   WritableComputedRef,
+  watch,
 } from 'vue'
+import * as _ from 'lodash'
 import { supabase } from './supabase'
 import { store } from './store'
 import router from '../router'
@@ -31,13 +33,52 @@ export function initLoading (loading:boolean) {
 /*
 Initialize CRUD functions and related variables
 */
-export function initCrud (loading:WritableComputedRef<boolean>, view:any) {
+export function initCrud (loading:WritableComputedRef<boolean>, view:any, maxItems:number=10) {
   // warning will be displayed upon any CRUD errors
   const warning = ref('')
   // items stores the retrieved items when reading
   const items = ref([] as any[])
+  // total number of items in Supabase table
+  const itemsCount = ref(0)
   // haveUnsavedChanges is used to denote if changes have been made by the user
   const haveUnsavedChanges = ref(false)
+
+  // properties for pagination
+  const page = ref(1)
+  const maxPage = computed (() => {
+    return Math.max(1, Math.ceil(itemsCount.value / maxItems))
+  })
+  const pages = computed(() => {
+    return _.range(1, maxPage.value + 1).map((i:number) => {
+      return {
+        label: i.toString(),
+        value: i,
+      }
+    })
+  })
+  watch(page, async (currentPage) => {
+    if (currentPage === 1) {
+      let storedItems = window.localStorage.getItem(view.table_id)
+      if (storedItems) {
+        const storedItemsJson = JSON.parse(storedItems)
+        items.value = storedItemsJson.data
+        return
+      }
+    }
+    loading.value = true
+    const startRow = Math.max(0, currentPage - 1) * maxItems
+    const { data, error } = await supabase
+      .from(view.table_id)
+      .select(view.attributes.map((attribute:any) => attribute.id).join(',') + ',id', { count: 'exact' })
+      .eq('user', store.user.id)
+      .range(startRow, startRow + maxItems - 1)
+    loading.value = false
+    if (error) {
+      warning.value = error.message
+    } else {
+      items.value = data
+    }
+  })
 
   /*
   Insert a new item into table named view.table_id
@@ -109,27 +150,34 @@ export function initCrud (loading:WritableComputedRef<boolean>, view:any) {
   /*
   Retrieve all rows from view.table_id with user corresponding to user_id
   */
-  async function getItems (refresh:boolean=false) {
+  async function getItems (max:number=maxItems, refresh:boolean=false) {
     if (!view.attributes) return
     let storedItems = window.localStorage.getItem(view.table_id)
     if (!storedItems || refresh) {
       loading.value = true
-      const { data, error } = await supabase
+      const { data, error, count } = await supabase
         .from(view.table_id)
-        .select(view.attributes.map((attribute:any) => attribute.id).join(',') + ',id')
+        .select(view.attributes.map((attribute:any) => attribute.id).join(',') + ',id', { count: 'exact' })
         .eq('user', store.user.id)
+        .range(0, max - 1)
         loading.value = false
       if (error) {
         warning.value = error.message
       } else {
         items.value = data
-        window.localStorage.setItem(view.table_id, JSON.stringify(data));
+        if (count) itemsCount.value = count
+        window.localStorage.setItem(view.table_id, JSON.stringify({
+          count,
+          data,
+        }));
         (data as any[]).forEach(item => {
           window.localStorage.setItem(item.id, JSON.stringify(item))
         })
       }
     } else {
-      items.value = JSON.parse(storedItems)
+      const storedItemsJson = JSON.parse(storedItems)
+      items.value = storedItemsJson.data
+      itemsCount.value = storedItemsJson.count || 0
     }
   }
 
@@ -172,7 +220,7 @@ export function initCrud (loading:WritableComputedRef<boolean>, view:any) {
     if (error) {
       warning.value = error.message
     } else {
-      getItems(true).then(() => loading.value = false)
+      getItems(maxItems, true).then(() => loading.value = false)
     }
   }
 
@@ -180,6 +228,9 @@ export function initCrud (loading:WritableComputedRef<boolean>, view:any) {
     view,
     warning,
     items,
+    page,
+    maxPage,
+    pages,
     haveUnsavedChanges,
     createItem,
     getItem,

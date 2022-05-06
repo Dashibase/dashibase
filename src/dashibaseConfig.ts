@@ -2,17 +2,17 @@
 
 const DASHIBASE_CONFIG:Config = {
   name: "My Dashboard",
-  supabase_url: "https://YOUR_SUPABASE_URL.supabase.co",
-  supabase_anon_key: "YOUR_SUPABASE_ANON_KEY",
+  supabase_url: "https://cikahocszfogccapupzr.supabase.co",
+  supabase_anon_key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpa2Fob2NzemZvZ2NjYXB1cHpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NTAxMjA4MTYsImV4cCI6MTk2NTY5NjgxNn0.vLOJy09FKJAuBvPpQdS00jxiQj6Psu506mf6Ltgy8rc",
   views: [
     {
       name: "My Page",
       view_id: "my_page",
-      table_id: "my_table",
-      mode: "list",
+      table_id: "demo_list",
+      mode: "card",
       attributes: [
         {
-          id: "value",
+          id: "task",
           label: "Value",
           required: true,
         }
