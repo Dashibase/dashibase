@@ -11,7 +11,22 @@
         <div v-for="attribute in view.attributes" :key="attribute.id">
           <div class="px-10">
             <label :for="attribute.id" class="block text-sm font-medium text-gray-700">{{ attribute.label }} <span v-if="attribute.required" class="text-gray-400 font-normal pl-2">required</span></label>
-            <input type="text" :disabled="loading" :id="attribute.id" :value="items[attribute.id]" @input="update(attribute.id, ($event.target as HTMLInputElement).value)" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-900 focus:border-gray-900 sm:text-sm" />
+
+            <!-- If input is read-only -->
+            <textarea v-if="(view.readonly || attribute.readonly) && attribute.type === AttributeType.LongText" readonly :id="attribute.id" :value="items[attribute.id]" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-0 focus:border-gray-300 sm:text-sm" />
+            <input v-else-if="view.readonly || attribute.readonly" type="text" readonly :id="attribute.id" :value="items[attribute.id]" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-0 focus:border-gray-300 sm:text-sm" />
+
+            <!-- Else input is writeable -->
+            <input v-else-if="attribute.type === AttributeType.Date" type="date" :disabled="loading" :id="attribute.id" :value="items[attribute.id]" @input="update(attribute.id, ($event.target as HTMLInputElement).value)" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-900 focus:border-gray-900 sm:text-sm" />
+            <select v-else-if="attribute.type === AttributeType.Bool" :disabled="loading" :id="attribute.id" :value="items[attribute.id]" @input="update(attribute.id, ($event.target as HTMLInputElement).value)" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-900 focus:border-gray-900 sm:text-sm">
+              <option :value="true">true</option>
+              <option :value="false">false</option>
+            </select>
+            <select v-else-if="attribute.type === AttributeType.Enum" :disabled="loading" :id="attribute.id" :value="items[attribute.id]" @input="update(attribute.id, ($event.target as HTMLInputElement).value)" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-900 focus:border-gray-900 sm:text-sm">
+              <option v-for="option in attribute.enumOptions" :key="option" :value="option">{{ option }}</option>
+            </select>
+            <textarea v-else-if="attribute.type === AttributeType.LongText" :disabled="loading" :id="attribute.id" :value="items[attribute.id]" @input="update(attribute.id, ($event.target as HTMLInputElement).value)" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-900 focus:border-gray-900 sm:text-sm" />
+            <input v-else type="text" :disabled="loading" :id="attribute.id" :value="items[attribute.id]" @input="update(attribute.id, ($event.target as HTMLInputElement).value)" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-900 focus:border-gray-900 sm:text-sm" />
           </div>
         </div>
         <!-- Warning -->
@@ -24,7 +39,7 @@
             @click="router.go(-1)">
             Back
           </button>
-          <button :disabled="!haveUnsavedChanges || loading" class="bg-green-500 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-gray-300 disabled:hover:bg-gray-300 disabled:focus:ring-gray-300"
+          <button v-if="!view.readonly" :disabled="!haveUnsavedChanges || loading" class="bg-green-500 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-gray-300 disabled:hover:bg-gray-300 disabled:focus:ring-gray-300"
             @click="upsertItem(itemId)">
             {{ loading ? 'Loading...' : 'Save' }}
           </button>
@@ -38,6 +53,7 @@
 import { ChevronRightIcon } from '@heroicons/vue/solid'
 import router from '../../router'
 import { initLoading, initCrud } from '../../utils/dashboard'
+import { AttributeType } from '../../utils/config'
 
 const props = defineProps({
   loading: {

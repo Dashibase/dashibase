@@ -44,7 +44,7 @@ cd dashibase
 
 **2. Edit `src/dashibaseConfig.ts` to configure your dashboard.**
 
-See [here](https://github.com/dashibase/dashibase/blob/main/src/dashibaseConfig.ts) for documentation on the config file.
+See [here](https://github.com/dashibase/dashibase/blob/main/src/utils/config.ts) for documentation on the config file.
 
 **3. Test it locally**
 
