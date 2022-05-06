@@ -20,12 +20,12 @@
             <div class="truncate">{{ item[attribute.id] }}</div>
           </div>
         </div>
-        <div class="absolute bottom-0 left-0 w-full text-sm text-gray-300 hover:text-red-600 flex justify-end px-1 py-1" @click="event => deleteItem(item.id, event)">
+        <div v-if="!view.readonly" class="absolute bottom-0 right-0 text-sm text-gray-300 hover:text-red-600 flex justify-end px-1 py-1" @click="event => deleteItem(item.id, event)">
           <TrashIcon class="w-4 h-4 cursor-pointer" />
         </div>
       </a>
       <!-- New Item -->
-      <a class="w-full border rounded px-4 py-3 text-gray-300 cursor-pointer hover:border-green-200 hover:bg-green-100 hover:text-green-400 flex justify-between"
+      <a v-if="!view.readonly" class="w-full border rounded px-4 py-3 text-gray-300 cursor-pointer hover:border-green-200 hover:bg-green-100 hover:text-green-400 flex justify-between"
         :href="`/${view.view_id}/new`">
         <div class="font-medium">New item</div>
         <PlusIcon class="h-5" />
@@ -53,7 +53,7 @@ import {
   PlusIcon,
   TrashIcon,
 } from '@heroicons/vue/solid'
-import { Page } from '../../dashibaseConfig';
+import { Page } from '../../utils/config'
 import { initLoading, initCrud } from '../../utils/dashboard'
 import DropDown from './form-elements/DropDown.vue'
 

@@ -25,7 +25,7 @@
         </li>
       </ul>
       <!-- New Item -->
-      <a class="block group border border-x-0 border-t-gray-100 cursor-pointer hover:bg-green-50" :href="`/${view.view_id}/new`">
+      <a v-if="!view.readonly" class="block group border border-x-0 border-t-gray-100 cursor-pointer hover:bg-green-50" :href="`/${view.view_id}/new`">
         <div class="flex justify-between px-4 py-3 text-sm font-medium text-gray-400 group-hover:text-green-700">
           <div>New</div>
           <PlusIcon class="w-5 h-5" />
@@ -55,7 +55,7 @@
               <th v-for="attribute in view.attributes" :key="attribute.id" class="px-2 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 <span class="lg:pl-2">{{ attribute.label }}</span>
               </th>
-              <th class="px-2 pr-4 py-3 border-b border-gray-200 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider" />
+              <th v-if="!view.readonly" class="px-2 pr-4 py-3 border-b border-gray-200 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider" />
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-100">
@@ -71,7 +71,7 @@
                   </div>
                 </div>
               </td>
-              <td class="w-10 px-2 pr-4 py-3 whitespace-nowrap text-right text-sm font-medium z-10" @click="event => deleteItem(item.id, event)">
+              <td v-if="!view.readonly" class="w-10 px-2 pr-4 py-3 whitespace-nowrap text-right text-sm font-medium z-10" @click="event => deleteItem(item.id, event)">
                 <TrashIcon class="w-5 h-5 text-gray-400 hover:text-red-600 cursor-pointer" />
               </td>
             </a>
@@ -79,7 +79,7 @@
         </table>
       </div>
       <!-- New Item -->
-      <a class="block group border border-x-0 border-t-0 border-b-1 border-t-gray-100 cursor-pointer hover:bg-green-50" :href="`/${view.view_id}/new`">
+      <a v-if="!view.readonly" class="block group border border-x-0 border-t-0 border-b-1 border-t-gray-100 cursor-pointer hover:bg-green-50" :href="`/${view.view_id}/new`">
         <div class="flex justify-between px-4 py-3 text-sm font-medium text-gray-400 group-hover:text-green-700">
           <div>New</div>
           <PlusIcon class="w-5 h-5" />
@@ -109,7 +109,7 @@ import {
   PlusIcon,
   TrashIcon,
 } from '@heroicons/vue/solid'
-import { Page } from '../../dashibaseConfig'
+import { Page } from '../../utils/config'
 import { initLoading, initCrud } from '../../utils/dashboard'
 import DropDown from './form-elements/DropDown.vue'
 

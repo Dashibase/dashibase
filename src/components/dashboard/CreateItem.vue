@@ -11,7 +11,16 @@
         <div v-for="attribute in view.attributes" :key="attribute.id"
           class="px-4 md:px-10">
           <label :for="attribute.id" class="block text-sm font-medium text-gray-700">{{ attribute.label }} <span v-if="attribute.required" class="text-gray-400 font-normal pl-2">required</span></label>
-          <input type="text" :disabled="loading" :id="attribute.id" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-900 focus:border-gray-900 sm:text-sm" />
+          <input v-if="attribute.type === AttributeType.Date" type="date" :disabled="loading" :id="attribute.id" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-900 focus:border-gray-900 sm:text-sm" />
+          <select v-else-if="attribute.type === AttributeType.Bool" :disabled="loading" :id="attribute.id" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-900 focus:border-gray-900 sm:text-sm">
+            <option :value="true">true</option>
+            <option :value="false">false</option>
+          </select>
+          <select v-else-if="attribute.type === AttributeType.Enum" :disabled="loading" :id="attribute.id" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-900 focus:border-gray-900 sm:text-sm">
+            <option v-for="option in attribute.enumOptions" :key="option" :value="option">{{ option }}</option>
+          </select>
+          <textarea v-else-if="attribute.type === AttributeType.LongText" :disabled="loading" :id="attribute.id" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-900 focus:border-gray-900 sm:text-sm" />
+          <input v-else type="text" :disabled="loading" :id="attribute.id" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-900 focus:border-gray-900 sm:text-sm" />
         </div>
         <!-- Warning -->
         <div v-if="warning" class="px-4 md:px-10 text-sm text-red-500">
@@ -37,8 +46,8 @@
 import { PropType } from 'vue'
 import { ChevronRightIcon } from '@heroicons/vue/solid'
 import router from '../../router'
-import { Page } from '../../dashibaseConfig'
 import { initLoading, initCrud } from '../../utils/dashboard'
+import { Page, AttributeType } from '../../utils/config'
 
 const props = defineProps({
   loading: {
