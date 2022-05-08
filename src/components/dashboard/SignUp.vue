@@ -1,5 +1,5 @@
 <template>
-  <Placeholder v-if="!store.appName" />
+  <Placeholder v-if="!supabase" />
   <div v-else class="h-screen min-h-full flex flex-col justify-center py-12 sm:px-6 lg:px-8">
     <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
       <div class="bg-white py-8 px-4 shadow-center sm:rounded-lg sm:px-10">
@@ -51,17 +51,19 @@ import Placeholder from './Placeholder.vue'
 import AppLogo from '../branding/AppLogo.vue'
 import PoweredBy from '../branding/PoweredBy.vue'
 
-const intervalId = setInterval(() => {
-  if (supabase) {
-    clearInterval(intervalId)
-    const user = supabase.auth.user()
-    if (user) store.user = user
-    supabase.auth.onAuthStateChange((_, session) => {
-      store.user = session?.user as User
-    })
-    if (store.user.id) window.location.href = '/'
-  }
-}, 300)
+if (!supabase) {
+  const intervalId = setInterval(() => {
+    if (supabase) {
+      clearInterval(intervalId)
+      const user = supabase.auth.user()
+      if (user) store.user = user
+      supabase.auth.onAuthStateChange((_, session) => {
+        store.user = session?.user as User
+      })
+      if (store.user.id) window.location.href = '/'
+    }
+  }, 300)
+}
 
 const minPasswordLength = 6 // Set to minimum password length in Supabase
 const confirmEmail = true // Assuming confirm email is set to True in Supabase
