@@ -8,8 +8,7 @@
       <div v-for="attribute in page.attributes" :key="attribute.id">
         <div class="px-4 md:px-10">
           <label :for="attribute.id" class="block text-sm font-medium text-gray-700">{{ attribute.label }}</label>
-          <input type="text" :disabled="loading" :id="attribute.id" :value="items.length ? items[0][attribute.id] : null" @input="update(attribute.id, ($event.target as HTMLInputElement).value)" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-900 focus:border-gray-900 sm:text-sm" />
-        
+          
           <!-- If input is read-only -->
           <textarea v-if="(page.readonly || attribute.readonly) && attribute.type === AttributeType.LongText" readonly :id="attribute.id" :value="items.length ? items[0][attribute.id] : ''" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-0 focus:border-gray-300 sm:text-sm" />
           <input v-else-if="page.readonly || attribute.readonly" type="text" readonly :id="attribute.id" :value="items.length ? items[0][attribute.id] : ''" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-0 focus:border-gray-300 sm:text-sm" />
