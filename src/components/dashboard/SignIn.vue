@@ -56,14 +56,17 @@ import Placeholder from './Placeholder.vue'
 import AppLogo from '../branding/AppLogo.vue'
 import PoweredBy from '../branding/PoweredBy.vue'
 
-if (supabase) {
-  const user = supabase.auth.user()
-  if (user) store.user = user
-  supabase.auth.onAuthStateChange((_, session) => {
-    store.user = session?.user as User
-  })
-}
-if (store.user.id) window.location.href = '/'
+const intervalId = setInterval(() => {
+  if (supabase) {
+    clearInterval(intervalId)
+    const user = supabase.auth.user()
+    if (user) store.user = user
+    supabase.auth.onAuthStateChange((_, session) => {
+      store.user = session?.user as User
+    })
+    if (store.user.id) window.location.href = '/'
+  }
+}, 300)
 
 const loading = ref(false)
 const success = ref(false)

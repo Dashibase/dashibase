@@ -22,13 +22,17 @@ import SidePanel from './SidePanel.vue'
 import MainPanel from './MainPanel.vue'
 import Loading from './Loading.vue'
 
-if (supabase) {
-  const user = supabase.auth.user()
-  if (user) store.user = user
-  supabase.auth.onAuthStateChange((_, session) => {
-    store.user = session?.user as User
-  })
-}
+const intervalId = setInterval(() => {
+  if (supabase) {
+    clearInterval(intervalId)
+    const user = supabase.auth.user()
+    if (user) store.user = user
+    supabase.auth.onAuthStateChange((_, session) => {
+      store.user = session?.user as User
+    })
+    if (!store.user.id) window.location.href = '/signin'
+  }
+}, 300)
 
 const props = defineProps({
   pageId: {
@@ -39,7 +43,6 @@ const props = defineProps({
 
 const loading = ref(false)
 
-if (!store.user.id) window.location.href = '/signin'
 const route = useRoute()
 if (route.path === '/' && store.pages.length) window.location.href = `/${store.pages[0].page_id}`
 </script>
