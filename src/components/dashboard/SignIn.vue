@@ -1,5 +1,5 @@
 <template>
-  <Placeholder v-if="!config.name" />
+  <Placeholder v-if="!store.appName" />
   <div v-else class="h-screen min-h-full flex flex-col justify-center py-12 sm:px-6 lg:px-8">
     <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
       <div class="bg-white py-8 px-4 shadow-center sm:rounded-lg sm:px-10">
@@ -50,9 +50,8 @@
 import { ref } from 'vue'
 import { UserCircleIcon } from '@heroicons/vue/solid'
 import { User } from '@supabase/supabase-js'
-import { supabase } from '../../utils/supabase'
+import { supabase, isHostedByDashibase } from '../../utils/supabase'
 import { store } from '../../utils/store'
-import config from '../../dashibaseConfig'
 import Placeholder from './Placeholder.vue'
 import AppLogo from '../branding/AppLogo.vue'
 import PoweredBy from '../branding/PoweredBy.vue'

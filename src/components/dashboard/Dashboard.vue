@@ -5,7 +5,7 @@
       <div class="flex-1 min-w-0 bg-white sm:flex">
         <SidePanel :loading="loading" @update:loading="(value:boolean) => loading=value" />
         <MainPanel>
-          <router-view :view="views.find(view => view.view_id === viewId) || {}" :loading="loading" @update:loading="(value:boolean) => loading=value" />
+          <router-view :page="store.pages.find(page => page.page_id === pageId) || {}" :loading="loading" @update:loading="(value:boolean) => loading=value" />
         </MainPanel>
       </div>
     </div>
@@ -16,8 +16,9 @@
 import { ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { User } from '@supabase/supabase-js'
-import { supabase } from '../../utils/supabase'
+import { supabase, isHostedByDashibase } from '../../utils/supabase'
 import { store } from '../../utils/store'
+import { Page } from '../../utils/config'
 import config from '../../dashibaseConfig'
 import SidePanel from './SidePanel.vue'
 import MainPanel from './MainPanel.vue'
@@ -30,16 +31,15 @@ supabase.auth.onAuthStateChange((_, session) => {
 })
 
 const props = defineProps({
-  viewId: {
+  pageId: {
     type: String,
     default: '',
   }
 })
 
-const views = ref(config.views)
 const loading = ref(false)
 
 if (!store.user.id) window.location.href = '/signin'
 const route = useRoute()
-if (route.path === '/' && views.value.length) window.location.href = `/${views.value[0].view_id}`
+if (route.path === '/' && store.pages.length) window.location.href = `/${store.pages[0].page_id}`
 </script>

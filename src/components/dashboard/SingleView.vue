@@ -1,11 +1,11 @@
 <template>
   <div class="w-full">
     <div class="px-4 md:px-10 py-12 flex items-center">
-      <h1 class="text-2xl font-medium">{{ view.name }}</h1>
+      <h1 class="text-2xl font-medium">{{ page.name }}</h1>
     </div>
     <div class="flex flex-col gap-6">
       <!-- Attribute Inputs -->
-      <div v-for="attribute in view.attributes" :key="attribute.id">
+      <div v-for="attribute in page.attributes" :key="attribute.id">
         <div class="px-4 md:px-10">
           <label :for="attribute.id" class="block text-sm font-medium text-gray-700">{{ attribute.label }}</label>
           <input type="text" :disabled="loading" :id="attribute.id" :value="items.length ? items[0][attribute.id] : null" @input="update(attribute.id, ($event.target as HTMLInputElement).value)" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-900 focus:border-gray-900 sm:text-sm" />
@@ -29,7 +29,7 @@
 <script setup lang="ts">
 import { PropType } from 'vue'
 import router from '../../router'
-import { Page } from '../../dashibaseConfig'
+import { Page } from '../../utils/config'
 import { initLoading, initCrud } from '../../utils/dashboard'
 
 const props = defineProps({
@@ -37,14 +37,14 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-  view: {
+  page: {
     type: Object as PropType<Page>,
     required: true,
   },
 })
 
 const { loading } = initLoading(props.loading)
-const { view, warning, items, haveUnsavedChanges, getItems, upsertItem } = initCrud(loading, props.view)
+const { page, warning, items, haveUnsavedChanges, getItems, upsertItem } = initCrud(loading, props.page)
 
 function update (attributeId:string, newVal:string) {
   items.value[0][attributeId] = newVal

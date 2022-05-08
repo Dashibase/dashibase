@@ -9,6 +9,7 @@ import {
 import * as _ from 'lodash'
 import { supabase } from './supabase'
 import { store } from './store'
+import { Page } from './config'
 import router from '../router'
 
 /*
@@ -33,32 +34,32 @@ export function initLoading (loading:boolean) {
 /*
 Initialize CRUD functions and related variables
 */
-export function initCrud (loading:WritableComputedRef<boolean>, view:any, maxItems:number=10) {
+export function initCrud (loading:WritableComputedRef<boolean>, page:Page, maxItems:number=10) {
   // warning will be displayed upon any CRUD errors
   const warning = ref('')
   // items stores the retrieved items when reading
-  const items = ref([] as any[])
+  const items = ref([] as {[k: string]: any}[] | {[k: string]: any})
   // total number of items in Supabase table
   const itemsCount = ref(0)
   // haveUnsavedChanges is used to denote if changes have been made by the user
   const haveUnsavedChanges = ref(false)
 
   // properties for pagination
-  const page = ref(1)
-  const maxPage = computed (() => {
+  const paginationNum = ref(1)
+  const maxPagination = computed (() => {
     return Math.max(1, Math.ceil(itemsCount.value / maxItems))
   })
-  const pages = computed(() => {
-    return _.range(1, maxPage.value + 1).map((i:number) => {
+  const paginationList = computed(() => {
+    return _.range(1, maxPagination.value + 1).map((i:number) => {
       return {
         label: i.toString(),
         value: i,
       }
     })
   })
-  watch(page, async (currentPage) => {
-    if (currentPage === 1) {
-      let storedItems = window.localStorage.getItem(view.table_id)
+  watch(paginationNum, async (currentPagination) => {
+    if (currentPagination === 1) {
+      let storedItems = window.localStorage.getItem(page.table_id)
       if (storedItems) {
         const storedItemsJson = JSON.parse(storedItems)
         items.value = storedItemsJson.data
@@ -66,10 +67,10 @@ export function initCrud (loading:WritableComputedRef<boolean>, view:any, maxIte
       }
     }
     loading.value = true
-    const startRow = Math.max(0, currentPage - 1) * maxItems
+    const startRow = Math.max(0, currentPagination - 1) * maxItems
     const { data, error } = await supabase
-      .from(view.table_id)
-      .select(view.attributes.map((attribute:any) => attribute.id).join(',') + ',id', { count: 'exact' })
+      .from(page.table_id)
+      .select(page.attributes.map((attribute:any) => attribute.id).join(',') + ',id', { count: 'exact' })
       .eq('user', store.user.id)
       .range(startRow, startRow + maxItems - 1)
     loading.value = false
@@ -81,12 +82,12 @@ export function initCrud (loading:WritableComputedRef<boolean>, view:any, maxIte
   })
 
   /*
-  Insert a new item into table named view.table_id
+  Insert a new item into table named <page.table_id>
   */
   async function createItem () {
     loading.value = true
     // Check required attributes
-    const unfilledRequiredAttributes = view.attributes.filter((attribute:any) => {
+    const unfilledRequiredAttributes = page.attributes.filter((attribute:any) => {
       if (attribute.required) {
         const inputEl = document.getElementById(attribute.id) as HTMLInputElement
         if (inputEl?.value) return false
@@ -101,14 +102,14 @@ export function initCrud (loading:WritableComputedRef<boolean>, view:any, maxIte
       return
     }
     // Construct new item
-    const newItem = Object.fromEntries(view.attributes.map((attribute:any) => {
+    const newItem = Object.fromEntries(page.attributes.map((attribute:any) => {
       const inputEl = document.getElementById(attribute.id) as HTMLInputElement
       return [attribute.id, inputEl?.value]
     }))
     newItem.user = store.user.id
     // Insert new item
     const { error } = await supabase
-      .from(view.table_id)
+      .from(page.table_id)
       .insert([
         newItem
       ])
@@ -117,22 +118,22 @@ export function initCrud (loading:WritableComputedRef<boolean>, view:any, maxIte
     if (error) {
       warning.value = error.message
     } else {
-      window.localStorage.removeItem(view.table_id)
-      router.push({path: `/${view.view_id}`})
+      window.localStorage.removeItem(page.table_id)
+      router.push({path: `/${page.page_id}`})
     }
   }
 
   /*
-  Retrieve row from view.table_id with id corresponding to itemId
+  Retrieve row from <page.table_id> with id corresponding to itemId
   */
   async function getItem (itemId:string, refresh:boolean=false) {
-    if (!view.attributes) return
+    if (!page.attributes) return
     let storedItem = window.localStorage.getItem(itemId)
     if (!storedItem || refresh) {
       loading.value = true
       const { data, error } = await supabase
-        .from(view.table_id)
-        .select(view.attributes.map((attribute:any) => attribute.id).join(',') + ',id')
+        .from(page.table_id)
+        .select(page.attributes.map((attribute:any) => attribute.id).join(',') + ',id')
         .eq('id', itemId)
         .single()
         loading.value = false
@@ -148,16 +149,16 @@ export function initCrud (loading:WritableComputedRef<boolean>, view:any, maxIte
   }
 
   /*
-  Retrieve all rows from view.table_id with user corresponding to user_id
+  Retrieve all rows from <page.table_id> with user corresponding to user_id
   */
   async function getItems (max:number=maxItems, refresh:boolean=false) {
-    if (!view.attributes) return
-    let storedItems = window.localStorage.getItem(view.table_id)
+    if (!page.attributes) return
+    let storedItems = window.localStorage.getItem(page.table_id)
     if (!storedItems || refresh) {
       loading.value = true
       const { data, error, count } = await supabase
-        .from(view.table_id)
-        .select(view.attributes.map((attribute:any) => attribute.id).join(',') + ',id', { count: 'exact' })
+        .from(page.table_id)
+        .select(page.attributes.map((attribute:any) => attribute.id).join(',') + ',id', { count: 'exact' })
         .eq('user', store.user.id)
         .range(0, max - 1)
         loading.value = false
@@ -166,7 +167,7 @@ export function initCrud (loading:WritableComputedRef<boolean>, view:any, maxIte
       } else {
         items.value = data
         if (count) itemsCount.value = count
-        window.localStorage.setItem(view.table_id, JSON.stringify({
+        window.localStorage.setItem(page.table_id, JSON.stringify({
           count,
           data,
         }));
@@ -182,39 +183,39 @@ export function initCrud (loading:WritableComputedRef<boolean>, view:any, maxIte
   }
 
   /*
-  Upsert row into view.table_id with user corresponding to user_id and id corresponding to itemId
+  Upsert row into <page.table_id> with user corresponding to user_id and id corresponding to itemId
   */
   async function upsertItem (itemId:string='') {
     loading.value = true
-    const newItem = Object.fromEntries(view.attributes.map((attribute:any) => {
+    const newItem = Object.fromEntries(page.attributes.map((attribute:any) => {
       const inputEl = document.getElementById(attribute.id) as HTMLInputElement
       return [attribute.id, inputEl?.value]
     }))
     newItem.user = store.user.id
     if (itemId) newItem.id = itemId
-    else if (items.value[0].id) newItem.id = items.value[0].id
+    else if ((items.value as {[k: string]: any}[])[0].id) newItem.id = (items.value as {[k: string]: any}[])[0].id
     // Run upsert since user may or may not have inserted before
     const { error } = await supabase
-      .from(view.table_id)
+      .from(page.table_id)
       .upsert([newItem])
     loading.value = false
     if (error) {
       warning.value = error.message
     } else {
       haveUnsavedChanges.value = false
-      window.localStorage.removeItem(view.table_id)
-      router.push({path: `/${view.view_id}`})
+      window.localStorage.removeItem(page.table_id)
+      router.push({path: `/${page.page_id}`})
     }
   }
 
   /*
-  Delete row from view.table_id with id corresponding to itemId
+  Delete row from <page.table_id> with id corresponding to itemId
   */
   async function deleteItem (itemId:string, event:Event) {
     event.preventDefault()
     loading.value = true
     const { error } = await supabase
-      .from(view.table_id)
+      .from(page.table_id)
       .delete()
       .match({ id: itemId })
     if (error) {
@@ -225,12 +226,12 @@ export function initCrud (loading:WritableComputedRef<boolean>, view:any, maxIte
   }
 
   return {
-    view,
+    page,
     warning,
     items,
-    page,
-    maxPage,
-    pages,
+    paginationNum,
+    maxPagination,
+    paginationList,
     haveUnsavedChanges,
     createItem,
     getItem,
