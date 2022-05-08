@@ -1,5 +1,5 @@
 <template>
-  <Placeholder v-if="!store.appName" />
+  <Placeholder v-if="!initialized" />
   <Loading v-model="loading" />
   <div v-if="supabase.auth.user()" class="relative min-h-screen flex flex-col">
     <div class="flex-grow w-full max-w-7xl mx-auto sm:flex border">
@@ -23,6 +23,8 @@ import SidePanel from './SidePanel.vue'
 import MainPanel from './MainPanel.vue'
 import Loading from './Loading.vue'
 
+const initialized = ref(false)
+
 if (!supabase) {
   const intervalId = setInterval(() => {
     if (supabase) {
@@ -32,6 +34,7 @@ if (!supabase) {
       supabase.auth.onAuthStateChange((_, session) => {
         store.user = session?.user as User
       })
+      initialized.value = true
       if (!store.user.id) window.location.href = '/signin'
     }
   }, 300)
@@ -41,6 +44,7 @@ if (!supabase) {
   supabase.auth.onAuthStateChange((_, session) => {
     store.user = session?.user as User
   })
+  initialized.value = true
   if (!store.user.id) window.location.href = '/signin'
 }
 

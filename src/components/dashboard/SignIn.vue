@@ -1,5 +1,5 @@
 <template>
-  <Placeholder v-if="!store.appName" />
+  <Placeholder v-if="!initialized" />
   <div v-else class="h-screen min-h-full flex flex-col justify-center py-12 sm:px-6 lg:px-8">
     <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
       <div class="bg-white py-8 px-4 shadow-center sm:rounded-lg sm:px-10">
@@ -56,6 +56,8 @@ import Placeholder from './Placeholder.vue'
 import AppLogo from '../branding/AppLogo.vue'
 import PoweredBy from '../branding/PoweredBy.vue'
 
+const initialized = ref(false)
+
 if (!supabase) {
   const intervalId = setInterval(() => {
     if (supabase) {
@@ -65,6 +67,7 @@ if (!supabase) {
       supabase.auth.onAuthStateChange((_, session) => {
         store.user = session?.user as User
       })
+      initialized.value = true
       if (store.user.id) window.location.href = '/'
     }
   }, 300)
@@ -74,6 +77,7 @@ if (!supabase) {
   supabase.auth.onAuthStateChange((_, session) => {
     store.user = session?.user as User
   })
+  initialized.value = true
   if (store.user.id) window.location.href = '/'
 }
 
