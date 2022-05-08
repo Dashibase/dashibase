@@ -35,6 +35,13 @@ if (!supabase) {
       if (!store.user.id) window.location.href = '/signin'
     }
   }, 300)
+} else {
+  const user = supabase.auth.user()
+  if (user) store.user = user
+  supabase.auth.onAuthStateChange((_, session) => {
+    store.user = session?.user as User
+  })
+  if (!store.user.id) window.location.href = '/signin'
 }
 
 const props = defineProps({
