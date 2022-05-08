@@ -51,11 +51,13 @@ import Placeholder from './Placeholder.vue'
 import AppLogo from '../branding/AppLogo.vue'
 import PoweredBy from '../branding/PoweredBy.vue'
 
-const user = supabase.auth.user()
-if (user) store.user = user
-supabase.auth.onAuthStateChange((_, session) => {
-  store.user = session?.user as User
-})
+if (supabase) {
+  const user = supabase.auth.user()
+  if (user) store.user = user
+  supabase.auth.onAuthStateChange((_, session) => {
+    store.user = session?.user as User
+  })
+}
 if (store.user.id) window.location.href = '/'
 
 const minPasswordLength = 6 // Set to minimum password length in Supabase

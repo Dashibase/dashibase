@@ -22,11 +22,13 @@ import SidePanel from './SidePanel.vue'
 import MainPanel from './MainPanel.vue'
 import Loading from './Loading.vue'
 
-const user = supabase.auth.user()
-if (user) store.user = user
-supabase.auth.onAuthStateChange((_, session) => {
-  store.user = session?.user as User
-})
+if (supabase) {
+  const user = supabase.auth.user()
+  if (user) store.user = user
+  supabase.auth.onAuthStateChange((_, session) => {
+    store.user = session?.user as User
+  })
+}
 
 const props = defineProps({
   pageId: {

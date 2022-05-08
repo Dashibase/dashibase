@@ -7,13 +7,7 @@ export const isHostedByDashibase = import.meta.env.VITE_HOSTED_BY_DASHIBASE === 
 let supabaseUrl = config.supabase_url
 let supabaseAnonKey = config.supabase_anon_key
 
-let baseSupabaseUrl = config.supabase_url
-let baseSupabaseAnonKey = config.supabase_anon_key
-
-let baseSupabase = undefined as unknown as SupabaseClient
 let supabase = undefined as unknown as SupabaseClient
-
-// MIGHT NOT NEED TO EXPORT baseSupabase
 
 let __tla = new Promise(async () => {
   // If not self-hosted, dynamically retrieve Supabase URL and Anon Key
@@ -27,16 +21,14 @@ let __tla = new Promise(async () => {
         appId = host.split('.beta.dashibase.com')[0]
       }
     }
-  
-    baseSupabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
-    baseSupabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
-
-    baseSupabase = createClient(baseSupabaseUrl, baseSupabaseAnonKey)
 
     supabaseUrl = window.localStorage.getItem('dashibase.supabase_url') as string
     supabaseAnonKey = window.localStorage.getItem('dashibase.supabase_anon_key') as string
 
     if (!supabaseUrl || !supabaseAnonKey) {
+      const baseSupabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
+      const baseSupabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
+      const baseSupabase = createClient(baseSupabaseUrl, baseSupabaseAnonKey)
       const response = await baseSupabase.from('dashboards').select('supabase_url,supabase_anon_key,app_name,id').eq('app_id', appId).single()
       if (response.error) console.error(response.error.message)
       supabaseUrl = response.data.supabase_url as string
@@ -93,4 +85,4 @@ let __tla = new Promise(async () => {
   supabase = createClient(supabaseUrl, supabaseAnonKey)
 })
 
-export { supabase, baseSupabase, __tla }
+export { supabase, __tla }
