@@ -27,29 +27,28 @@ let __tla = new Promise(async () => {
         appId = host.split('.beta.dashibase.com')[0]
       }
     }
-    console.log(appId)
   
     baseSupabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
     baseSupabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
 
     baseSupabase = createClient(baseSupabaseUrl, baseSupabaseAnonKey)
 
-    supabaseUrl = window.localStorage.getItem('supabase_url') as string
-    supabaseAnonKey = window.localStorage.getItem('supabase_anon_key') as string
+    supabaseUrl = window.localStorage.getItem('dashibase.supabase_url') as string
+    supabaseAnonKey = window.localStorage.getItem('dashibase.supabase_anon_key') as string
 
     if (!supabaseUrl || !supabaseAnonKey) {
       const response = await baseSupabase.from('dashboards').select('supabase_url,supabase_anon_key,app_name,id').eq('app_id', appId).single()
       if (response.error) console.error(response.error.message)
       supabaseUrl = response.data.supabase_url as string
       supabaseAnonKey = response.data.supabase_anon_key as string
-      window.localStorage.setItem('supabase_url', supabaseUrl)
-      window.localStorage.setItem('supabase_anon_key', supabaseAnonKey)
-      window.localStorage.setItem('app_name', response.data.app_name)
-      window.localStorage.setItem('dashboard_id', response.data.id)
+      window.localStorage.setItem('dashibase.supabase_url', supabaseUrl)
+      window.localStorage.setItem('dashibase.supabase_anon_key', supabaseAnonKey)
+      window.localStorage.setItem('dashibase.app_name', response.data.app_name)
+      window.localStorage.setItem('dashibase.dashboard_id', response.data.id)
       document.title = response.data.app_name
       const { data, error } = await baseSupabase.from('views').select('id,label,table_id,attributes,mode,readonly').eq('dashboard', response.data.id)
       if (error) console.error(error.message)
-      window.localStorage.setItem('pages', JSON.stringify(data?.map(view => {
+      window.localStorage.setItem('dashibase.pages', JSON.stringify(data?.map(view => {
         return {
           name: view.label,
           page_id: view.table_id, // TODO: Support page_id

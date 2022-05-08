@@ -162,6 +162,8 @@ export function initCrud (loading:WritableComputedRef<boolean>, page:Page, maxIt
         .eq('user', store.user.id)
         .range(0, max - 1)
         loading.value = false
+      console.log(data)
+      console.log(count)
       if (error) {
         warning.value = error.message
       } else {
