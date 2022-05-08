@@ -12,8 +12,8 @@ const routes = [
     name: "Home",
     component: Main,
   }, {
-    path: "/:viewId",
-    name: "View",
+    path: "/:pageId",
+    name: "Page",
     component: Main,
     props: true,
     children: [
