@@ -9,6 +9,22 @@
         <div class="px-4 md:px-10">
           <label :for="attribute.id" class="block text-sm font-medium text-gray-700">{{ attribute.label }}</label>
           <input type="text" :disabled="loading" :id="attribute.id" :value="items.length ? items[0][attribute.id] : null" @input="update(attribute.id, ($event.target as HTMLInputElement).value)" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-900 focus:border-gray-900 sm:text-sm" />
+        
+          <!-- If input is read-only -->
+          <textarea v-if="(page.readonly || attribute.readonly) && attribute.type === AttributeType.LongText" readonly :id="attribute.id" :value="items.length ? items[0][attribute.id] : ''" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-0 focus:border-gray-300 sm:text-sm" />
+          <input v-else-if="page.readonly || attribute.readonly" type="text" readonly :id="attribute.id" :value="items.length ? items[0][attribute.id] : ''" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-0 focus:border-gray-300 sm:text-sm" />
+
+          <!-- Else input is writeable -->
+          <input v-else-if="attribute.type === AttributeType.Date" type="date" :disabled="loading" :id="attribute.id" :value="items.length ? items[0][attribute.id] : ''" @input="update(attribute.id, ($event.target as HTMLInputElement).value)" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-900 focus:border-gray-900 sm:text-sm" />
+          <select v-else-if="attribute.type === AttributeType.Bool" :disabled="loading" :id="attribute.id" :value="items.length ? items[0][attribute.id] : true" @input="update(attribute.id, ($event.target as HTMLInputElement).value)" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-900 focus:border-gray-900 sm:text-sm">
+            <option :value="true">true</option>
+            <option :value="false">false</option>
+          </select>
+          <select v-else-if="attribute.type === AttributeType.Enum" :disabled="loading" :id="attribute.id" :value="items.length ? items[0][attribute.id] : (attribute.enumOptions ? attribute.enumOptions[0] : '')" @input="update(attribute.id, ($event.target as HTMLInputElement).value)" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-900 focus:border-gray-900 sm:text-sm">
+            <option v-for="option in attribute.enumOptions" :key="option" :value="option">{{ option }}</option>
+          </select>
+          <textarea v-else-if="attribute.type === AttributeType.LongText" :disabled="loading" :id="attribute.id" :value="items.length ? items[0][attribute.id] : ''" @input="update(attribute.id, ($event.target as HTMLInputElement).value)" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-900 focus:border-gray-900 sm:text-sm" />
+          <input v-else type="text" :disabled="loading" :id="attribute.id" :value="items.length ? items[0][attribute.id] : ''" @input="update(attribute.id, ($event.target as HTMLInputElement).value)" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-900 focus:border-gray-900 sm:text-sm" />
         </div>
       </div>
       <!-- Warning -->
@@ -29,7 +45,7 @@
 <script setup lang="ts">
 import { PropType } from 'vue'
 import router from '../../router'
-import { Page } from '../../utils/config'
+import { Page, AttributeType } from '../../utils/config'
 import { initLoading, initCrud } from '../../utils/dashboard'
 
 const props = defineProps({

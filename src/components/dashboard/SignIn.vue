@@ -50,7 +50,7 @@
 import { ref } from 'vue'
 import { UserCircleIcon } from '@heroicons/vue/solid'
 import { User } from '@supabase/supabase-js'
-import { supabase, isHostedByDashibase } from '../../utils/supabase'
+import { supabase } from '../../utils/supabase'
 import { store } from '../../utils/store'
 import Placeholder from './Placeholder.vue'
 import AppLogo from '../branding/AppLogo.vue'
