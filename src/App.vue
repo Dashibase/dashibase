@@ -9,11 +9,11 @@ import { Page } from './utils/config'
 import { isHostedByDashibase } from './utils/supabase'
 
 if (isHostedByDashibase) {
-  store.appName = window.localStorage.getItem('dashibase.app_name') as string
-  store.pages = JSON.parse(window.localStorage.getItem('dashibase.pages') as string) as Page[]
+  store.appName = window.localStorage.getItem('dashibase.app_name') as string || 'Dashibase'
+  store.pages = JSON.parse(window.localStorage.getItem('dashibase.pages') as string) as Page[] || []
 } else {
-  store.appName = config.name
-  store.pages = config.pages
+  store.appName = config.name || 'Dashibase'
+  store.pages = config.pages || []
 }
 
 document.title = store.appName
