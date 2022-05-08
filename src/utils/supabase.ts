@@ -19,7 +19,15 @@ let __tla = new Promise(async () => {
   // If not self-hosted, dynamically retrieve Supabase URL and Anon Key
   if (isHostedByDashibase) {
     let appId = 'demo'
-    if (process.env.NODE_ENV !== 'development') appId = window.location.host.split('.app.dashibase.com')[0]
+    if (process.env.NODE_ENV !== 'development') {
+      const host = window.location.host
+      if (host.includes('.app.dashibase.com')) {
+        appId = host.split('.app.dashibase.com')[0]
+      } else if (host.includes('.beta.dashibase.com')) {
+        appId = host.split('.beta.dashibase.com')[0]
+      }
+    }
+    console.log(appId)
   
     baseSupabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
     baseSupabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
