@@ -1,5 +1,6 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import config from '../dashibaseConfig'
+import { store } from './store'
 import { Attribute, AttributeType, Page } from './config'
 
 export const isHostedByDashibase = import.meta.env.VITE_HOSTED_BY_DASHIBASE === 'true' || false
@@ -37,6 +38,7 @@ let __tla = new Promise(async () => {
       window.localStorage.setItem('dashibase.supabase_anon_key', supabaseAnonKey)
       window.localStorage.setItem('dashibase.app_name', response.data.app_name)
       window.localStorage.setItem('dashibase.dashboard_id', response.data.id)
+      store.appName = response.data.app_name
       document.title = response.data.app_name
       const { data, error } = await baseSupabase.from('views').select('id,label,table_id,attributes,mode,readonly').eq('dashboard', response.data.id)
       if (error) console.error(error.message)

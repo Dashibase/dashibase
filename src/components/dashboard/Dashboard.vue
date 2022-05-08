@@ -37,7 +37,7 @@ if (!supabase) {
       initialized.value = true
       if (!store.user.id) window.location.href = '/signin'
     }
-  }, 300)
+  }, 100)
 } else {
   const user = supabase.auth.user()
   if (user) store.user = user
