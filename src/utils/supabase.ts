@@ -56,7 +56,7 @@ let __tla = new Promise(async () => {
           table_id: view.table_id,
           mode: view.mode,
           readonly: view.readonly,
-          attributes: view.attributes.map((attribute:any) => {
+          attributes: view.attributes ? view.attributes.map((attribute:any) => {
             let type = AttributeType.Text
             switch (attribute.type) {
               case 'textarea':
@@ -69,7 +69,7 @@ let __tla = new Promise(async () => {
                 type = AttributeType.Bool
                 break
               default:
-                if (attribute.type.startsWith('enum')) {
+                if (attribute.type && attribute.type.startsWith('enum')) {
                   type = AttributeType.Enum
                 }
             }
@@ -85,7 +85,7 @@ let __tla = new Promise(async () => {
               type,
               enumOptions,
             } as Attribute
-          }),
+          }) : [],
         } as Page
       })))
     }
