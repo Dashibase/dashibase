@@ -49,7 +49,7 @@
           <tbody class="bg-white divide-y divide-gray-100">
             <a v-for="(item, i) in items" :key="item.id" class="table-row hover:bg-gray-50 cursor-pointer" :href="`/${page.page_id}/view/${item.id}`">
               <td class="hidden md:table-cell w-10 px-2 pl-4 py-3 whitespace-nowrap text-sm text-gray-500 text-center">
-                {{ (i as number) + 1 + ((paginationNum - 1) * maxItems) }}
+                {{ i + 1 + ((paginationNum - 1) * maxItems) }}
               </td>
               <td v-for="attribute in page.attributes" :key="attribute.id"
                 class="px-2 py-3 max-w-0 whitespace-nowrap text-sm font-medium text-gray-900">

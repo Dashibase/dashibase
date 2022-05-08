@@ -38,7 +38,7 @@ export function initCrud (loading:WritableComputedRef<boolean>, page:Page, maxIt
   // warning will be displayed upon any CRUD errors
   const warning = ref('')
   // items stores the retrieved items when reading
-  const items = ref([] as {[k: string]: any}[] | {[k: string]: any})
+  const items = ref([] as {[k: string]: any}[])
   // total number of items in Supabase table
   const itemsCount = ref(0)
   // haveUnsavedChanges is used to denote if changes have been made by the user
@@ -140,11 +140,11 @@ export function initCrud (loading:WritableComputedRef<boolean>, page:Page, maxIt
       if (error) {
         warning.value = error.message
       } else {
-        items.value = data
+        items.value = [data]
         window.localStorage.setItem(itemId, JSON.stringify(data))
       }
     } else {
-      items.value = JSON.parse(storedItem)
+      items.value = [JSON.parse(storedItem)]
     }
   }
 
