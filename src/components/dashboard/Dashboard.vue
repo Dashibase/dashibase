@@ -1,5 +1,5 @@
 <template>
-  <Placeholder v-if="!supabase" />
+  <Placeholder v-if="!store.appName" />
   <Loading v-model="loading" />
   <div v-if="supabase.auth.user()" class="relative min-h-screen flex flex-col">
     <div class="flex-grow w-full max-w-7xl mx-auto sm:flex border">
