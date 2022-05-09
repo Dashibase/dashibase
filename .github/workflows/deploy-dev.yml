@@ -2,9 +2,7 @@ name: Deploy
 
 on:
   push:
-    branches: [ deploy-client, dev ]
-  pull_request:
-    branches: [ deploy-client, dev ]
+    branches: [ dev ]
   workflow_dispatch:
 
 jobs:
