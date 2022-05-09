@@ -1,5 +1,5 @@
 <template>
-  <component :is="componentMap[view.mode]" :view="view" :loading="loading" @update:loading="(value:boolean) => loading=value" />
+  <component :is="componentMap[page.mode]" :page="page" :loading="loading" @update:loading="(value:boolean) => loading=value" />
 </template>
 
 <script setup lang="ts">
@@ -7,11 +7,11 @@ import { PropType } from 'vue'
 import CardView from './CardView.vue'
 import ListView from './ListView.vue'
 import SingleView from './SingleView.vue'
-import { Page } from '../../dashibaseConfig'
+import { Page } from '../../utils/config'
 import { initLoading, initCrud } from '../../utils/dashboard'
 
 const props = defineProps({
-  view: {
+  page: {
     type: Object as PropType<Page>,
     required: true,
   },
@@ -28,5 +28,5 @@ const componentMap = {
 } as any
 
 const { loading } = initLoading(props.loading)
-const { view } = initCrud(loading, props.view)
+const { page } = initCrud(loading, props.page)
 </script>

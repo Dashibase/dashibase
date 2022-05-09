@@ -6,10 +6,10 @@ const DASHIBASE_CONFIG:Config = {
   name: "My Dashboard",
   supabase_url: "https://YOUR_SUPABASE_URL.supabase.co",
   supabase_anon_key: "YOUR_SUPABASE_ANON_KEY",
-  views: [
+  pages: [
     {
       name: "My Page",
-      view_id: "my_page",
+      page_id: "my_page",
       table_id: "my_table",
       mode: "list",
       attributes: [

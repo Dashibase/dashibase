@@ -1,5 +1,5 @@
 <template>
-  <Placeholder v-if="!config.name" />
+  <Placeholder v-if="!initialized" />
   <div v-else class="h-screen min-h-full flex flex-col justify-center py-12 sm:px-6 lg:px-8">
     <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
       <div class="bg-white py-8 px-4 shadow-center sm:rounded-lg sm:px-10">
@@ -52,17 +52,34 @@ import { UserCircleIcon } from '@heroicons/vue/solid'
 import { User } from '@supabase/supabase-js'
 import { supabase } from '../../utils/supabase'
 import { store } from '../../utils/store'
-import config from '../../dashibaseConfig'
 import Placeholder from './Placeholder.vue'
 import AppLogo from '../branding/AppLogo.vue'
 import PoweredBy from '../branding/PoweredBy.vue'
 
-const user = supabase.auth.user()
-if (user) store.user = user
-supabase.auth.onAuthStateChange((_, session) => {
-  store.user = session?.user as User
-})
-if (store.user.id) window.location.href = '/'
+const initialized = ref(false)
+
+if (!supabase) {
+  const intervalId = setInterval(() => {
+    if (supabase) {
+      clearInterval(intervalId)
+      const user = supabase.auth.user()
+      if (user) store.user = user
+      supabase.auth.onAuthStateChange((_, session) => {
+        store.user = session?.user as User
+      })
+      initialized.value = true
+      if (store.user.id) window.location.href = '/'
+    }
+  }, 100)
+} else {
+  const user = supabase.auth.user()
+  if (user) store.user = user
+  supabase.auth.onAuthStateChange((_, session) => {
+    store.user = session?.user as User
+  })
+  initialized.value = true
+  if (store.user.id) window.location.href = '/'
+}
 
 const loading = ref(false)
 const success = ref(false)
