@@ -31,7 +31,10 @@ let __tla = new Promise(async () => {
       const baseSupabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
       const baseSupabase = createClient(baseSupabaseUrl, baseSupabaseAnonKey)
       const response = await baseSupabase.from('dashboards').select('supabase_url,supabase_anon_key,app_name,id').eq('app_id', appId).single()
-      if (response.error) console.error(response.error.message)
+      if (response.error) {
+        console.error(response.error.message)
+        return
+      }
       supabaseUrl = response.data.supabase_url as string
       supabaseAnonKey = response.data.supabase_anon_key as string
       window.localStorage.setItem('dashibase.supabase_url', supabaseUrl)
@@ -41,7 +44,10 @@ let __tla = new Promise(async () => {
       store.appName = response.data.app_name
       document.title = response.data.app_name
       const { data, error } = await baseSupabase.from('views').select('id,label,table_id,attributes,mode,readonly').eq('dashboard', response.data.id)
-      if (error) console.error(error.message)
+      if (error) {
+        console.error(error.message)
+        return
+      }
       window.localStorage.setItem('dashibase.pages', JSON.stringify(data?.map(view => {
         return {
           name: view.label,
