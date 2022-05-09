@@ -1,13 +1,15 @@
 <template>
   <Placeholder v-if="!initialized" />
-  <Loading v-model="loading" />
-  <div v-if="supabase.auth.user()" class="relative min-h-screen flex flex-col">
-    <div class="flex-grow w-full max-w-7xl mx-auto sm:flex border">
-      <div class="flex-1 min-w-0 bg-white sm:flex">
-        <SidePanel :loading="loading" @update:loading="(value:boolean) => loading=value" />
-        <MainPanel>
-          <router-view :page="store.pages.find(page => page.page_id === pageId) || {}" :loading="loading" @update:loading="(value:boolean) => loading=value" />
-        </MainPanel>
+  <div v-else>
+    <Loading v-model="loading" />
+    <div v-if="supabase.auth.user()" class="relative min-h-screen flex flex-col">
+      <div class="flex-grow w-full max-w-7xl mx-auto sm:flex border">
+        <div class="flex-1 min-w-0 bg-white sm:flex">
+          <SidePanel :loading="loading" @update:loading="(value:boolean) => loading=value" />
+          <MainPanel>
+            <router-view :page="store.pages.find(page => page.page_id === pageId) || {}" :loading="loading" @update:loading="(value:boolean) => loading=value" />
+          </MainPanel>
+        </div>
       </div>
     </div>
   </div>
