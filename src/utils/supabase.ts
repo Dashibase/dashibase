@@ -56,19 +56,13 @@ let __tla = new Promise(async () => {
           mode: view.mode,
           readonly: view.readonly,
           attributes: view.attributes ? view.attributes.map((attribute:any) => {
-            let type = attribute.type || AttributeType.Text
-            let enumOptions = [] as string[]
-            if (attribute.type.startsWith('ENUM')) {
-              type = AttributeType.Enum
-              enumOptions = attribute.type.slice(5, -1).split(',')
-            }
             return {
               id: attribute.id,
               label: attribute.label,
               required: attribute.required,
               readonly: attribute.readonly,
-              type,
-              enumOptions,
+              type: attribute.type || AttributeType.Text,
+              enumOptions: attribute.enumOptions || []
             } as Attribute
           }) : [],
         } as Page
