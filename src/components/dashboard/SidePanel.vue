@@ -25,11 +25,11 @@
                     {{ store.user?.email || '' }}
                   </div>
                 </a>
-                <!-- Views -->
+                <!-- Pages -->
                 <div class="flex flex-col divide-y border border-x-0 text-gray-800">
-                  <template v-for="view in views" :key="view.name" >
+                  <template v-for="page in store.pages" :key="page.name" >
                     <template class="block hover:bg-gray-100 font-medium">
-                      <a :href="`/${view.view_id}`" class="px-4 sm:px-6 py-4 block w-full truncate">{{ view.name }}</a>
+                      <a :href="`/${page.page_id}`" class="px-4 sm:px-6 py-4 block w-full truncate">{{ page.name }}</a>
                     </template>
                   </template>
                 </div>
@@ -68,11 +68,11 @@
                 {{ store.user?.email || '' }}
               </div>
             </a>
-            <!-- Views -->
+            <!-- Pages -->
             <div class="flex flex-col divide-y border border-x-0 text-gray-800">
-              <template v-for="view in views" :key="view.name" >
+              <template v-for="page in store.pages" :key="page.name" >
                 <template class="block hover:bg-gray-100 font-medium">
-                  <a :href="`/${view.view_id}`" class="px-4 sm:px-6 py-4 block w-full truncate">{{ view.name }}</a>
+                  <a :href="`/${page.page_id}`" class="px-4 sm:px-6 py-4 block w-full truncate">{{ page.name }}</a>
                 </template>
               </template>
               <a class="cursor-pointer hover:bg-gray-100 font-medium px-4 sm:px-6 py-4 block w-full truncate" @click="signOut">Sign out</a>
@@ -85,7 +85,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { PropType, ref } from 'vue'
 import {
   Popover,
   PopoverButton,
@@ -98,7 +98,6 @@ import {
 } from '@heroicons/vue/solid'
 import { store } from '../../utils/store'
 import { supabase } from '../../utils/supabase'
-import config from '../../dashibaseConfig'
 import AppLogo from '../branding/AppLogo.vue'
 import { initLoading } from '../../utils/dashboard'
 
@@ -109,15 +108,13 @@ const props = defineProps({
   },
 })
 
-const appName = ref(config.name)
-const views = ref(config.views)
-
 const { loading } = initLoading(props.loading)
 
 async function signOut () {
   loading.value = true
   window.localStorage.clear()
   const { error } = await supabase.auth.signOut()
+  loading.value = false
   if (error) console.error(error)
   else window.location.href = '/signin'
 }

@@ -17,7 +17,7 @@ We currently support 3 display modes
 */
 export interface Page {
   name: string; // Name of the page that will be seen by the user
-  view_id: string; // View ID, used for the URL
+  page_id: string; // View ID, used for the URL
   table_id: string; // Name of the Supabase table
   mode: string; // One of ['single', 'list', 'card']
   readonly: boolean; // Whether this page is read-only
@@ -52,5 +52,5 @@ export interface Config {
   name: string; // Name of your app or dashboard - shown in title of the webpage and in `components/branding/AppLogo.vue`
   supabase_url: string; // Supabase credentials - see https://app.supabase.io/project/YOUR_PROJECT_ID/settings/api
   supabase_anon_key: string; // Supabase credentials - see https://app.supabase.io/project/YOUR_PROJECT_ID/settings/api
-  views: Array<Page>; // Array of Views
+  pages: Array<Page>; // Array of Views
 }
