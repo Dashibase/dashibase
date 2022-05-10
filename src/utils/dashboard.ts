@@ -187,6 +187,21 @@ export function initCrud (loading:WritableComputedRef<boolean>, page:Page, maxIt
   */
   async function upsertItem (itemId:string='') {
     loading.value = true
+    // Check required attributes
+    const unfilledRequiredAttributes = page.attributes.filter((attribute:any) => {
+      if (attribute.required) {
+        const inputEl = document.getElementById(attribute.id) as HTMLInputElement
+        if (inputEl?.value) return false
+        else return true
+      } else {
+        return false
+      }
+    })
+    if (unfilledRequiredAttributes.length) {
+      warning.value = `${unfilledRequiredAttributes.map((attribute:any) => attribute.label).join(', ')} need${unfilledRequiredAttributes.length === 1 ? 's' : ''} to be filled`
+      loading.value = false
+      return
+    }
     const newItem = Object.fromEntries(page.attributes.map((attribute:any) => {
       const inputEl = document.getElementById(attribute.id) as HTMLInputElement
       return [attribute.id, inputEl?.value]
