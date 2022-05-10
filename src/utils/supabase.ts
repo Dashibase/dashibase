@@ -61,7 +61,7 @@ let __tla = new Promise(async () => {
               label: attribute.label,
               required: attribute.required,
               readonly: attribute.readonly,
-              type: attribute.type || AttributeType.Text,
+              type: Object.values(AttributeType).includes(attribute.type) ? attribute.type : AttributeType.Text,
               enumOptions: attribute.enumOptions || []
             } as Attribute
           }) : [],
