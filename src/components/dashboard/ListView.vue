@@ -88,6 +88,7 @@ import {
 import { Page } from '../../utils/config'
 import { initLoading, initCrud } from '../../utils/dashboard'
 import DropDown from './form-elements/DropDown.vue'
+import Pagination from './Pagination.vue'
 
 const props = defineProps({
   loading: {

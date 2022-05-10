@@ -56,24 +56,10 @@ let __tla = new Promise(async () => {
           mode: view.mode,
           readonly: view.readonly,
           attributes: view.attributes ? view.attributes.map((attribute:any) => {
-            let type = AttributeType.Text
-            switch (attribute.type) {
-              case 'textarea':
-                type = AttributeType.LongText
-                break
-              case 'date':
-                type = AttributeType.Date
-                break
-              case 'bool':
-                type = AttributeType.Bool
-                break
-              default:
-                if (attribute.type && attribute.type.startsWith('enum')) {
-                  type = AttributeType.Enum
-                }
-            }
+            let type = attribute.type || AttributeType.Text
             let enumOptions = [] as string[]
-            if (type === AttributeType.Enum) {
+            if (attribute.type.startsWith('ENUM')) {
+              type = AttributeType.Enum
               enumOptions = attribute.type.slice(5, -1).split(',')
             }
             return {
