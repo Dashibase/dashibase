@@ -1,7 +1,7 @@
 <template>
-  <Popover class="relative z-50">
-    <div class="sm:flex-shrink-0 sm:w-64 sm:border-r sm:border-gray-200 bg-gray-50 sm:h-full">
-      <div class="py-6 flex flex-col h-full justify-between">
+  <Popover class="">
+    <div class="sm:flex-shrink-0 sm:w-64 sm:h-full">
+      <div class="py-6 flex flex-col h-full justify-between" :class="store.darkMode ? 'text-neutral-400' : 'text-neutral-700'">
         <div class="flex items-center justify-between">
           <div class="flex-1 space-y-8 w-full">
             <div class="flex justify-between items-center sm:block w-full">
@@ -10,7 +10,7 @@
                 <AppLogo />
               </div>
               <div class="mr-4 sm:hidden">
-                <PopoverButton class="rounded-md p-2 inline-flex items-center justify-center text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-500">
+                <PopoverButton class="rounded-md p-2 inline-flex items-center justify-center text-neutral-400 hover:text-neutral-500 hover:bg-neutral-100 focus:outline-none focus:ring-0">
                   <span class="sr-only">Open menu</span>
                   <MenuIcon class="h-6 w-6" aria-hidden="true" />
                 </PopoverButton>
@@ -19,17 +19,27 @@
                 <!-- Profile -->
                 <a class="py-6 flex items-center space-x-3 px-4 sm:px-6 select-none w-full" :title="store.user?.email || ''">
                   <div class="flex-shrink-0 h-12 w-12">
-                    <UserCircleIcon class="h-12 w-auto text-gray-400" />
+                    <Avatar />
+                    <!-- <UserCircleIcon class="h-12 w-auto text-neutral-400" /> -->
                   </div>
-                  <div class="space-y-1 shrink font-medium text-gray-800 truncate">
+                  <div class="space-y-1 shrink font-medium truncate transition">
                     {{ store.user?.email || '' }}
                   </div>
                 </a>
                 <!-- Pages -->
-                <div class="flex flex-col divide-y border border-x-0 text-gray-800">
-                  <template v-for="page in store.pages" :key="page.name" >
-                    <template class="block hover:bg-gray-100 font-medium">
-                      <a :href="`/${page.page_id}`" class="px-4 sm:px-6 py-4 block w-full truncate">{{ page.name }}</a>
+                <div class="flex flex-col">
+                  <template v-for="page in store.dashboard.pages" :key="page.name" >
+                    <template class="block font-medium">
+                      <button @click="router.push(`/${page.page_id}`)" class="group px-4 py-2 block w-full truncate font-medium text-left">
+                        <div class="px-4 py-2 rounded transition"
+                          :class="[
+                            store.darkMode ? 'group-hover:bg-[#2E2E2E] group-hover:text-neutral-300' : 'group-hover:bg-[#ECECEC] group-hover:text-neutral-800',
+                            store.darkMode && route.params.pageId === page.page_id ? 'bg-[#2E2E2E] text-neutral-300' : '',
+                            !store.darkMode && route.params.pageId === page.page_id ? 'bg-[#ECECEC] text-neutral-800' : '',
+                          ]">
+                          {{ page.name }}
+                        </div>
+                      </button>
                     </template>
                   </template>
                 </div>
@@ -37,21 +47,25 @@
             </div>
           </div>
         </div>
-        <div class="hidden sm:block py-3 px-4 sm:px-6 w-full cursor-pointer hover:bg-gray-100 font-medium text-gray-800" @click="signOut">
-          Sign out
+        <div class="py-3 px-4 sm:px-6 flex justify-between items-center">
+          <div class="hidden sm:block w-full cursor-pointer font-medium" @click="signOut">
+            Sign out
+          </div>
+          <DarkMode />
         </div>
       </div>
     </div>
     <transition enter-active-class="duration-200 ease-out" enter-from-class="opacity-0 scale-95" enter-to-class="opacity-100 scale-100" leave-active-class="duration-100 ease-in" leave-from-class="opacity-100 scale-100" leave-to-class="opacity-0 scale-95">
-      <PopoverPanel focus class="absolute top-0 inset-x-0 p-2 transition transform origin-top-right md:hidden">
-        <div class="rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 bg-white divide-y-2 divide-gray-50">
+      <PopoverPanel focus class="absolute top-0 inset-x-0 p-2 transition transform origin-top-right md:hidden z-50">
+        <div class="rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 divide-y-2" :class="store.darkMode ? 'bg-neutral-800 divide-neutral-700' : 'bg-white divide-neutral-50'">
           <div class="pt-4 pb-6 px-5">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
                 <AppLogo />
               </div>
               <div class="-mr-2">
-                <PopoverButton class="bg-white rounded-md p-2 inline-flex items-center justify-center text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-500">
+                <PopoverButton class="rounded-md p-2 inline-flex items-center justify-center focus:outline-none focus:ring-0"
+                  :class="store.darkMode ? 'text-neutral-500' : 'text-neutral-400'">
                   <span class="sr-only">Close menu</span>
                   <XIcon class="h-6 w-6" aria-hidden="true" />
                 </PopoverButton>
@@ -62,20 +76,20 @@
             <!-- Profile -->
             <a class="py-6 flex items-center space-x-3 px-4 sm:px-6 select-none w-full" :title="store.user?.email || ''">
               <div class="flex-shrink-0 h-12 w-12">
-                <UserCircleIcon class="h-12 w-auto text-gray-400" />
+                <UserCircleIcon class="h-12 w-auto text-neutral-400" />
               </div>
-              <div class="space-y-1 shrink font-medium text-gray-800 truncate">
+              <div class="space-y-1 shrink font-medium truncate" :class="store.darkMode ? 'text-neutral-200' : 'text-neutral-800'">
                 {{ store.user?.email || '' }}
               </div>
             </a>
             <!-- Pages -->
-            <div class="flex flex-col divide-y border border-x-0 text-gray-800">
-              <template v-for="page in store.pages" :key="page.name" >
+            <div class="flex flex-col divide-y border-t" :class="store.darkMode ? 'text-neutral-300 border-neutral-700 divide-neutral-700' : 'text-neutral-800 border-neutral-200 divide-neutral-200'">
+              <template v-for="page in store.dashboard.pages" :key="page.name" >
                 <template class="block hover:bg-gray-100 font-medium">
-                  <a :href="`/${page.page_id}`" class="px-4 sm:px-6 py-4 block w-full truncate">{{ page.name }}</a>
+                  <button @click="router.push(`/${page.page_id}`)" class="px-4 sm:px-6 py-4 block w-full truncate">{{ page.name }}</button>
                 </template>
               </template>
-              <a class="cursor-pointer hover:bg-gray-100 font-medium px-4 sm:px-6 py-4 block w-full truncate" @click="signOut">Sign out</a>
+              <a class="cursor-pointer hover:bg-neutral-100 font-medium px-4 sm:px-6 py-4 block w-full truncate" @click="signOut">Sign out</a>
             </div>
           </div>
         </div>
@@ -95,27 +109,32 @@ import {
   MenuIcon,
   UserCircleIcon,
   XIcon,
+  SunIcon,
+  MoonIcon,
 } from '@heroicons/vue/solid'
-import { store } from '../../utils/store'
-import { supabase } from '../../utils/supabase'
+import router from '@/router'
+import { useRoute } from 'vue-router'
+import { useStore } from '@/utils/store'
+import { supabase } from '@/utils/supabase'
+import { initLoading } from '@/utils/dashboard'
 import AppLogo from '../branding/AppLogo.vue'
-import { initLoading } from '../../utils/dashboard'
+import Toggle from './elements/Toggle.vue'
+import Avatar from './elements/Avatar.vue'
+import DarkMode from './elements/DarkMode.vue'
 
-const props = defineProps({
-  loading: {
-    type: Boolean,
-    default: false,
-  },
-})
-
-const { loading } = initLoading(props.loading)
+const store = useStore()
+const route = useRoute()
 
 async function signOut () {
-  loading.value = true
+  store.loading = true
   window.localStorage.clear()
   const { error } = await supabase.auth.signOut()
-  loading.value = false
-  if (error) console.error(error)
-  else window.location.href = '/signin'
+  store.loading = false
+  if (error) {
+    console.error(error)
+  } else {
+    store.$reset()
+    router.push('/signin')
+  }
 }
 </script>
