@@ -12,10 +12,6 @@
     <transition enter-active-class="transition ease-out duration-200" enter-from-class="transform opacity-0 scale-95" enter-to-class="transform opacity-100 scale-100" leave-active-class="transition ease-in duration-75" leave-from-class="transform opacity-100 scale-100" leave-to-class="transform opacity-0 scale-95" @after-enter="init" @after-leave="apply">
       <PopoverPanel class="min-w-[20rem] origin-top-right fixed sm:absolute left-4 sm:right-0 sm:left-auto mt-2 rounded-md shadow-lg ring-0 ring-opacity-5 focus:outline-none z-50"
         :class="store.darkMode ? 'bg-neutral-700 text-neutral-200' : 'bg-white text-neutral-800'">
-        <!-- <div class="px-3 py-1 text-xs flex justify-between" :class="store.darkMode ? '' : 'text-neutral-700'">
-          <span>Add a filter</span>
-          <PlusIcon class="w-4" />
-        </div> -->
         <div v-if="filters.length" class="px-3 py-3 text-xs flex flex-col gap-2 w-max" :class="store.darkMode ? '' : 'text-neutral-700'">
           <div>Show rows</div>
           <div class="flex items-end w-full justify-between" v-for="filter, i in filters" :key="i">
@@ -63,10 +59,6 @@
     <transition enter-active-class="transition ease-out duration-200" enter-from-class="transform opacity-0 scale-95" enter-to-class="transform opacity-100 scale-100" leave-active-class="transition ease-in duration-75" leave-from-class="transform opacity-100 scale-100" leave-to-class="transform opacity-0 scale-95" @after-enter="init" @after-leave="apply">
       <PopoverPanel class="min-w-[20rem] origin-top-right fixed sm:absolute left-4 sm:right-0 sm:left-auto mt-2 rounded-md shadow-lg ring-0 ring-opacity-5 focus:outline-none z-50"
         :class="store.darkMode ? 'bg-neutral-700 text-neutral-200' : 'bg-white text-neutral-800'">
-        <!-- <div class="px-3 py-1 text-xs flex justify-between" :class="store.darkMode ? '' : 'text-neutral-700'">
-          <span>Add a filter</span>
-          <PlusIcon class="w-4" />
-        </div> -->
         <div v-if="sorts.length" class="px-3 py-3 text-xs flex flex-col gap-2 w-full" :class="store.darkMode ? '' : 'text-neutral-700'">
           <div class="flex items-end w-full justify-between" v-for="sort, i in sorts" :key="i">
             <div class="flex items-end w-max">
@@ -99,7 +91,6 @@
 import { ref, PropType } from 'vue'
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/vue'
 import { XIcon, PlusIcon, AdjustmentsIcon, SwitchVerticalIcon } from '@heroicons/vue/solid'
-import { FilterIcon } from '@heroicons/vue/outline'
 import { useStore } from '@/utils/store'
 import SecondaryButton from './SecondaryButton.vue'
 

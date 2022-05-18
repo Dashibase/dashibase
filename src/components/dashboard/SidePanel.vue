@@ -20,7 +20,6 @@
                 <a class="py-6 flex items-center space-x-3 px-4 sm:px-6 select-none w-full" :title="store.user?.email || ''">
                   <div class="flex-shrink-0 h-12 w-12">
                     <Avatar />
-                    <!-- <UserCircleIcon class="h-12 w-auto text-neutral-400" /> -->
                   </div>
                   <div class="space-y-1 shrink font-medium truncate transition">
                     {{ store.user?.email || '' }}
@@ -99,7 +98,6 @@
 </template>
 
 <script setup lang="ts">
-import { PropType, ref } from 'vue'
 import {
   Popover,
   PopoverButton,
@@ -109,16 +107,12 @@ import {
   MenuIcon,
   UserCircleIcon,
   XIcon,
-  SunIcon,
-  MoonIcon,
 } from '@heroicons/vue/solid'
 import router from '@/router'
 import { useRoute } from 'vue-router'
 import { useStore } from '@/utils/store'
 import { supabase } from '@/utils/supabase'
-import { initLoading } from '@/utils/dashboard'
 import AppLogo from '../branding/AppLogo.vue'
-import Toggle from './elements/Toggle.vue'
 import Avatar from './elements/Avatar.vue'
 import DarkMode from './elements/DarkMode.vue'
 

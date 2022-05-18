@@ -3,7 +3,6 @@
     :class="store.darkMode ? 'text-neutral-400 hover:bg-neutral-700' : 'text-neutral-700 hover:bg-neutral-200'"
     title="Toggle dark mode">
     <SunIcon v-if="!store.darkMode" class="w-5" />
-    <!-- <Toggle v-model="store.darkMode" /> -->
     <MoonIcon v-if="store.darkMode" class="w-5" />
   </div>
 </template>
@@ -14,7 +13,6 @@ import {
   MoonIcon,
 } from '@heroicons/vue/outline'
 import { useStore } from '@/utils/store'
-import Toggle from './Toggle.vue';
 
 const store = useStore()
 

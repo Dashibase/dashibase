@@ -44,10 +44,6 @@
 
 <script setup lang="ts">
 import { ref, PropType } from 'vue'
-import {
-  PlusIcon,
-  TrashIcon,
-} from '@heroicons/vue/solid'
 import router from '@/router'
 import { Page } from '@/utils/config'
 import { useStore } from '@/utils/store'
@@ -56,7 +52,6 @@ import Pagination from './Pagination.vue'
 import PageHeader from './elements/PageHeader.vue'
 import PrimaryButton from './elements/PrimaryButton.vue'
 import FilterMenu from './elements/FilterMenu.vue'
-import TertiaryButton from './elements/TertiaryButton.vue'
 import DeleteButton from './elements/DeleteButton.vue'
 import DeleteModal from './DeleteModal.vue'
 

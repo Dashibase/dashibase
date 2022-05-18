@@ -47,7 +47,6 @@
 
 <script setup lang="ts">
 import { ref, PropType } from 'vue'
-import { TrashIcon, PlusIcon } from '@heroicons/vue/solid'
 import { useStore } from '@/utils/store'
 
 const store = useStore()
@@ -72,18 +71,9 @@ const props = defineProps({
     type: Number,
     default: 0,
   },
-  readonly: {
-    type: Boolean,
-    default: false,
-  },
 })
 
 const emit = defineEmits(['createItem', 'viewItem', 'deleteItem'])
-
-function createItem (event:Event) {
-  event.preventDefault()
-  emit('createItem')
-}
 
 function viewItem (itemIdx:number, event:Event) {
   event.preventDefault()
@@ -99,12 +89,6 @@ function selectRow (idx:number, event:Event) {
 function selectAll () {
   if (selected.value.length !== props.items.length) selected.value = [...Array(props.items.length).keys()]
   else selected.value = []
-}
-
-function deleteItem (itemIdx:number, event:Event) {
-  event.preventDefault()
-  event.stopPropagation()
-  emit('deleteItem', itemIdx)
 }
 
 defineExpose({

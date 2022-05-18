@@ -25,13 +25,6 @@
             @input="update(attribute.id, ($event.target as HTMLInputElement).value)"
             class="mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-0 sm:text-sm transition"
             :class="store.darkMode ? 'bg-neutral-900 border-neutral-700 focus:border-neutral-500' : 'bg-white border-neutral-300 focus:border-neutral-500'" />
-          <!-- <select v-else-if="attribute.type === AttributeType.Bool" :disabled="store.loading" :id="attribute.id" :value="items.length ? items[0][attribute.id] : true"
-            @input="update(attribute.id, ($event.target as HTMLInputElement).value)"
-            class="mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-0 sm:text-sm transition"
-            :class="store.darkMode ? 'bg-neutral-900 border-neutral-700 focus:border-neutral-500' : 'bg-white border-neutral-300 focus:border-neutral-500'">
-            <option :value="true">true</option>
-            <option :value="false">false</option>
-          </select> -->
           <Toggle v-else-if="attribute.type === AttributeType.Bool" class="mt-1" :modelValue="items.length ? items[0][attribute.id] : false" @update:modelValue="value => update(attribute.id, value)" />
           <select v-else-if="attribute.type === AttributeType.Enum" :disabled="store.loading" :id="attribute.id" :value="items.length ? items[0][attribute.id] : (attribute.enumOptions ? attribute.enumOptions[0] : '')"
             @input="update(attribute.id, ($event.target as HTMLInputElement).value)"

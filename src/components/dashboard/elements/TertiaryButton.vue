@@ -1,6 +1,5 @@
 <template>
-  <Button :disabled="props.disabled"
-    class="hover:shadow"
+  <Button :disabled="props.disabled" class="hover:shadow"
     :class="store.darkMode ? 'text-neutral-200 hover:bg-neutral-700 disabled:text-neutral-500' : 'text-neutral-600 hover:bg-white disabled:text-neutral-300'"
     @click="emit('click')">
     <slot />
