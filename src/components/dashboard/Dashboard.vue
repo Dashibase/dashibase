@@ -1,65 +1,49 @@
 <template>
-  <Placeholder v-if="!initialized" />
-  <div v-else>
-    <Loading v-model="loading" />
-    <div v-if="supabase.auth.user()" class="relative min-h-screen flex flex-col">
-      <div class="flex-grow w-full max-w-7xl mx-auto sm:flex border">
-        <div class="flex-1 min-w-0 bg-white sm:flex">
-          <SidePanel :loading="loading" @update:loading="(value:boolean) => loading=value" />
+  <Loading />
+  <div>
+    <div class="relative min-h-screen flex flex-col">
+      <div class="flex-grow w-full mx-auto sm:flex" :class="store.darkMode ? 'bg-neutral-800' : 'bg-neutral-50'">
+        <div v-if="store.user && store.user.id" class="flex-1 min-w-0 sm:flex w-full h-screen transition">
+          <SidePanel />
           <MainPanel>
-            <router-view :page="store.pages.find(page => page.page_id === pageId) || {}" :loading="loading" @update:loading="(value:boolean) => loading=value" />
+            <router-view v-slot="{ Component }">
+              <transition mode="out-in">
+                <component :is="Component" :key="route.fullPath" />
+              </transition>
+            </router-view>
           </MainPanel>
         </div>
       </div>
     </div>
+    <LoadData :key="route.fullPath" />
   </div>
 </template>
 
+<style scoped>
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 0.25s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+  opacity: 0.3;
+}
+</style>
+
 <script setup lang="ts">
-import { ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { User } from '@supabase/supabase-js'
-import { supabase } from '../../utils/supabase'
-import { store } from '../../utils/store'
-import Placeholder from './Placeholder.vue'
+import router from '@/router'
+import { useStore } from '@/utils/store'
 import SidePanel from './SidePanel.vue'
 import MainPanel from './MainPanel.vue'
 import Loading from './Loading.vue'
+import LoadData from './LoadData.vue'
 
-const initialized = ref(false)
-
-if (!supabase) {
-  const intervalId = setInterval(() => {
-    if (supabase) {
-      clearInterval(intervalId)
-      const user = supabase.auth.user()
-      if (user) store.user = user
-      supabase.auth.onAuthStateChange((_, session) => {
-        store.user = session?.user as User
-      })
-      initialized.value = true
-      if (!store.user.id) window.location.href = '/signin'
-    }
-  }, 100)
-} else {
-  const user = supabase.auth.user()
-  if (user) store.user = user
-  supabase.auth.onAuthStateChange((_, session) => {
-    store.user = session?.user as User
-  })
-  initialized.value = true
-  if (!store.user.id) window.location.href = '/signin'
-}
-
-const props = defineProps({
-  pageId: {
-    type: String,
-    default: '',
-  }
-})
-
-const loading = ref(false)
-
+const store = useStore()
 const route = useRoute()
-if (route.path === '/' && store.pages.length) window.location.href = `/${store.pages[0].page_id}`
+
+if (route.path === '/' && store.dashboard.pages.length) {
+  router.push(`/${store.dashboard.pages[0].page_id}`)
+}
 </script>
