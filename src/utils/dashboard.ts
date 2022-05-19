@@ -113,7 +113,6 @@ export async function initUserData () {
         })
       })
   } catch (error) {
-    store.initializing.data = false
     console.error(error)
   } finally {
     store.initializing.data = false
@@ -160,7 +159,10 @@ export function initCrud (page:Page) {
   const itemsCount = ref(cache.value.count)
   // haveUnsavedChanges is used to denote if changes have been made by the user
   const haveUnsavedChanges = ref(false)
-  watch (cache, () => {
+  watch (cache, (newCache, prevCache) => {
+    if (prevCache.data) {
+      return
+    }
     items.value = JSON.parse(JSON.stringify(cache.value.data))
     if (!items.value.length && page.mode === 'single') items.value = [{}]
     itemsCount.value = cache.value.count

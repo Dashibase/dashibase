@@ -16,7 +16,10 @@
           <textarea v-if="(page.readonly || attribute.readonly) && attribute.type === AttributeType.LongText" readonly :id="attribute.id" :value="items.length ? items[0][attribute.id] : ''" 
             class="mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-0 sm:text-sm bg-transparent transition"
             :class="store.darkMode ? 'border-neutral-700 focus:border-neutral-700' : 'border-gray-300 focus:border-gray-300'" />
-          <Toggle v-else-if="(page.readonly || attribute.readonly) && attribute.type === AttributeType.Bool" disabled class="mt-1" :modelValue="items.length ? items[0][attribute.id] : false" />
+          <div v-else-if="(page.readonly || attribute.readonly) && attribute.type === AttributeType.Bool" disabled class="mt-1">
+            <Toggle :modelValue="items.length ? items[0][attribute.id] : false" />
+            <span class="capitalize">{{ items.length ? [true, 'true'].includes(items[0][attribute.id]) : false }}</span>
+          </div>
           <input v-else-if="page.readonly || attribute.readonly" type="text" readonly :id="attribute.id" :value="items.length ? items[0][attribute.id] : ''"
             class="mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-0 sm:text-sm bg-transparent transition"
             :class="store.darkMode ? 'border-neutral-700 focus:border-neutral-700' : 'border-gray-300 focus:border-gray-300'" />
@@ -26,7 +29,10 @@
             @input="update(attribute.id, ($event.target as HTMLInputElement).value)"
             class="mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-0 sm:text-sm transition"
             :class="store.darkMode ? 'bg-neutral-900 border-neutral-700 focus:border-neutral-500' : 'bg-white border-neutral-300 focus:border-neutral-500'" />
-          <Toggle v-else-if="attribute.type === AttributeType.Bool" class="mt-1" :modelValue="items.length ? items[0][attribute.id] : false" @update:modelValue="value => update(attribute.id, value)" />
+          <div v-else-if="attribute.type === AttributeType.Bool" class="mt-1 text-sm flex items-center gap-2">
+            <Toggle :modelValue="items.length ? items[0][attribute.id] : false" @update:modelValue="value => update(attribute.id, value)" />
+            <span class="capitalize">{{ items.length ? [true, 'true'].includes(items[0][attribute.id]) : false }}</span>
+          </div>
           <select v-else-if="attribute.type === AttributeType.Enum" :disabled="store.loading" :id="attribute.id" :value="items.length ? items[0][attribute.id] : (attribute.enumOptions ? attribute.enumOptions[0] : '')"
             @input="update(attribute.id, ($event.target as HTMLInputElement).value)"
             class="mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-0 sm:text-sm cursor-pointer transition"
@@ -59,8 +65,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, PropType } from 'vue'
-import router from '@/router'
+import { PropType } from 'vue'
 import { Page, AttributeType } from '@/utils/config'
 import { useStore } from '@/utils/store'
 import { initCrud } from '@/utils/dashboard'

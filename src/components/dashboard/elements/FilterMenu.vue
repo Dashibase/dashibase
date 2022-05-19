@@ -23,11 +23,11 @@
                 <option value="or">or</option>
               </select>
               <div v-else>{{ conjunction }}</div>
-              <select class="mt-1 block w-max max-w-[4rem] sm:max-w-auto border-0 rounded-md py-0 px-1 pr-8 focus:outline-none focus:ring-0 text-xs cursor-pointer"
+              <select class="mt-1 block w-max max-w-[4rem] sm:max-w-max border-0 rounded-md py-0 px-1 pr-8 focus:outline-none focus:ring-0 text-xs cursor-pointer"
                 :class="store.darkMode ? 'bg-neutral-700' : 'bg-white'" :value="filter.column" @input="updateFilter(i, 'column', ($event.target as HTMLInputElement).value)">
                 <option v-for="attribute in attributes" :key="attribute.id" :value="attribute.id">{{ attribute.label }}</option>
               </select>
-              <select class="w-max max-w-[4rem] sm:max-w-auto border-0 rounded-md py-0 px-1 pr-8 focus:outline-none focus:ring-0 text-xs cursor-pointer"
+              <select class="w-max max-w-[4rem] sm:max-w-max border-0 rounded-md py-0 px-1 pr-8 focus:outline-none focus:ring-0 text-xs cursor-pointer"
                 :class="store.darkMode ? 'bg-neutral-700' : 'bg-white'" :value="filter.operator" @input="updateFilter(i, 'operator', ($event.target as HTMLInputElement).value)">
                 <option value="eq">is</option>
                 <option value="neq">is not</option>
@@ -64,7 +64,7 @@
             <div class="flex items-end w-max">
               <div v-if="i === 0">Sort by</div>
               <div v-else>then</div>
-              <select class="mt-1 block w-max max-w-[5rem] sm:max-w-auto border-0 rounded-md py-0 px-1 pr-8 focus:outline-none focus:ring-0 text-xs cursor-pointer"
+              <select class="mt-1 block w-max max-w-[5rem] sm:max-w-max border-0 rounded-md py-0 px-1 pr-8 focus:outline-none focus:ring-0 text-xs cursor-pointer"
                 :class="store.darkMode ? 'bg-neutral-700' : 'bg-white'" :value="sort.column" @input="updateSort(i, 'column', ($event.target as HTMLInputElement).value)">
                 <option v-for="attribute in attributes" :key="attribute.id" :value="attribute.id">{{ attribute.label }}</option>
               </select>
