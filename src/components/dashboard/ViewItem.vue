@@ -77,6 +77,7 @@ import router from '@/router'
 import { useStore } from '@/utils/store'
 import { initCrud } from '@/utils/dashboard'
 import { AttributeType, Page } from '@/utils/config'
+import { isUUID } from '@/utils/utils'
 import PageHeader from './elements/PageHeader.vue'
 import TertiaryButton from './elements/TertiaryButton.vue'
 import DeleteButton from './elements/DeleteButton.vue'
@@ -103,7 +104,9 @@ const page = computed(():Page => {
 const { items, warning, haveUnsavedChanges, upsertItem, deleteItems, getItem } = initCrud(page.value)
 
 const item = computed(() => {
-  return items.value.find((item:any) => item.id === props.itemId)
+  let itemId = props.itemId as string|number
+  if (!isUUID(props.itemId)) itemId = parseInt(props.itemId)
+  return items.value.find((item:any) => item.id === itemId) || {}
 })
 
 function update (attributeId:string, newVal:any) {
