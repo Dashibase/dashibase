@@ -9,6 +9,7 @@
         <div class="px-4 md:px-10 transition" :class="store.darkMode ? 'text-neutral-200' : 'text-neutral-800'">
           <label :for="attribute.id" class="block text-sm font-medium transition" :class="store.darkMode ? 'text-neutral-400' : 'text-neutral-600'">
             {{ attribute.label }}
+            <span v-if="attribute.required" class="font-normal pl-2 transition" :class="store.darkMode ? 'text-neutral-600' : 'text-neutral-400'">required</span>
           </label>
           
           <!-- If input is read-only -->
