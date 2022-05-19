@@ -12,7 +12,7 @@ import { supabase } from './supabase'
 import { useStore } from './store'
 import { Page, Attribute, AttributeType } from './config'
 import router from '../router'
-import { max } from 'lodash'
+import { isUUID } from './utils'
 
 const pageConfigs = {
   list: {
@@ -40,6 +40,8 @@ export async function initDashboard () {
     const baseSupabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
     const baseSupabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
     const baseSupabase = createClient(baseSupabaseUrl, baseSupabaseAnonKey)
+    baseSupabase.auth.session = () => null
+    baseSupabase.auth.user = () => null
 
     const { data, error } = await baseSupabase
       .from('views')
@@ -111,7 +113,6 @@ export async function initUserData () {
         })
       })
   } catch (error) {
-    store.initializing.data = false
     console.error(error)
   } finally {
     store.initializing.data = false
@@ -151,13 +152,19 @@ export function initCrud (page:Page) {
     // Make a copy of items so that background updates wouldn't affect the page immediately
     return JSON.parse(JSON.stringify(store.data.find((pageData:any) => pageData.id === page.page_id) || {}))
   })
+  // If page.mode is 'single' make sure there is at least an empty object
   const items = ref(JSON.parse(JSON.stringify(cache.value.data || [])))
+  if (!items.value.length && page.mode === 'single') items.value = [{}]
   // total number of items in Supabase table
   const itemsCount = ref(cache.value.count)
   // haveUnsavedChanges is used to denote if changes have been made by the user
   const haveUnsavedChanges = ref(false)
-  watch (cache, () => {
-    items.value = cache.value.data
+  watch (cache, (newCache, prevCache) => {
+    if (prevCache.data) {
+      return
+    }
+    items.value = JSON.parse(JSON.stringify(cache.value.data))
+    if (!items.value.length && page.mode === 'single') items.value = [{}]
     itemsCount.value = cache.value.count
   })
 
@@ -191,11 +198,6 @@ export function initCrud (page:Page) {
     }
     store.loading = true
     const startRow = Math.max(0, currentPagination - 1) * maxItems
-    // const { data, error } = await supabase
-    //   .from(page.table_id)
-    //   .select(page.attributes.map((attribute:any) => attribute.id).join(',') + ',id')
-    //   .eq('user', store.user.id)
-    //   .range(startRow, startRow + maxItems - 1)
 
     let request = supabase
       .from(page.table_id)
@@ -276,9 +278,11 @@ export function initCrud (page:Page) {
   /*
   Retrieve row from <page.table_id> with id corresponding to itemId
   */
-  async function getItem (itemId:string, refresh:boolean=false) {
+  async function getItem (itemId:string|number, refresh:boolean=false) {
+    // If itemId is a number instead of UUID, run parseInt
+    if (typeof itemId === 'string' && !isUUID(itemId)) itemId = parseInt(itemId)
     if (!page.attributes) return
-    let storedItem = window.localStorage.getItem(itemId)
+    let storedItem = window.localStorage.getItem(itemId.toString())
     if (!storedItem || refresh) {
       store.loading = true
       const { data, error } = await supabase
@@ -291,7 +295,7 @@ export function initCrud (page:Page) {
         warning.value = error.message
       } else {
         items.value = [data]
-        window.localStorage.setItem(itemId, JSON.stringify(data))
+        window.localStorage.setItem(itemId.toString(), JSON.stringify(data))
       }
     } else {
       items.value = [JSON.parse(storedItem)]
@@ -358,13 +362,6 @@ export function initCrud (page:Page) {
       store.loading = false
       return
     }
-    // const newItem = Object.fromEntries(page.attributes.map((attribute:any) => {
-    //   const inputEl = document.getElementById(attribute.id) as HTMLInputElement
-    //   return [attribute.id, inputEl?.value]
-    // }))
-    // newItem.user = store.user.id
-    // if (itemId) newItem.id = itemId
-    // else if ((items.value as {[k: string]: any}[])[0].id) newItem.id = (items.value as {[k: string]: any}[])[0].id
     // Run upsert since user may or may not have inserted before
     const { error } = await supabase
       .from(page.table_id)

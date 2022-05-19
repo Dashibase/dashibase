@@ -20,8 +20,11 @@
             class="mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-0 sm:text-sm transition"
             :class="store.darkMode ? 'bg-neutral-900 border-neutral-700 focus:border-neutral-500' : 'bg-white border-neutral-300 focus:border-neutral-500'"
             @input="update(attribute.id, ($event.target as HTMLInputElement).value)" />
-          <Toggle v-else-if="attribute.type === AttributeType.Bool" class="mt-1" :modelValue="item[attribute.id] ? item[attribute.id] : false"
-            @update:modelValue="(value:any) => update(attribute.id, value)" />
+          <div v-else-if="attribute.type === AttributeType.Bool" class="mt-1 text-sm flex items-center gap-2">
+            <Toggle :modelValue="item[attribute.id] ? item[attribute.id] : false"
+              @update:modelValue="(value:any) => update(attribute.id, value)" />
+            <span class="capitalize">{{ item[attribute.id] ? [true, 'true'].includes(item[attribute.id]) : false }}</span>
+          </div>
           <select v-else-if="attribute.type === AttributeType.Enum" :disabled="store.loading" :id="attribute.id"
             class="mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-0 sm:text-sm cursor-pointer transition"
             :class="store.darkMode ? 'bg-neutral-900 border-neutral-700 focus:border-neutral-500' : 'bg-white border-neutral-300 focus:border-neutral-500'"
