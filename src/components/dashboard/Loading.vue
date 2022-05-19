@@ -69,7 +69,6 @@ import {
   TransitionChild,
   TransitionRoot
 } from '@headlessui/vue'
-import { ClockIcon } from '@heroicons/vue/outline'
 import { useStore } from '@/utils/store'
 
 const store = useStore()
