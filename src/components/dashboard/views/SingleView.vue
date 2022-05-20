@@ -87,8 +87,11 @@
         </div>
       </div>
       <div v-else class="px-4 md:px-10 flex justify-end gap-4">
+        <TertiaryButton v-if="createMode" :disabled="store.loading" @click="router.go(-1)">
+          Back
+        </TertiaryButton>
         <PrimaryButton :disabled="!haveUnsavedChanges || store.loading"
-          @click="upsertItem()">
+          @click="createMode ? createItem(item) : upsertItem()">
           Save
         </PrimaryButton>
       </div>
@@ -119,6 +122,10 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  createMode: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const page = computed(():Page => {
@@ -127,7 +134,11 @@ const page = computed(():Page => {
 
 const view = ref<any|null>(null)
 
-const { item, warning, haveUnsavedChanges, upsertItem, deleteItems } = initCrud(page.value, props.itemId)
+const { item, warning, haveUnsavedChanges, createItem, upsertItem, deleteItems } = initCrud(page.value, props.itemId)
+
+if (props.createMode) {
+  item.value = {} as {[k:string]:any}
+}
 
 function update (attributeId:string, newVal:any) {
   item.value[attributeId] = newVal

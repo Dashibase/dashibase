@@ -1,10 +1,8 @@
-import { createWebHistory, createRouter } from "vue-router"
+import { createWebHistory, createRouter, RouteLocation } from "vue-router"
 import Main from "@/components/Main.vue"
 import SignUp from "@/components/auth/SignUp.vue"
 import SignIn from "@/components/auth/SignIn.vue"
 import Dashboard from "@/components/dashboard/Dashboard.vue"
-import CreateItem from "@/components/dashboard/views/CreateItem.vue"
-import ViewItem from "@/components/dashboard/views/ViewItem.vue"
 import SingleView from "@/components/dashboard/views/SingleView.vue"
 import ViewContainer from "@/components/dashboard/views/ViewContainer.vue"
 
@@ -32,8 +30,8 @@ const routes = [
             props: true,
           }, {
             path: "/:pageId/new",
-            component: CreateItem,
-            props: true,
+            component: SingleView,
+            props: (route:RouteLocation) => ({ pageId: route.params.pageId, createMode: true }),
           }, {
             path: "/:pageId/view/:itemId",
             component: SingleView,
