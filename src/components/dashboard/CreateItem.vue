@@ -21,7 +21,7 @@
             :class="store.darkMode ? 'bg-neutral-900 border-neutral-700 focus:border-neutral-500' : 'bg-white border-neutral-300 focus:border-neutral-500'"
             @input="update(attribute.id, ($event.target as HTMLInputElement).value)" />
           <div v-else-if="attribute.type === AttributeType.Bool" class="mt-1 text-sm flex items-center gap-2">
-            <Toggle :modelValue="item[attribute.id] ? item[attribute.id] : false"
+            <Toggle :modelValue="item[attribute.id] || false"
               @update:modelValue="(value:any) => update(attribute.id, value)" />
             <span class="capitalize">{{ item[attribute.id] ? [true, 'true'].includes(item[attribute.id]) : false }}</span>
           </div>
