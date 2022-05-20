@@ -9,7 +9,7 @@
         <!-- <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span> -->
         <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" enter-to="opacity-100 translate-y-0 sm:scale-100" leave="ease-in duration-200" leave-from="opacity-100 translate-y-0 sm:scale-100" leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
           <div class="">
-            <div class="h-screen w-screen flex items-center justify-center z-50">
+            <div class="h-screen w-screen flex items-center justify-center">
               <div class="loader" :class="store.darkMode ? 'dark-mode' : ''" />
               <div class="mt-3 text-center sm:mt-28 relative">
                 <DialogTitle as="h3" class="text-lg leading-6 font-medium" :class="store.darkMode ? 'text-neutral-400' : 'text-neutral-600'"> Loading... </DialogTitle>
@@ -29,13 +29,14 @@
   height: 70px;
 }
 .loader:before, .loader:after {
+  box-sizing: content-box;
   position: absolute;
   content: '';
   border: 4px solid #444;
   opacity: 1;
   border-radius: 50%;
-  left:50%; 
-  top:50%; 
+  left: 44%; 
+  top: 44%; 
   transform: translate(-50%, - 50%);
   animation: wave 1.2s cubic-bezier(0, 0.2, 0.8, 1) infinite;
 }
@@ -52,8 +53,8 @@
     opacity: 1;
   }
   100% {
-    top: 0%;
-    left: 0%;
+    top: -6%;
+    left: -6%;
     width: 100%;
     height: 100%;
     opacity: 0;
