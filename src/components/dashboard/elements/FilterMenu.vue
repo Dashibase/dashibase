@@ -92,7 +92,7 @@ import { ref, PropType } from 'vue'
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/vue'
 import { XIcon, PlusIcon, AdjustmentsIcon, SwitchVerticalIcon } from '@heroicons/vue/solid'
 import { useStore } from '@/utils/store'
-import SecondaryButton from './SecondaryButton.vue'
+import SecondaryButton from './buttons/SecondaryButton.vue'
 
 const store = useStore()
 

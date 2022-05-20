@@ -18,7 +18,7 @@
             <label for="email" class="block text-sm font-medium" :class="store.darkMode ? 'text-neutral-400' : 'text-neutral-700'"> Email address </label>
             <div class="mt-1">
               <input id="email" :disabled="loading" v-model="email" name="email" type="email" autocomplete="email" required
-                class="bg-transparent block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-0 sm:text-sm"
+                class="dark:autofill:text-neutral-800 bg-transparent block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-0 sm:text-sm"
                 :class="store.darkMode ? 'border-neutral-600 focus:border-neutral-600' : 'border-neutral-300 focus:border-neutral-300'" />
             </div>
           </div>
@@ -26,7 +26,7 @@
             <label for="password" class="block text-sm font-medium" :class="store.darkMode ? 'text-neutral-400' : 'text-neutral-700'"> Password </label>
             <div class="mt-1">
               <input id="password" @keyup.enter="signIn" :disabled="loading" v-model="password" name="password" type="password" autocomplete="current-password" required
-                class="bg-transparent block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-0 sm:text-sm"
+                class="dark:autofill:text-neutral-800 bg-transparent block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-0 sm:text-sm"
                 :class="store.darkMode ? 'border-neutral-600 focus:border-neutral-600' : 'border-neutral-300 focus:border-neutral-300'" />
             </div>
           </div>

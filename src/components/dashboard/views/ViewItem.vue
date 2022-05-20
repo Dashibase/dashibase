@@ -3,9 +3,11 @@
     <div class="mx-auto w-full">
       <div class="px-4 md:px-10 py-12 flex justify-between items-end">
         <PageHeader>
-          <h1 class="cursor-pointer" @click="router.push(`/${page.page_id}`)">{{ page.name }}</h1>
-          <ChevronRightIcon class="inline text-neutral-500 h-6 w-auto" />
-          <h1>Item</h1>
+          <div class="flex gap-2 items-center">
+            <h1 class="cursor-pointer" @click="router.push(`/${page.page_id}`)">{{ page.name }}</h1>
+            <ChevronRightIcon class="inline text-neutral-500 h-6 w-auto" />
+            <h1>Item</h1>
+          </div>
         </PageHeader>
       </div>
       <div class="flex flex-col gap-6">
@@ -86,12 +88,12 @@ import { useStore } from '@/utils/store'
 import { initCrud } from '@/utils/dashboard'
 import { AttributeType, Page } from '@/utils/config'
 import { isUUID } from '@/utils/utils'
-import PageHeader from './elements/PageHeader.vue'
-import TertiaryButton from './elements/TertiaryButton.vue'
-import DeleteButton from './elements/DeleteButton.vue'
-import PrimaryButton from './elements/PrimaryButton.vue'
-import DeleteModal from './DeleteModal.vue'
-import Toggle from './elements/Toggle.vue'
+import PageHeader from '../elements/PageHeader.vue'
+import TertiaryButton from '../elements/buttons/TertiaryButton.vue'
+import DeleteButton from '../elements/buttons/DeleteButton.vue'
+import PrimaryButton from '../elements/buttons/PrimaryButton.vue'
+import DeleteModal from '../modals/DeleteModal.vue'
+import Toggle from '../elements/Toggle.vue'
 
 const store = useStore()
 

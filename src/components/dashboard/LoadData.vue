@@ -1,4 +1,5 @@
 <template>
+<!-- Component used to run database queries on every page navigation -->
 </template>
 
 <script setup lang="ts">

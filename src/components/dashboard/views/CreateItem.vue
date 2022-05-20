@@ -3,9 +3,11 @@
     <div class="py-6 px-4 sm:p-6 mx-auto w-full">
       <div class="px-4 md:px-10 py-12 flex justify-between items-end">
         <PageHeader>
-          <h1 class="cursor-pointer" @click="router.push(`/${page.page_id}`)">{{ page.name }}</h1>
-          <ChevronRightIcon class="inline text-neutral-500 h-6 w-auto" />
-          <h1>New Item</h1>
+          <div class="flex gap-2 items-center">
+            <h1 class="cursor-pointer" @click="router.push(`/${page.page_id}`)">{{ page.name }}</h1>
+            <ChevronRightIcon class="inline text-neutral-500 h-6 w-auto" />
+            <h1>New Item</h1>
+          </div>
         </PageHeader>
       </div>
       <div class="mt-6 flex flex-col gap-6" v-if="page.attributes">
@@ -65,10 +67,10 @@ import router from '@/router'
 import { useStore } from '@/utils/store'
 import { initCrud } from '@/utils/dashboard'
 import { Page, AttributeType } from '@/utils/config'
-import PageHeader from './elements/PageHeader.vue'
-import TertiaryButton from './elements/TertiaryButton.vue'
-import PrimaryButton from './elements/PrimaryButton.vue'
-import Toggle from './elements/Toggle.vue'
+import PageHeader from '../elements/PageHeader.vue'
+import TertiaryButton from '../elements/buttons/TertiaryButton.vue'
+import PrimaryButton from '../elements/buttons/PrimaryButton.vue'
+import Toggle from '../elements/Toggle.vue'
 
 const store = useStore()
 

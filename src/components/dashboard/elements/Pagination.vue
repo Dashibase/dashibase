@@ -25,7 +25,7 @@
 <script setup lang="ts">
 import { computed, PropType } from 'vue'
 import { useStore } from '@/utils/store'
-import DropDown from './elements/DropDown.vue'
+import DropDown from './DropDown.vue'
 
 const store = useStore()
 

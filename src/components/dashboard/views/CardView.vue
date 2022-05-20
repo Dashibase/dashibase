@@ -1,8 +1,10 @@
 <template>
-  <div class="w-full">
-    <div class="px-4 md:px-10 py-12 flex flex-col sm:flex-row justify-between gap-4 sm:items-end">
-      <PageHeader>{{ page.name }}</PageHeader>
-      <div class="flex gap-2">
+  <View ref="view">
+    <template #header>
+      <div>
+        {{ page.name }}
+      </div>
+      <div class="flex gap-2 items-end">
         <FilterMenu :attributes="page.attributes" @close="filterItems"/>
         <DeleteButton v-if="selected.length" @click="deleteCards">
           Delete
@@ -11,13 +13,13 @@
           New
         </PrimaryButton>
       </div>
-    </div>
+    </template>
     <!-- Warning -->
     <div v-if="warning" class="py-2 px-4 md:px-10 text-sm text-red-500">
       {{ warning }}
     </div>
+    <!-- Cards -->
     <div class="px-4 md:px-10 grid grid-cols-1 md:grid-cols-2 gap-2" :class="store.darkMode ? 'text-neutral-200' : 'text-neutral-800'">
-      <!-- Cards -->
       <button v-for="(item, i) in items" :key="item.id" class="text-left border rounded px-2 py-1 flex justify-between hover:shadow-lg hover:scale-[101%] transition"
         :class="store.darkMode ? 'border-neutral-700 bg-neutral-800' : 'border-neutral-300 bg-white'"
         @click.exact="router.push(`/${page.page_id}/view/${item.id}`)"
@@ -38,8 +40,7 @@
       </button>
     </div>
     <Pagination v-if="maxPagination > 1" class="mt-10 px-10" :paginationList="paginationList" :maxPagination="maxPagination" v-model="paginationNum" />
-    <DeleteModal ref="deleteModal" />
-  </div>
+  </View>
 </template>
 
 <script setup lang="ts">
@@ -48,12 +49,13 @@ import router from '@/router'
 import { Page, AttributeType } from '@/utils/config'
 import { useStore } from '@/utils/store'
 import { initCrud } from '@/utils/dashboard'
-import Pagination from './Pagination.vue'
-import PageHeader from './elements/PageHeader.vue'
-import PrimaryButton from './elements/PrimaryButton.vue'
-import FilterMenu from './elements/FilterMenu.vue'
-import DeleteButton from './elements/DeleteButton.vue'
-import DeleteModal from './DeleteModal.vue'
+import View from './View.vue'
+import Pagination from '../elements/Pagination.vue'
+import PageHeader from '../elements/PageHeader.vue'
+import FilterMenu from '../elements/FilterMenu.vue'
+import PrimaryButton from '../elements/buttons/PrimaryButton.vue'
+import DeleteButton from '../elements/buttons/DeleteButton.vue'
+import DeleteModal from '../modals/DeleteModal.vue'
 
 const store = useStore()
 
@@ -65,7 +67,7 @@ const props = defineProps({
     required: true,
   },
 })
-const deleteModal = ref<any|null>(null)
+const view = ref<any|null>(null)
 
 const { items, page, warning, paginationNum, maxPagination, paginationList, deleteItems, filterItems } = initCrud(props.page)
 
@@ -80,10 +82,10 @@ function selectCard (idx:number, event:Event) {
 }
 
 async function deleteCards () {
-  if (!deleteModal.value) return
-  deleteModal.value.title = 'Confirm deletion'
-  deleteModal.value.message = `Are you sure you want to delete ${selected.value.length > 1 ? 'these rows' : 'this row'}?`
-  const confirm = await deleteModal.value?.confirm()
+  if (!view.value) return
+  view.value.deleteModal.title = 'Confirm deletion'
+  view.value.deleteModal.message = `Are you sure you want to delete ${selected.value.length > 1 ? 'these rows' : 'this row'}?`
+  const confirm = await view.value.deleteModal.confirm()
   if (confirm) {
     deleteItems(selected.value.map((idx:number) => items.value[idx].id))
       .then(() => selected.value = [])

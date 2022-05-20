@@ -1,8 +1,10 @@
 <template>
-  <div class="w-full">
-    <div class="px-4 md:px-10 py-12 flex flex-col sm:flex-row justify-between gap-4 sm:items-end">
-      <PageHeader>{{ page.name }}</PageHeader>
-      <div class="flex gap-2">
+  <View>
+    <template #header>
+      <div>
+        {{ page.name }}
+      </div>
+      <div class="flex gap-2 items-end">
         <FilterMenu :attributes="page.attributes" @close="filterItems"/>
         <DeleteButton v-if="selected.length" @click="deleteRows">
           Delete
@@ -11,7 +13,7 @@
           New
         </PrimaryButton>
       </div>
-    </div>
+    </template>
     <!-- Warning -->
     <div v-if="warning" class="py-2 px-4 md:px-10 text-sm text-red-500">
       {{ warning }}
@@ -28,22 +30,22 @@
       </div>
       <Pagination v-if="maxPagination > 1" class="mt-10 px-10" :paginationList="paginationList" :maxPagination="maxPagination" v-model="paginationNum" />
     </div>
-    <DeleteModal ref="deleteModal" />
-  </div>
+  </View>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, PropType } from 'vue'
 import router from '@/router'
 import { Page } from '@/utils/config'
-import { initCrud } from '../../utils/dashboard'
-import Pagination from './Pagination.vue'
-import PageHeader from './elements/PageHeader.vue'
-import Table from './elements/Table.vue'
-import PrimaryButton from './elements/PrimaryButton.vue'
-import FilterMenu from './elements/FilterMenu.vue'
-import DeleteButton from './elements/DeleteButton.vue'
-import DeleteModal from './DeleteModal.vue'
+import { initCrud } from '@/utils/dashboard'
+import View from './View.vue'
+import Pagination from '../elements/Pagination.vue'
+import PageHeader from '../elements/PageHeader.vue'
+import Table from '../elements/Table.vue'
+import FilterMenu from '../elements/FilterMenu.vue'
+import PrimaryButton from '../elements/buttons/PrimaryButton.vue'
+import DeleteButton from '../elements/buttons/DeleteButton.vue'
+import DeleteModal from '../modals/DeleteModal.vue'
 
 const props = defineProps({
   page: {

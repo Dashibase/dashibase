@@ -40,8 +40,8 @@ import { ref } from 'vue'
 import { Dialog, DialogOverlay, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
 import { XIcon, ExclamationIcon } from '@heroicons/vue/solid'
 import { useStore } from '@/utils/store'
-import TertiaryButton from './elements/TertiaryButton.vue'
-import DeleteButton from './elements/DeleteButton.vue'
+import TertiaryButton from '../elements/buttons/TertiaryButton.vue'
+import DeleteButton from '../elements/buttons/DeleteButton.vue'
 
 const store = useStore()
 
