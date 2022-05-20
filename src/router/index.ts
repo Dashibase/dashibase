@@ -5,6 +5,7 @@ import SignIn from "@/components/auth/SignIn.vue"
 import Dashboard from "@/components/dashboard/Dashboard.vue"
 import CreateItem from "@/components/dashboard/views/CreateItem.vue"
 import ViewItem from "@/components/dashboard/views/ViewItem.vue"
+import SingleView from "@/components/dashboard/views/SingleView.vue"
 import ViewContainer from "@/components/dashboard/views/ViewContainer.vue"
 
 const routes = [
@@ -35,7 +36,7 @@ const routes = [
             props: true,
           }, {
             path: "/:pageId/view/:itemId",
-            component: ViewItem,
+            component: SingleView,
             props: true,
           },
         ]

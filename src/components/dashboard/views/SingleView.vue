@@ -1,5 +1,5 @@
 <template>
-  <View>
+  <View ref="view">
     <template #header>
       <div>
         {{ page.name }}
@@ -21,16 +21,16 @@
             <!-- If input is read-only -->
             <div v-if="(page.readonly || attribute.readonly)">
               <!-- AttributeType.LongText -->
-              <textarea v-if="attribute.type === AttributeType.LongText" readonly :id="attribute.id" :value="items.length ? items[0][attribute.id] : ''" 
+              <textarea v-if="attribute.type === AttributeType.LongText" readonly :id="attribute.id" :value="item[attribute.id] || ''" 
                 class="sm:text-sm w-full shadow-sm bg-transparent transition"
                 :class="store.darkMode ? 'border-neutral-700 focus:border-neutral-700' : 'border-gray-300 focus:border-gray-300'" />
               <!-- AttributeType.Bool -->
               <div v-else-if="attribute.type === AttributeType.Bool" disabled>
-                <Toggle :modelValue="items.length ? items[0][attribute.id] || false : false" />
-                <span class="capitalize">{{ items.length ? [true, 'true'].includes(items[0][attribute.id]) : false }}</span>
+                <Toggle :modelValue="item[attribute.id] || false" />
+                <span class="capitalize">{{ [true, 'true'].includes(item[attribute.id]) }}</span>
               </div>
               <!-- Default -->
-              <input v-else type="text" readonly :id="attribute.id" :value="items.length ? items[0][attribute.id] : ''"
+              <input v-else type="text" readonly :id="attribute.id" :value="item[attribute.id] || ''"
                 class="sm:text-sm w-full shadow-sm bg-transparent transition"
                 :class="store.darkMode ? 'border-neutral-700 focus:border-neutral-700' : 'border-neutral-300 focus:border-neutral-300'" />
             </div>
@@ -38,29 +38,29 @@
             <div v-else>
               <!-- AttributeType.Date -->
               <input v-if="attribute.type === AttributeType.Date" type="date" :disabled="store.loading" :id="attribute.id"
-                :value="items.length ? items[0][attribute.id] : ''"
+                :value="item[attribute.id] || ''"
                 @input="update(attribute.id, ($event.target as HTMLInputElement).value)"
                 class="sm:text-sm w-full border shadow-sm cursor-pointer transition"
                 :class="store.darkMode ? 'bg-neutral-900 border-neutral-700 focus:border-neutral-500' : 'bg-white border-neutral-300 focus:border-neutral-500'" />
               <!-- AttributeType.Bool -->
               <div v-else-if="attribute.type === AttributeType.Bool" class="sm:text-sm flex items-center gap-2">
-                <Toggle :modelValue="items.length ? items[0][attribute.id] || false : false" @update:modelValue="value => update(attribute.id, value)" />
-                <span class="capitalize">{{ items.length ? [true, 'true'].includes(items[0][attribute.id]) : false }}</span>
+                <Toggle :modelValue="item[attribute.id] || false" @update:modelValue="value => update(attribute.id, value)" />
+                <span class="capitalize">{{ [true, 'true'].includes(item[attribute.id]) }}</span>
               </div>
               <!-- AttributeType.Enum -->
-              <select v-else-if="attribute.type === AttributeType.Enum" :disabled="store.loading" :id="attribute.id" :value="items.length ? items[0][attribute.id] : (attribute.enumOptions ? attribute.enumOptions[0] : '')"
+              <select v-else-if="attribute.type === AttributeType.Enum" :disabled="store.loading" :id="attribute.id" :value="item[attribute.id] || (attribute.enumOptions ? attribute.enumOptions[0] : '')"
                 @input="update(attribute.id, ($event.target as HTMLInputElement).value)"
                 class="sm:text-sm shadow-sm pr-8 cursor-pointer transition"
                 :class="store.darkMode ? 'bg-neutral-900 border-neutral-700 focus:border-neutral-500' : 'bg-white border-neutral-300 focus:border-neutral-500'">
                 <option v-for="option in attribute.enumOptions" :key="option" :value="option">{{ option }}</option>
               </select>
               <!-- AttributeType.LongText -->
-              <textarea v-else-if="attribute.type === AttributeType.LongText" :disabled="store.loading" :id="attribute.id" :value="items.length ? items[0][attribute.id] : ''"
+              <textarea v-else-if="attribute.type === AttributeType.LongText" :disabled="store.loading" :id="attribute.id" :value="item[attribute.id] || ''"
                 @input="update(attribute.id, ($event.target as HTMLInputElement).value)"
                 class="sm:text-sm w-full border shadow-sm transition"
                 :class="store.darkMode ? 'bg-neutral-900 border-neutral-700 focus:border-neutral-500' : 'bg-white border-neutral-300 focus:border-neutral-500'" />
               <!-- Default -->
-              <input v-else type="text" :disabled="store.loading" :id="attribute.id" :value="items.length ? items[0][attribute.id] : ''"
+              <input v-else type="text" :disabled="store.loading" :id="attribute.id" :value="item[attribute.id] || ''"
                 @input="update(attribute.id, ($event.target as HTMLInputElement).value)"
                 class="sm:text-sm w-full shadow-sm transition"
                 :class="store.darkMode ? 'bg-neutral-900 border-neutral-700 focus:border-neutral-500' : 'bg-white border-neutral-300 focus:border-neutral-500'" />
@@ -73,7 +73,20 @@
         {{ warning }}
       </div>
       <!-- Buttons -->
-      <div class="px-4 md:px-10 flex justify-end gap-4">
+      <div v-if="itemId" class="px-4 md:px-10 flex justify-between gap-4">
+        <DeleteButton :disabled="store.loading" @click="deleteItem">
+          Delete
+        </DeleteButton>
+        <div class="flex gap-4">
+          <TertiaryButton :disabled="store.loading" @click="router.go(-1)">
+            Back
+          </TertiaryButton>
+          <PrimaryButton :disabled="!haveUnsavedChanges || store.loading" @click="upsertItem(itemId)">
+            Save
+          </PrimaryButton>
+        </div>
+      </div>
+      <div v-else class="px-4 md:px-10 flex justify-end gap-4">
         <PrimaryButton :disabled="!haveUnsavedChanges || store.loading"
           @click="upsertItem()">
           Save
@@ -84,31 +97,51 @@
 </template>
 
 <script setup lang="ts">
-import { PropType } from 'vue'
+import { ref, computed, PropType } from 'vue'
+import router from '@/router'
 import { Page, AttributeType } from '@/utils/config'
 import { useStore } from '@/utils/store'
 import { initCrud } from '@/utils/dashboard'
 import View from './View.vue'
 import Toggle from '../elements/Toggle.vue'
 import PrimaryButton from '../elements/buttons/PrimaryButton.vue'
+import TertiaryButton from '../elements/buttons/TertiaryButton.vue'
+import DeleteButton from '../elements/buttons/DeleteButton.vue'
 
 const store = useStore()
 
 const props = defineProps({
-  page: {
-    type: Object as PropType<Page>,
+  pageId: {
+    type: String,
     required: true,
   },
   itemId: {
     type: String,
     default: '',
-  }
+  },
 })
 
-const { items, warning, haveUnsavedChanges, upsertItem } = initCrud(props.page)
+const page = computed(():Page => {
+  return store.dashboard.pages.find(page => page.page_id === props.pageId) || {} as Page
+})
+
+const view = ref<any|null>(null)
+
+const { item, warning, haveUnsavedChanges, upsertItem, deleteItems } = initCrud(page.value, props.itemId)
 
 function update (attributeId:string, newVal:any) {
-  items.value[0][attributeId] = newVal
+  item.value[attributeId] = newVal
   haveUnsavedChanges.value = true
+}
+
+async function deleteItem () {
+  if (!view.value) return
+  view.value.deleteModal.title = 'Confirm deletion'
+  view.value.deleteModal.message = 'Are you sure you want to delete this?'
+  const confirm = await view.value.deleteModal.confirm()
+  if (confirm) {
+    deleteItems([props.itemId])
+      .then(() => router.push(`/${props.pageId}`))
+  }
 }
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <View>
+  <View ref="view">
     <template #header>
       <div>
         {{ page.name }}
@@ -38,6 +38,7 @@ import { ref, computed, PropType } from 'vue'
 import router from '@/router'
 import { Page } from '@/utils/config'
 import { initCrud } from '@/utils/dashboard'
+import { useStore } from '@/utils/store'
 import View from './View.vue'
 import Pagination from '../elements/Pagination.vue'
 import PageHeader from '../elements/PageHeader.vue'
@@ -47,17 +48,24 @@ import PrimaryButton from '../elements/buttons/PrimaryButton.vue'
 import DeleteButton from '../elements/buttons/DeleteButton.vue'
 import DeleteModal from '../modals/DeleteModal.vue'
 
+const store = useStore()
+
 const props = defineProps({
-  page: {
-    type: Object as PropType<Page>,
+  pageId: {
+    type: String,
     required: true,
   },
 })
+
+const page = computed(():Page => {
+  return store.dashboard.pages.find(page => page.page_id === props.pageId) || {} as Page
+})
+
 const deleteModal = ref<any|null>(null)
 
 const table = ref<any|null>(null)
 
-const { items, warning, maxItems, paginationNum, maxPagination, paginationList, deleteItems, filterItems } = initCrud(props.page)
+const { items, warning, maxItems, paginationNum, maxPagination, paginationList, deleteItems, filterItems } = initCrud(page.value)
 
 const selected = computed(() => {
   if (!table.value) return []
@@ -65,12 +73,12 @@ const selected = computed(() => {
 })
 
 function createRow () {
-  router.push(`/${props.page.page_id}/new`)
+  router.push(`/${props.pageId}/new`)
 }
 
 function viewRow (itemIdx:number) {
   const itemId = items.value[itemIdx].id
-  router.push(`/${props.page.page_id}/view/${itemId}`)
+  router.push(`/${props.pageId}/view/${itemId}`)
 }
 
 async function deleteRows () {

@@ -142,7 +142,7 @@ export function initLoading (loading:boolean) {
 /*
 Initialize CRUD functions and related variables
 */
-export function initCrud (page:Page) {
+export function initCrud (page:Page, itemId:string='') {
   const store = useStore()
   // warning will be displayed upon any CRUD errors
   const warning = ref('')
@@ -153,7 +153,7 @@ export function initCrud (page:Page) {
   })
   // If page.mode is 'single' make sure there is at least an empty object
   const items = ref(JSON.parse(JSON.stringify(cache.value.data || [])))
-  if (!items.value.length && page.mode === 'single') items.value = [{}]
+  const item = ref(JSON.parse(JSON.stringify(itemId ? cache.value.data.find((item:any) => item.id === itemId) || {} : cache.value.data[0] || {})))
   // total number of items in Supabase table
   const itemsCount = ref(cache.value.count)
   // haveUnsavedChanges is used to denote if changes have been made by the user
@@ -162,8 +162,8 @@ export function initCrud (page:Page) {
     if (prevCache.data) {
       return
     }
-    items.value = JSON.parse(JSON.stringify(cache.value.data))
-    if (!items.value.length && page.mode === 'single') items.value = [{}]
+    items.value = JSON.parse(JSON.stringify(cache.value.data || []))
+    item.value = JSON.parse(JSON.stringify(itemId ? cache.value.data.find((item:any) => item.id === itemId) || {} : cache.value.data[0] || {}))
     itemsCount.value = cache.value.count
   })
 
@@ -347,14 +347,14 @@ export function initCrud (page:Page) {
 
     store.loading = true
 
-    let item = items.value[0]
-    if (itemId) item = items.value.find((item:any) => item.id === itemId) || {}
-    item.user = store.user.id
+    // let item = items.value[0]
+    // if (itemId) item = items.value.find((item:any) => item.id === itemId) || {}
+    item.value.user = store.user.id
 
     // Check required attributes
     const unfilledRequiredAttributes = page.attributes.filter((attribute:any) => {
       if (attribute.required) {
-        const value = item[attribute.id]
+        const value = item.value[attribute.id]
         if (!!value) return false
         else if (attribute.type === AttributeType.Bool) return false
         else return true
@@ -370,7 +370,7 @@ export function initCrud (page:Page) {
     // Run upsert since user may or may not have inserted before
     const { error } = await supabase
       .from(page.table_id)
-      .upsert([item])
+      .upsert([item.value])
     if (error) {
       store.loading = false
       warning.value = error.message
@@ -447,6 +447,7 @@ export function initCrud (page:Page) {
     page,
     warning,
     items,
+    item,
     maxItems,
     paginationNum,
     maxPagination,

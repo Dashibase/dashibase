@@ -44,7 +44,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, PropType } from 'vue'
+import { ref, computed, PropType } from 'vue'
 import router from '@/router'
 import { Page, AttributeType } from '@/utils/config'
 import { useStore } from '@/utils/store'
@@ -62,17 +62,22 @@ const store = useStore()
 const selected = ref([] as number[])
 
 const props = defineProps({
-  page: {
-    type: Object as PropType<Page>,
+  pageId: {
+    type: String,
     required: true,
   },
 })
+
+const page = computed(():Page => {
+  return store.dashboard.pages.find(page => page.page_id === props.pageId) || {} as Page
+})
+
 const view = ref<any|null>(null)
 
-const { items, page, warning, paginationNum, maxPagination, paginationList, deleteItems, filterItems } = initCrud(props.page)
+const { items, warning, paginationNum, maxPagination, paginationList, deleteItems, filterItems } = initCrud(page.value)
 
 function createCard () {
-  router.push(`/${props.page.page_id}/new`)
+  router.push(`/${props.pageId}/new`)
 }
 
 function selectCard (idx:number, event:Event) {

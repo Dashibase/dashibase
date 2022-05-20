@@ -1,5 +1,5 @@
 <template>
-  <component :is="componentMap[page.mode]" :page="page" />
+  <component :is="componentMap[page.mode]" :pageId="pageId" />
 </template>
 
 <script setup lang="ts">
