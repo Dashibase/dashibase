@@ -68,6 +68,7 @@ const password = ref('')
 const warning = ref('')
 
 async function signIn () {
+  warning.value = ''
   if (!(email && password)) {
     warning.value = 'Please fill in your details'
     return

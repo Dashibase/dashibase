@@ -66,6 +66,7 @@ const password = ref('')
 const warning = ref('')
 
 async function signUp () {
+  warning.value = ''
   loading.value = true
   if (password.value.length < minPasswordLength) {
     warning.value = `Password needs to be at least ${minPasswordLength} characters`

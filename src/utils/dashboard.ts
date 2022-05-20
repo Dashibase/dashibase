@@ -30,6 +30,7 @@ const pageConfigs = {
 Initialize dashboard pages and store in Pinia store
 */
 export async function initDashboard () {
+
   const store = useStore()
   if (!store.user.id) return
   if (store.initializing.dashboard) return
@@ -117,8 +118,6 @@ export async function initUserData () {
   } finally {
     store.initializing.data = false
   }
-
-  
 }
 
 /*
@@ -188,6 +187,7 @@ export function initCrud (page:Page) {
     })
   })
   watch(paginationNum, async (currentPagination) => {
+    warning.value = ''
     if (currentPagination === 1) {
       let storedItems = window.localStorage.getItem(page.table_id)
       if (storedItems) {
@@ -235,6 +235,7 @@ export function initCrud (page:Page) {
   Insert a new item into table named <page.table_id>
   */
   async function createItem (item:any) {
+    warning.value = ''
     store.loading = true
     // Check required attributes
     const unfilledRequiredAttributes = page.attributes.filter((attribute:any) => {
@@ -279,6 +280,7 @@ export function initCrud (page:Page) {
   Retrieve row from <page.table_id> with id corresponding to itemId
   */
   async function getItem (itemId:string|number, refresh:boolean=false) {
+    warning.value = ''
     // If itemId is a number instead of UUID, run parseInt
     if (typeof itemId === 'string' && !isUUID(itemId)) itemId = parseInt(itemId)
     if (!page.attributes) return
@@ -306,6 +308,7 @@ export function initCrud (page:Page) {
   Retrieve all rows from <page.table_id> with user corresponding to user_id
   */
   async function getItems (max:number=maxItems, refresh:boolean=false) {
+    warning.value = ''
     if (!page.attributes) return
     let storedItems = window.localStorage.getItem(page.table_id)
     if (!storedItems || refresh) {
@@ -340,6 +343,8 @@ export function initCrud (page:Page) {
   Upsert row into <page.table_id> with user corresponding to user_id and id corresponding to itemId
   */
   async function upsertItem (itemId:string='') {
+    warning.value = ''
+
     store.loading = true
 
     let item = items.value[0]
@@ -379,9 +384,10 @@ export function initCrud (page:Page) {
   }
 
   /*
-  Delete row from <page.table_id> with id corresponding to itemId
+  Delete rows from <page.table_id> with id corresponding to itemId
   */
   async function deleteItems (itemIds:string[], event:Event|null=null) {
+    warning.value = ''
     if (event) event.preventDefault()
     store.loading = true
     const { error } = await supabase
@@ -398,6 +404,7 @@ export function initCrud (page:Page) {
   }
 
   async function filterItems (newFilters:any[], newConjunction:string, newSorts:any[]) {
+    warning.value = ''
 
     filters.value = newFilters
     conjunction.value = newConjunction
