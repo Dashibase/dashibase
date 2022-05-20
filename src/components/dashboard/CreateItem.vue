@@ -68,6 +68,7 @@ import { Page, AttributeType } from '@/utils/config'
 import PageHeader from './elements/PageHeader.vue'
 import TertiaryButton from './elements/TertiaryButton.vue'
 import PrimaryButton from './elements/PrimaryButton.vue'
+import Toggle from './elements/Toggle.vue'
 
 const store = useStore()
 

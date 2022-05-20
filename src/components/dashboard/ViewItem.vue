@@ -91,6 +91,7 @@ import TertiaryButton from './elements/TertiaryButton.vue'
 import DeleteButton from './elements/DeleteButton.vue'
 import PrimaryButton from './elements/PrimaryButton.vue'
 import DeleteModal from './DeleteModal.vue'
+import Toggle from './elements/Toggle.vue'
 
 const store = useStore()
 
