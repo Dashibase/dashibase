@@ -18,18 +18,18 @@
     </div>
     <div class="px-4 md:px-10 grid grid-cols-1 md:grid-cols-2 gap-2" :class="store.darkMode ? 'text-neutral-200' : 'text-neutral-800'">
       <!-- Cards -->
-      <button v-for="(item, i) in items" :key="item.id" class="text-left block relative cursor-pointer border rounded px-2 py-1"
-        :class="store.darkMode ? 'border-neutral-700' : 'border-neutral-300'"
+      <button v-for="(item, i) in items" :key="item.id" class="text-left border rounded px-2 py-1 flex justify-between hover:shadow-lg hover:scale-[101%] transition"
+        :class="store.darkMode ? 'border-neutral-700 bg-neutral-800' : 'border-neutral-300 bg-white'"
         @click.exact="router.push(`/${page.page_id}/view/${item.id}`)"
         @click.shift.left.exact="event => selectCard(i, event)">
-        <div class="flex flex-col gap-1 p-2">
+        <div class="flex flex-col gap-1 p-2 w-full">
           <div class="font-medium text-lg flex items-center justify-between">
             <div class="truncate">{{ item[page.attributes[0].id] }}</div>
             <input v-if="selected.length" type="checkbox" class="cursor-pointer focus:outline-none focus:ring-0 focus:ring-offset-0 focus:border-0 h-4 w-4 rounded text-neutral-700"
               :class="store.darkMode ? 'bg-neutral-900 border-neutral-600' : 'border-neutral-300'" :checked="selected.includes(i)"
               @click="event => selectCard(i, event)" />
           </div>
-          <div v-for="attribute in page.attributes.slice(1)" :key="attribute.id"
+          <div v-for="attribute in page.attributes.slice(1).filter(attribute => item[attribute.id] || attribute.type === AttributeType.Bool)" :key="attribute.id"
             class="flex flex-col">
             <div class="text-xs" :class="store.darkMode ? 'text-neutral-700' : 'text-neutral-300'">{{ attribute.label }}</div>
             <div class="-mt-0.5 truncate text-sm">{{ item[attribute.id] }}</div>
@@ -45,7 +45,7 @@
 <script setup lang="ts">
 import { ref, PropType } from 'vue'
 import router from '@/router'
-import { Page } from '@/utils/config'
+import { Page, AttributeType } from '@/utils/config'
 import { useStore } from '@/utils/store'
 import { initCrud } from '@/utils/dashboard'
 import Pagination from './Pagination.vue'
