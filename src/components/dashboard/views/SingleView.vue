@@ -124,7 +124,7 @@ const page = computed(():Page => {
   return store.dashboard.pages.find(page => page.page_id === props.pageId) || {} as Page
 })
 
-const { item, warning, haveUnsavedChanges, upsertItem, deleteItems } = initCrud(page.value, props.itemId)
+const { item, warning, haveUnsavedChanges, getItem, upsertItem, deleteItems } = initCrud(page.value, props.itemId)
 
 if (props.createMode) {
   item.value = {} as {[k:string]:any}
@@ -144,4 +144,6 @@ async function deleteItem () {
       .then(() => router.push(`/${props.pageId}`))
   }
 }
+
+if (props.itemId) getItem(props.itemId)
 </script>
