@@ -1,18 +1,16 @@
 <template>
   <Listbox as="div" v-model="selected" class="inline-block">
     <div class="relative">
-      <ListboxButton class="relative w-full border rounded-md pl-2 pr-6 py-1 text-left focus:outline-none focus:ring-0 sm:text-sm transition"
-        :class="store.darkMode ? 'text-neutral-400 bg-neutral-800 border-neutral-600 focus:border-neutral-600' : 'text-neutral-500 bg-white border-neutral-200 focus:border-neutral-200'">
+      <ListboxButton class="relative w-full border rounded-md pl-2 pr-6 py-1 text-left focus:outline-none focus:ring-0 sm:text-sm transition text-neutral-500 bg-white border-neutral-200 focus:border-neutral-200 dark:text-neutral-400 dark:bg-neutral-800 dark:border-neutral-600 dark:focus:border-neutral-600">
         <span class="block truncate">{{ selectedLabel }}</span>
         <span class="absolute inset-y-0 right-0 flex items-center pr-0 pointer-events-none">
           <SelectorIcon class="h-5 w-5" aria-hidden="true" />
         </span>
       </ListboxButton>
-
       <transition enter-active-class="transition ease-in duration-150" leave-active-class="transition ease-in duration-150" leave-from-class="opacity-100" leave-to-class="opacity-0" enter-from-class="opacity-0" enter-to-class="opacity-100">
-        <ListboxOptions class="absolute z-10 mt-1 w-full shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm" :class="store.darkMode ? 'text-neutral-400 bg-neutral-800' : 'text-neutral-500 bg-white'">
+        <ListboxOptions class="absolute z-10 mt-1 w-full shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm text-neutral-500 bg-white dark:text-neutral-400 dark:bg-neutral-800">
           <ListboxOption as="template" v-for="option, i in options" :key="i" :value="option.value" v-slot="{ active, selected }">
-            <li :class="[active ? (store.darkMode ? 'bg-neutral-700' : 'bg-gray-100') : '', 'select-none relative py-2 pl-2 pr-6']">
+            <li :class="[active ? 'bg-gray-100 dark:bg-neutral-700' : '', 'select-none relative py-2 pl-2 pr-6']">
               <span :class="[selected ? 'font-semibold' : 'font-normal', 'block truncate']">
                 {{ option.label }}
               </span>

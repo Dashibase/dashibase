@@ -1,9 +1,8 @@
 <template>
-  <div class="flex gap-2 items-center justify-center rounded-full w-8 h-8 cursor-pointer" @click="toggleDarkMode"
-    :class="store.darkMode ? 'text-neutral-400 hover:bg-neutral-700' : 'text-neutral-700 hover:bg-neutral-200'"
-    title="Toggle dark mode">
-    <SunIcon v-if="!store.darkMode" class="w-5" />
-    <MoonIcon v-if="store.darkMode" class="w-5" />
+  <div class="flex gap-2 items-center justify-center rounded-full w-8 h-8 cursor-pointer text-neutral-700 hover:bg-neutral-200 dark:text-neutral-400 dark:hover:bg-neutral-700"
+    @click="store.darkMode = !store.darkMode" title="Toggle dark mode">
+    <SunIcon class="w-5 dark:hidden" />
+    <MoonIcon class="w-5 hidden dark:block" />
   </div>
 </template>
 
@@ -15,8 +14,4 @@ import {
 import { useStore } from '@/utils/store'
 
 const store = useStore()
-
-function toggleDarkMode () {
-  store.darkMode = !store.darkMode
-}
 </script>

@@ -1,14 +1,14 @@
 <template>
-  <component :is="componentMap[page.mode]" :page="page" />
+  <component :is="componentMap[page.mode]" :pageId="pageId" />
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { Page } from '@/utils/config'
+import { useStore } from '@/utils/store'
 import CardView from './CardView.vue'
 import ListView from './ListView.vue'
 import SingleView from './SingleView.vue'
-import { Page } from '@/utils/config'
-import { useStore } from '@/utils/store'
 
 const store = useStore()
 
