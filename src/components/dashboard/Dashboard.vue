@@ -3,7 +3,7 @@
     <Loading />
     <div class="relative min-h-screen flex flex-col">
       <div class="flex-grow w-full mx-auto sm:flex" :class="store.darkMode ? 'bg-neutral-800' : 'bg-neutral-50'">
-        <div v-if="store.user && store.user.id" class="flex-1 min-w-0 sm:flex w-full h-screen transition">
+        <div v-if="store.user && store.user.id" class="flex-1 min-w-0 sm:flex w-full min-h-screen transition">
           <SidePanel />
           <MainPanel>
             <router-view v-slot="{ Component }">

@@ -1,7 +1,7 @@
 <template>
-  <table class="w-full table-fixed border-t transition text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
-    <thead class="drop-shadow dark:border-b-2 dark:border-b-neutral-700">
-      <tr class="transition bg-neutral-100 dark:bg-neutral-800">
+  <table class="w-full table-fixed border-t transition text-neutral-500 dark:border-neutral-750 dark:text-neutral-400">
+    <thead class="drop-shadow dark:border-b-2 dark:border-b-neutral-750">
+      <tr class="transition bg-neutral-100 dark:bg-[#2A2A2A]">
         <th class="hidden sm:table-cell px-1 py-2 text-center text-xs font-medium uppercase tracking-wider w-[1rem] text-neutral-400 dark:text-neutral-600">
           <span v-if="!selected.length">#</span>
           <input v-if="selected.length" type="checkbox"
@@ -13,12 +13,12 @@
         </th>
       </tr>
     </thead>
-    <tbody class="divide-y border-b transition text-neutral-800 divide-neutral-200 border-b-neutral-200 dark:text-neutral-200 dark:divide-neutral-700 dark:border-b-neutral-700 dark:bg-neutral-800">
+    <tbody class="divide-y border-b transition text-neutral-800 divide-neutral-200 border-b-neutral-200 dark:text-neutral-200 dark:divide-neutral-750 dark:border-b-neutral-750 dark:bg-neutral-800">
       <div v-if="items.length === 0" class="table-row text-sm">
         <td></td>
         <td class="px-2 py-2 max-w-0 whitespace-nowrap text-sm">No rows found.</td>
       </div>
-      <a v-for="item, i in items" :key="i" class="table-row cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-900"
+      <a v-for="item, i in items" :key="i" class="table-row cursor-pointer hover:bg-neutral-100 dark:hover:bg-[#282828]"
         @click.exact="event => viewItem(i, event)"
         @click.shift.left.exact="event => selectRow(i, event)">
         <td class="hidden sm:table-cell w-10 px-1 py-2 whitespace-nowrap text-sm text-center transition group text-neutral-400 dark:text-neutral-600">

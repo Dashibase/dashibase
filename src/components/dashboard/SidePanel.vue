@@ -1,6 +1,6 @@
 <template>
   <Popover class="">
-    <div class="sm:flex-shrink-0 sm:w-64 sm:h-full">
+    <div class="sm:flex-shrink-0 sm:w-64 sm:h-full border-r dark:border-r-neutral-750 ">
       <div class="py-6 flex flex-col h-full justify-between text-neutral-700 dark:text-neutral-400">
         <div class="flex items-center justify-between">
           <div class="flex-1 space-y-8 w-full">
@@ -9,7 +9,8 @@
               <div class="px-4 sm:px-6 sm:my-7">
                 <AppLogo />
               </div>
-              <div class="mr-4 sm:hidden">
+              <div class="mr-4 sm:hidden flex items-center gap-4">
+                <DarkMode />
                 <PopoverButton class="rounded-md p-2 inline-flex items-center justify-center text-neutral-400 hover:text-neutral-500 hover:bg-neutral-100 focus:outline-none focus:ring-0">
                   <span class="sr-only">Open menu</span>
                   <MenuIcon class="h-6 w-6" aria-hidden="true" />
@@ -46,7 +47,7 @@
           <div class="hidden sm:block w-full cursor-pointer font-medium" @click="signOut">
             Sign out
           </div>
-          <DarkMode />
+          <DarkMode class="hidden sm:flex" />
         </div>
       </div>
     </div>
@@ -79,8 +80,8 @@
             <!-- Pages -->
             <div class="flex flex-col divide-y border-t text-neutral-800 border-neutral-200 divide-neutral-200 dark:text-neutral-300 dark:border-neutral-700 dark:divide-neutral-700">
               <template v-for="page in store.dashboard.pages" :key="page.name" >
-                <template class="block hover:bg-gray-100 font-medium">
-                  <button @click="router.push(`/${page.page_id}`)" class="px-4 sm:px-6 py-4 block w-full truncate">{{ page.name }}</button>
+                <template class="block hover:bg-neutral-100 font-medium">
+                  <button @click="router.push(`/${page.page_id}`)" class="px-4 sm:px-6 py-4 block w-full truncate font-medium text-left">{{ page.name }}</button>
                 </template>
               </template>
               <a class="cursor-pointer hover:bg-neutral-100 font-medium px-4 sm:px-6 py-4 block w-full truncate" @click="signOut">Sign out</a>

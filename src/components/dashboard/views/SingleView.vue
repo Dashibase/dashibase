@@ -22,7 +22,7 @@
             <div v-if="(page.readonly || attribute.readonly)">
               <!-- AttributeType.LongText -->
               <textarea v-if="attribute.type === AttributeType.LongText" readonly :id="attribute.id" :value="item[attribute.id] || ''" 
-                class="sm:text-sm w-full shadow-sm bg-transparent transition border-gray-300 focus:border-gray-300 dark:border-neutral-700 dark:focus:border-neutral-700" />
+                class="sm:text-sm w-full shadow-sm bg-transparent transition border-neutral-300 focus:border-neutral-300 dark:border-neutral-700 dark:focus:border-neutral-700" />
               <!-- AttributeType.Bool -->
               <div v-else-if="attribute.type === AttributeType.Bool" disabled>
                 <Toggle :modelValue="item[attribute.id] || false" />
