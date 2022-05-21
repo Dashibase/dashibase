@@ -1,5 +1,5 @@
 <template>
-  <a class="text-gray-400 font-medium text-sm" href="https://dashibase.com">
+  <a class="font-medium text-sm text-neutral-400 dark:text-neutral-500" href="https://dashibase.com">
     Powered by Dashibase
   </a>
 </template>

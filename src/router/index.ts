@@ -1,51 +1,51 @@
-import { createWebHistory, createRouter } from "vue-router"
+import { createWebHistory, createRouter, RouteLocation } from "vue-router"
 import Main from "@/components/Main.vue"
-import SignUp from "@/components/dashboard/SignUp.vue"
-import SignIn from "@/components/dashboard/SignIn.vue"
-import CreateItem from "@/components/dashboard/CreateItem.vue"
-import ViewItem from "@/components/dashboard/ViewItem.vue"
-import ViewContainer from "@/components/dashboard/ViewContainer.vue"
+import SignUp from "@/components/auth/SignUp.vue"
+import SignIn from "@/components/auth/SignIn.vue"
+import Dashboard from "@/components/dashboard/Dashboard.vue"
+import SingleView from "@/components/dashboard/views/SingleView.vue"
+import ViewContainer from "@/components/dashboard/views/ViewContainer.vue"
 
 const routes = [
   {
     path: "/",
     name: "Home",
     component: Main,
-  }, {
-    path: "/:pageId",
-    name: "Page",
-    component: Main,
-    props: true,
     children: [
       {
-        path: '',
-        name: "View Table",
-        component: ViewContainer,
-        props: true,
+        path: "signup",
+        name: "Sign Up",
+        component: SignUp,
       }, {
-        path: 'new',
-        name: "New Item",
-        component: CreateItem,
-        props: true,
+        path: "signin",
+        name: "Sign In",
+        component: SignIn,
       }, {
-        path: 'view/:itemId',
-        name: "View Item",
-        component: ViewItem,
-        props: true,
-      },
-    ],
-  }, {
-    path: "/signup",
-    name: "Sign Up",
-    component: SignUp,
-  }, {
-    path: "/signin",
-    name: "Sign In",
-    component: SignIn,
+        path: "",
+        component: Dashboard,
+        children: [
+          {
+            path: "/:pageId",
+            component: ViewContainer,
+            props: true,
+          }, {
+            path: "/:pageId/new",
+            component: SingleView,
+            props: (route:RouteLocation) => ({ pageId: route.params.pageId, createMode: true }),
+          }, {
+            path: "/:pageId/view/:itemId",
+            component: SingleView,
+            props: true,
+          },
+        ]
+      }
+    ]
   },
 ]
 
-export default createRouter({
+const router = createRouter({
   history: createWebHistory(),
   routes,
 })
+
+export default router
