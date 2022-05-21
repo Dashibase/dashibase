@@ -4,7 +4,7 @@
       <SecondaryButton>
         Filter
         <AdjustmentsIcon v-if="!filters.length" class="w-4" />
-        <div v-if="filters.length" class="rounded-full px-1.5 pb-0.5 text-xs mt-0.5 transition bg-neutral-200 dark:bg-neutral-800">
+        <div v-if="filters.length" class="rounded-full px-1.5 text-xs mt-0.5 transition bg-neutral-200 dark:bg-neutral-800">
           {{ filters.length }}
         </div>
       </SecondaryButton>
@@ -49,14 +49,14 @@
       <SecondaryButton>
         Sort
         <SwitchVerticalIcon v-if="!sorts.length" class="w-4" />
-        <div v-if="sorts.length" class="rounded-full px-1.5 pb-0.5 text-xs mt-0.5 transition bg-neutral-200 dark:bg-neutral-800">
+        <div v-if="sorts.length" class="rounded-full px-1.5 text-xs mt-0.5 transition bg-neutral-200 dark:bg-neutral-800">
           {{ sorts.length }}
         </div>
       </SecondaryButton>
     </PopoverButton>
     <transition enter-active-class="transition ease-out duration-200" enter-from-class="transform opacity-0 scale-95" enter-to-class="transform opacity-100 scale-100" leave-active-class="transition ease-in duration-75" leave-from-class="transform opacity-100 scale-100" leave-to-class="transform opacity-0 scale-95" @after-enter="init" @after-leave="apply">
       <PopoverPanel class="min-w-[20rem] origin-top-right fixed sm:absolute left-4 sm:right-0 sm:left-auto mt-2 rounded-md shadow-lg ring-0 ring-opacity-5 focus:outline-none z-50 bg-white text-neutral-800 dark:bg-neutral-700 dark:text-neutral-200">
-        <div v-if="sorts.length" class="px-3 py-3 text-xs flex flex-col gap-2 w-max text-neutral-700 dark:text-neutral-200">
+        <div v-if="sorts.length" class="px-3 py-3 text-xs flex flex-col gap-2 w-full text-neutral-700 dark:text-neutral-200">
           <div class="flex items-end w-full justify-between" v-for="sort, i in sorts" :key="i">
             <div class="flex items-end w-max">
               <div v-if="i === 0">Sort by</div>
