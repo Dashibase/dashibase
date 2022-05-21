@@ -25,6 +25,7 @@ let __tla = new Promise(async () => {
       const baseSupabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
       const baseSupabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
       const baseSupabase = createClient(baseSupabaseUrl, baseSupabaseAnonKey)
+      baseSupabase.auth.session = () => null
       const response = await baseSupabase.from('dashboards').select('id,supabase_url,supabase_anon_key,app_name').eq('app_id', appId).single()
       if (response.error) {
         console.error(response.error.message)

@@ -3,7 +3,6 @@ import {
   computed,
   getCurrentInstance,
   ComponentInternalInstance,
-  WritableComputedRef,
   watch,
 } from 'vue'
 import * as _ from 'lodash'
@@ -42,7 +41,6 @@ export async function initDashboard () {
     const baseSupabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
     const baseSupabase = createClient(baseSupabaseUrl, baseSupabaseAnonKey)
     baseSupabase.auth.session = () => null
-    baseSupabase.auth.user = () => null
 
     const { data, error } = await baseSupabase
       .from('views')
@@ -142,7 +140,8 @@ export function initLoading (loading:boolean) {
 /*
 Initialize CRUD functions and related variables
 */
-export function initCrud (page:Page, itemId:string='') {
+export function initCrud (page:Page, itemId:string|number='') {
+  if (typeof itemId === 'string' && !isUUID(itemId)) itemId = parseInt(itemId)
   const store = useStore()
   // warning will be displayed upon any CRUD errors
   const warning = ref('')
@@ -159,9 +158,7 @@ export function initCrud (page:Page, itemId:string='') {
   // haveUnsavedChanges is used to denote if changes have been made by the user
   const haveUnsavedChanges = ref(false)
   watch (cache, (newCache, prevCache) => {
-    if (prevCache.data) {
-      return
-    }
+    if (prevCache.data) return
     items.value = JSON.parse(JSON.stringify(cache.value.data || []))
     item.value = JSON.parse(JSON.stringify(itemId ? cache.value.data.find((item:any) => item.id === itemId) || {} : cache.value.data[0] || {}))
     itemsCount.value = cache.value.count
@@ -188,14 +185,7 @@ export function initCrud (page:Page, itemId:string='') {
   })
   watch(paginationNum, async (currentPagination) => {
     warning.value = ''
-    if (currentPagination === 1) {
-      let storedItems = window.localStorage.getItem(page.table_id)
-      if (storedItems) {
-        const storedItemsJson = JSON.parse(storedItems)
-        items.value = storedItemsJson.data
-        return
-      }
-    }
+    
     store.loading = true
     const startRow = Math.max(0, currentPagination - 1) * maxItems
 
@@ -234,63 +224,26 @@ export function initCrud (page:Page, itemId:string='') {
   /*
   Retrieve row from <page.table_id> with id corresponding to itemId
   */
-  async function getItem (itemId:string|number, refresh:boolean=false) {
+  async function getItem (itemId:string|number) {
     warning.value = ''
     // If itemId is a number instead of UUID, run parseInt
     if (typeof itemId === 'string' && !isUUID(itemId)) itemId = parseInt(itemId)
     if (!page.attributes) return
-    let storedItem = window.localStorage.getItem(itemId.toString())
-    if (!storedItem || refresh) {
-      store.loading = true
-      const { data, error } = await supabase
-        .from(page.table_id)
-        .select(page.attributes.map((attribute:any) => attribute.id).join(',') + ',id')
-        .eq('id', itemId)
-        .single()
-        store.loading = false
-      if (error) {
-        warning.value = error.message
-      } else {
-        items.value = [data]
-        window.localStorage.setItem(itemId.toString(), JSON.stringify(data))
-      }
-    } else {
-      items.value = [JSON.parse(storedItem)]
+    if (items.value.find((item:any) => item.id === itemId)) {
+      item.value = items.value.find((item:any) => item.id === itemId)
+      return
     }
-  }
-
-  /*
-  Retrieve all rows from <page.table_id> with user corresponding to user_id
-  */
-  async function getItems (max:number=maxItems, refresh:boolean=false) {
-    warning.value = ''
-    if (!page.attributes) return
-    let storedItems = window.localStorage.getItem(page.table_id)
-    if (!storedItems || refresh) {
-      store.loading = true
-      const { data, error, count } = await supabase
-        .from(page.table_id)
-        .select(page.attributes.map((attribute:any) => attribute.id).join(',') + ',id', { count: 'exact' })
-        .eq('user', store.user.id)
-        .range(0, max - 1)
-        store.loading = false
-      if (error) {
-        warning.value = error.message
-      } else {
-        items.value = data
-        if (count) itemsCount.value = count
-        window.localStorage.setItem(page.table_id, JSON.stringify({
-          count,
-          data,
-        }));
-        (data as any[]).forEach(item => {
-          window.localStorage.setItem(item.id, JSON.stringify(item))
-        })
-      }
+    store.loading = true
+    const { data, error } = await supabase
+      .from(page.table_id)
+      .select(page.attributes.map((attribute:any) => attribute.id).join(',') + ',id')
+      .eq('id', itemId)
+      .single()
+      store.loading = false
+    if (error) {
+      warning.value = error.message
     } else {
-      const storedItemsJson = JSON.parse(storedItems)
-      items.value = storedItemsJson.data
-      itemsCount.value = storedItemsJson.count || 0
+      item.value = data
     }
   }
 
@@ -306,7 +259,6 @@ export function initCrud (page:Page, itemId:string='') {
     const unfilledRequiredAttributes = page.attributes.filter((attribute:any) => {
       if (attribute.required) {
         const value = item[attribute.id]
-        console.log(value)
         if (!!value) {
           return false
         } else if (attribute.type === AttributeType.Bool) {
@@ -410,7 +362,6 @@ export function initCrud (page:Page, itemId:string='') {
     paginationList,
     haveUnsavedChanges,
     getItem,
-    getItems,
     upsertItem,
     deleteItems,
     filterItems,
