@@ -11,7 +11,7 @@
           <div class="">
             <div class="h-screen w-screen flex items-center justify-center">
               <div class="loader" />
-              <div class="mt-3 text-center sm:mt-28 relative">
+              <div class="mt-36 sm:mt-3 text-center sm:mt-28 relative">
                 <DialogTitle as="h3" class="text-lg leading-6 font-medium text-neutral-600 dark:text-neutral-400"> Loading... </DialogTitle>
               </div>
             </div>

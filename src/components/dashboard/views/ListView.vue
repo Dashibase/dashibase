@@ -19,9 +19,11 @@
       {{ warning }}
     </div>
     <!-- Mobile view -->
-    <div class="mt-2 sm:hidden overflow-x-auto max-w-full w-full">
-      <Table :headers="page.attributes.slice(0, 1)" :items="items" :countFrom="(paginationNum - 1) * maxItems" @viewItem="viewRow" />
-      <Pagination v-if="maxPagination > 1" class="border border-x-0 border-t-0 border-b-1 border-t-gray-100" :paginationList="paginationList" :maxPagination="maxPagination" v-model="paginationNum" />
+    <div class="mt-2 sm:hidden">
+      <div class="overflow-x-auto">
+        <Table :headers="page.attributes.slice(0, 1)" :items="items" :countFrom="(paginationNum - 1) * maxItems" @viewItem="viewRow" />
+      </div>
+      <Pagination v-if="maxPagination > 1" class="mt-10" :paginationList="paginationList" :maxPagination="maxPagination" v-model="paginationNum" />
     </div>
     <!-- Normal view -->
     <div class="hidden sm:block mb-24">

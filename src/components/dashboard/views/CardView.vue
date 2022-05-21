@@ -23,7 +23,7 @@
       <div v-if="items.length === 0" class="text-sm">
         No cards found.
       </div>
-      <button v-for="(item, i) in items" :key="item.id" class="text-left border rounded px-2 py-1 flex justify-between hover:shadow-lg hover:scale-[101%] transition border-neutral-300 bg-white dark:border-neutral-700 dark:bg-neutral-800"
+      <button v-for="(item, i) in items" :key="item.id" class="text-left border rounded px-2 py-1 flex justify-between hover:shadow-lg hover:scale-[101%] transition border-neutral-300 bg-white dark:border-neutral-750 dark:bg-neutral-800 dark:hover:bg-[#282828]"
         @click.exact="router.push(`/${page.page_id}/view/${item.id}`)"
         @click.shift.left.exact="event => selectCard(i, event)">
         <div class="flex flex-col gap-1 p-2 w-full">
@@ -41,7 +41,7 @@
         </div>
       </button>
     </div>
-    <Pagination v-if="maxPagination > 1" class="mt-10 px-10" :paginationList="paginationList" :maxPagination="maxPagination" v-model="paginationNum" />
+    <Pagination v-if="maxPagination > 1" class="mt-10 px-1 sm:px-10" :paginationList="paginationList" :maxPagination="maxPagination" v-model="paginationNum" />
     <DeleteModal ref="deleteModal">
       <template #title>Confirm deletion</template>
       <p>{{ `Are you sure you want to delete ${selected.length > 1 ? 'these rows' : 'this row'}?` }}</p>

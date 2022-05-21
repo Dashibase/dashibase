@@ -15,6 +15,7 @@ module.exports = {
       colors: {
         neutral: {
           150: '#EDEDED',
+          750: '#333333',
         },
       },
       boxShadow: {
