@@ -153,7 +153,7 @@ export function initCrud (page:Page, itemId:string='') {
   })
   // If page.mode is 'single' make sure there is at least an empty object
   const items = ref(JSON.parse(JSON.stringify(cache.value.data || [])))
-  const item = ref(JSON.parse(JSON.stringify(itemId  ? cache.value.data.find((item:any) => item.id === itemId) || {} : cache.value.data[0] || {})))
+  const item = ref(JSON.parse(JSON.stringify(itemId  ? items.value.find((item:any) => item.id === itemId) || {} : items.value[0] || {})))
   // total number of items in Supabase table
   const itemsCount = ref(cache.value.count)
   // haveUnsavedChanges is used to denote if changes have been made by the user
