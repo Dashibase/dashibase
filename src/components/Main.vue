@@ -6,14 +6,14 @@
         <component :is="Component" />
       </transition>
     </router-view>
-    <div class="z-50 absolute w-full top-0 bg-red-500 transition-all duration-500"
+    <div class="z-50 absolute w-full top-0 transition-all duration-500"
       :class="store.dashboard.name ? 'opacity-0 pointer-events-none' : 'opacity-100'">
       <Placeholder />
     </div>
   </div>
 </template>
 
-<style scoped>
+<style>
 .v-enter-active,
 .v-leave-active {
   transition: opacity 0.25s ease;

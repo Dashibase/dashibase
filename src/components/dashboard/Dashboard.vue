@@ -19,18 +19,6 @@
   </div>
 </template>
 
-<style scoped>
-.v-enter-active,
-.v-leave-active {
-  transition: opacity 0.25s ease;
-}
-
-.v-enter-from,
-.v-leave-to {
-  opacity: 0.3;
-}
-</style>
-
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
 import router from '@/router'
