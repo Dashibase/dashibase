@@ -38,30 +38,7 @@ const route = useRoute()
 
 if (!store.user.id && !['/signin', '/signup'].includes(route.path)) router.push('/signin')
 
-if (isHostedByDashibase) {
-  const intervalId = setInterval(() => {
-    if (supabase) {
-      clearInterval(intervalId)
-
-      store.dashboard.supabaseAnonKey = window.localStorage.getItem('dashibase.supabase_anon_key') || ''
-      store.dashboard.supabaseUrl = window.localStorage.getItem('dashibase.supabase_url') || ''
-      store.dashboard.name = window.localStorage.getItem('dashibase.app_name') || ''
-      store.dashboard.id = window.localStorage.getItem('dashibase.dashboard_id') || ''
-
-      const user = supabase.auth.user()
-      if (user) store.user = user
-      supabase.auth.onAuthStateChange((_, session) => {
-        store.user = session?.user as SupabaseUser
-      })
-      if (!store.user.id) {
-        if (!['/signin', '/signup'].includes(route.path)) router.push('/signin')
-      }
-    }
-  }, 100)
-} else {
-  store.dashboard.supabaseAnonKey = config.supabase_anon_key
-  store.dashboard.supabaseUrl = config.supabase_url
-  store.dashboard.name = config.name
+function checkUser () {
   const user = supabase.auth.user()
   if (user) store.user = user
   supabase.auth.onAuthStateChange((_, session) => {
@@ -70,5 +47,23 @@ if (isHostedByDashibase) {
   if (!store.user.id) {
     if (!['/signin', '/signup'].includes(route.path)) router.push('/signin')
   }
+}
+
+if (isHostedByDashibase) {
+  const intervalId = setInterval(() => {
+    if (supabase) {
+      clearInterval(intervalId)
+      store.dashboard.supabaseAnonKey = window.localStorage.getItem('dashibase.supabase_anon_key') || ''
+      store.dashboard.supabaseUrl = window.localStorage.getItem('dashibase.supabase_url') || ''
+      store.dashboard.name = window.localStorage.getItem('dashibase.app_name') || ''
+      store.dashboard.id = window.localStorage.getItem('dashibase.dashboard_id') || ''
+      checkUser()
+    }
+  }, 100)
+} else {
+  store.dashboard.supabaseAnonKey = config.supabase_anon_key
+  store.dashboard.supabaseUrl = config.supabase_url
+  store.dashboard.name = config.name
+  checkUser()
 }
 </script>
