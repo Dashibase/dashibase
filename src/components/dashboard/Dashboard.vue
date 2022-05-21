@@ -1,6 +1,6 @@
 <template>
-  <Loading />
   <div>
+    <Loading />
     <div class="relative min-h-screen flex flex-col">
       <div class="flex-grow w-full mx-auto sm:flex" :class="store.darkMode ? 'bg-neutral-800' : 'bg-neutral-50'">
         <div v-if="store.user && store.user.id" class="flex-1 min-w-0 sm:flex w-full h-screen transition">
@@ -19,26 +19,14 @@
   </div>
 </template>
 
-<style scoped>
-.v-enter-active,
-.v-leave-active {
-  transition: opacity 0.25s ease;
-}
-
-.v-enter-from,
-.v-leave-to {
-  opacity: 0.3;
-}
-</style>
-
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
 import router from '@/router'
 import { useStore } from '@/utils/store'
-import SidePanel from './SidePanel.vue'
-import MainPanel from './MainPanel.vue'
 import Loading from './Loading.vue'
 import LoadData from './LoadData.vue'
+import MainPanel from './MainPanel.vue'
+import SidePanel from './SidePanel.vue'
 
 const store = useStore()
 const route = useRoute()

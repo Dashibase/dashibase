@@ -1,19 +1,17 @@
 <template>
   <div class="block">
-    <div class="flex justify-between px-4 py-3 text-sm font-medium items-center" :class="store.darkMode ? 'text-neutral-400' : 'text-neutral-500'">
+    <div class="flex justify-between px-4 py-3 text-sm font-medium items-center text-neutral-500 dark:text-neutral-400">
       <div class="flex items-center gap-1">
         Page
         <DropDown :options="paginationList" v-model="paginationNum" />
         of {{ maxPagination }}
       </div>
       <div class="flex gap-2">
-        <button class="border rounded px-2 py-1 transition"
-          :class="store.darkMode ? 'border-neutral-700 hover:bg-neutral-900 disabled:bg-neutral-800 disabled:text-neutral-700' : 'hover:bg-neutral-50 disabled:bg-white disabled:text-neutral-300'"
+        <button class="border rounded px-2 py-1 transition hover:bg-neutral-50 disabled:bg-white disabled:text-neutral-300 dark:border-neutral-700 dark:hover:bg-neutral-900 dark:disabled:bg-neutral-800 dark:disabled:text-neutral-700"
           :disabled="paginationNum === 1" @click="paginationNum === 1 ? '' : paginationNum -= 1">
           Prev
         </button>
-        <button class="border rounded px-2 py-1 transition"
-          :class="store.darkMode ? 'border-neutral-700 hover:bg-neutral-900 disabled:bg-neutral-800 disabled:text-neutral-700' : 'hover:bg-neutral-50 disabled:bg-white disabled:text-neutral-300'"
+        <button class="border rounded px-2 py-1 transition hover:bg-neutral-50 disabled:bg-white disabled:text-neutral-300 dark:border-neutral-700 dark:hover:bg-neutral-900 dark:disabled:bg-neutral-800 dark:disabled:text-neutral-700"
           :disabled="paginationNum === maxPagination" @click="paginationNum === maxPagination ? '' : paginationNum += 1">
           Next
         </button>
@@ -24,10 +22,7 @@
 
 <script setup lang="ts">
 import { computed, PropType } from 'vue'
-import { useStore } from '@/utils/store'
-import DropDown from './elements/DropDown.vue'
-
-const store = useStore()
+import DropDown from './DropDown.vue'
 
 const props = defineProps({
   paginationList: {

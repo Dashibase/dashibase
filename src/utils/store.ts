@@ -30,6 +30,11 @@ export const useStore = defineStore(
       initializing,
     }
   }, {
-    persist: true,
+    persist: {
+      afterRestore: context => {
+        // Escape hatch for infinite loading
+        context.store.loading = false
+      },
+    },
   },
 )
