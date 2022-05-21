@@ -7,10 +7,6 @@
 </template>
 
 <script setup lang="ts">
-import { useStore } from '@/utils/store'
-
-const store = useStore()
-
 const props = defineProps({
   disabled: {
     type: Boolean,

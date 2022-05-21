@@ -33,17 +33,24 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Dialog, DialogOverlay, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
+import {
+  Dialog,
+  DialogOverlay,
+  DialogTitle,
+  TransitionChild,
+  TransitionRoot
+} from '@headlessui/vue'
 import { XIcon } from '@heroicons/vue/solid'
-import { useStore } from '@/utils/store'
-const store = useStore()
+
 const props = defineProps({
   modelValue: {
     type: Boolean,
     default: false,
   },
 })
+
 const emit = defineEmits(['update:modelValue'])
+
 const show = computed({
   get () {
     return props.modelValue

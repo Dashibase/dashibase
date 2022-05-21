@@ -6,10 +6,7 @@
 </template>
 
 <script setup lang="ts">
-import { useStore } from '@/utils/store'
 import Button from './Button.vue'
-
-const store = useStore()
 
 const props = defineProps({
   disabled: {

@@ -7,9 +7,6 @@
 
 <script setup lang="ts">
 import Button from './Button.vue'
-import { useStore } from '@/utils/store'
-
-const store = useStore()
 
 const props = defineProps({
   disabled: {

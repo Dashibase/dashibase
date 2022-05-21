@@ -103,8 +103,8 @@ import {
   UserCircleIcon,
   XIcon,
 } from '@heroicons/vue/solid'
-import router from '@/router'
 import { useRoute } from 'vue-router'
+import router from '@/router'
 import { useStore } from '@/utils/store'
 import { supabase } from '@/utils/supabase'
 import AppLogo from '../branding/AppLogo.vue'

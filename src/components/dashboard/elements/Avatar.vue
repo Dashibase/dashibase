@@ -1,5 +1,5 @@
 <template>
-  <span class="inline-flex items-center justify-center rounded-full text-neutral-600 dark:text-neutral-300" :class="classes" :style="styles">
+  <span class="inline-flex items-center justify-center rounded-full text-neutral-600 dark:text-neutral-300" :class="sizes[props.size]" :style="bgColor">
     <span class="font-medium leading-none uppercase">{{ initials }}</span>
   </span>
 </template>
@@ -17,6 +17,7 @@ const props = defineProps({
   },
 })
 
+
 const sizes = {
   xs: ['text-xs', 'h-5', 'w-5'],
   sm: ['text-sm', 'h-7', 'w-7'],
@@ -25,28 +26,21 @@ const sizes = {
   xl: ['text-xl', 'h-11', 'w-11'],
 } as {[k:string]: string[]}
 
-const classes = computed(() => {
-  return sizes[props.size]
-})
-
-const styles = computed(() => {
-  return {
-    background: bgColor.value,
-  }
-})
-
+// Compute avatar color as hash of email via HSL
 const bgColor = computed(() => {
   if (!store.user.email) return '#D4D4D4'
-  
   const str = store.user.email
   let hash = 0
   for (let i = 0; i < str.length; i++) {
     hash = str.charCodeAt(i) + ((hash << 5) - hash)
   }
   const hue = hash % 360
-  return store.darkMode ? `hsl(${hue},60%,30%)` : `hsl(${hue},60%,85%)`
+  return {
+    background: store.darkMode ? `hsl(${hue},60%,30%)` : `hsl(${hue},60%,85%)`
+  }
 })
 
+// Use first character of email
 const initials = computed(() => {
   if (store.user.email) return store.user.email[0]
   else return ''

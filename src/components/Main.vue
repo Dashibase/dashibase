@@ -1,6 +1,5 @@
 <template>
   <div class="dark:bg-neutral-800">
-    <!-- <router-view /> -->
     <router-view v-slot="{ Component }">
       <transition mode="out-in">
         <component :is="Component" />
@@ -28,10 +27,10 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
 import { User as SupabaseUser } from '@supabase/supabase-js'
-import { isHostedByDashibase, supabase } from '@/utils/supabase'
-import { useStore } from '@/utils/store'
-import router from '@/router'
 import config from '@/dashibaseConfig'
+import router from '@/router'
+import { useStore } from '@/utils/store'
+import { isHostedByDashibase, supabase } from '@/utils/supabase'
 import Placeholder from './dashboard/Placeholder.vue'
 
 const store = useStore()

@@ -1,18 +1,16 @@
 import {
   ref,
   computed,
-  getCurrentInstance,
-  ComponentInternalInstance,
   watch,
 } from 'vue'
 import * as _ from 'lodash'
 import { createClient } from '@supabase/supabase-js'
-import { isHostedByDashibase, supabase } from './supabase'
-import { useStore } from './store'
-import { Page, Attribute, AttributeType } from './config'
-import router from '@/router'
-import { isUUID } from './utils'
 import config from '@/dashibaseConfig'
+import router from '@/router'
+import { Page, Attribute, AttributeType } from './config'
+import { useStore } from './store'
+import { isHostedByDashibase, supabase } from './supabase'
+import { isUUID } from './utils'
 
 const pageConfigs = {
   list: {
@@ -30,19 +28,14 @@ const pageConfigs = {
 Initialize dashboard pages and store in Pinia store
 */
 export async function initDashboard () {
-
   const store = useStore()
   if (!store.user.id) return
-
   if (!isHostedByDashibase) {
     store.dashboard.pages = config.pages
     return
   }
-
   if (store.initializing.dashboard) return
-
   store.initializing.dashboard = true
-
   try {
     const baseSupabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
     const baseSupabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
@@ -92,9 +85,7 @@ export async function initUserData () {
   const store = useStore()
   if (!store.user.id) return
   if (store.initializing.data) return
-
   store.initializing.data = true
-
   try {
     const supabase = createClient(store.dashboard.supabaseUrl, store.dashboard.supabaseAnonKey)
     const promises = store.dashboard.pages.map(page => {
@@ -129,8 +120,8 @@ export async function initUserData () {
 Initialize CRUD functions and related variables
 */
 export function initCrud (page:Page, itemId:string|number='') {
-  if (typeof itemId === 'string' && !isUUID(itemId)) itemId = parseInt(itemId)
   const store = useStore()
+  if (typeof itemId === 'string' && !isUUID(itemId)) itemId = parseInt(itemId)
   // warning will be displayed upon any CRUD errors
   const warning = ref('')
   // items stores the retrieved items when reading
@@ -157,7 +148,7 @@ export function initCrud (page:Page, itemId:string|number='') {
   const conjunction = ref('')
   const sorts = ref([] as any[])
 
-  // properties for pagination
+  // Properties for pagination
   const maxItems = pageConfigs[page.mode].maxItems
   const paginationNum = ref(1)
   const maxPagination = computed (() => {
@@ -171,12 +162,12 @@ export function initCrud (page:Page, itemId:string|number='') {
       }
     })
   })
+
+  // Watch pagination and query new page when necessary
   watch(paginationNum, async (currentPagination) => {
     warning.value = ''
-    
     store.loading = true
     const startRow = Math.max(0, currentPagination - 1) * maxItems
-
     let request = supabase
       .from(page.table_id)
       .select(page.attributes.map((attribute:any) => attribute.id).join(',') + ',id')
@@ -193,14 +184,11 @@ export function initCrud (page:Page, itemId:string|number='') {
         }).join(','))
       }
     }
-
     sorts.value.forEach(sort => {
       request = request.order(sort.column, { ascending: sort.ascending })
     })
-
     const { data, error } = await request
       .range(startRow, startRow + maxItems - 1)
-
     store.loading = false
     if (error) {
       warning.value = error.message
@@ -293,6 +281,7 @@ export function initCrud (page:Page, itemId:string|number='') {
       .delete()
       .or(itemIds.map(id => `id.eq.${id}`).join(','))
     if (error) {
+      store.loading = false
       warning.value = error.message
     } else {
       initUserData()
@@ -306,6 +295,9 @@ export function initCrud (page:Page, itemId:string|number='') {
     }
   }
 
+  /*
+  Apply filters and sorts to query
+  */
   async function filterItems (newFilters:any[], newConjunction:string, newSorts:any[]) {
     warning.value = ''
 
@@ -319,6 +311,7 @@ export function initCrud (page:Page, itemId:string|number='') {
       .select(page.attributes.map((attribute:any) => attribute.id).join(',') + ',id', { count: 'exact' })
       .eq('user', store.user.id)
     
+    // Apply filters
     if (newFilters.length) {
       if (newConjunction === 'and') {
         newFilters.forEach(condition => {
@@ -331,6 +324,7 @@ export function initCrud (page:Page, itemId:string|number='') {
       }
     }
 
+    // Apply sorts
     newSorts.forEach(sort => {
       filterRequest = filterRequest.order(sort.column, { ascending: sort.ascending })
     })

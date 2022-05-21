@@ -105,13 +105,6 @@ interface Sort {
   ascending: boolean;
 }
 
-const prevConjunction = ref('and')
-const prevFilters = ref([] as Filter[])
-const prevSorts = ref([] as Sort[])
-const conjunction = ref('and')
-const filters = ref([] as Filter[])
-const sorts = ref([] as Sort[])
-
 const props = defineProps({
   attributes: {
     type: Array as PropType<Header[]>,
@@ -120,6 +113,27 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close'])
+
+function init () {
+  prevConjunction.value = conjunction.value
+  prevFilters.value = JSON.parse(JSON.stringify(filters.value))
+  prevSorts.value = JSON.parse(JSON.stringify(sorts.value))
+}
+
+function apply () {
+  const haveUnsavedChanges = 
+    (JSON.stringify(filters.value) !== JSON.stringify(prevFilters.value)) ||
+    (JSON.stringify(sorts.value) !== JSON.stringify(prevSorts.value)) ||
+    (conjunction.value !== prevConjunction.value)
+  // Only apply filters/sorts if they have been changed 
+  if (haveUnsavedChanges) emit('close', filters.value, conjunction.value, sorts.value)
+}
+
+// Filters
+const prevConjunction = ref('and')
+const conjunction = ref('and')
+const prevFilters = ref([] as Filter[])
+const filters = ref([] as Filter[])
 
 function addFilter () {
   filters.value.push({
@@ -137,6 +151,10 @@ function deleteFilter (idx:number) {
   filters.value.splice(idx, 1)
 }
 
+// Sorts
+const prevSorts = ref([] as Sort[])
+const sorts = ref([] as Sort[])
+
 function addSort () {
   sorts.value.push({
     column: props.attributes[0].id,
@@ -150,19 +168,5 @@ function updateSort (idx:number, key:string, value:string) {
 
 function deleteSort (idx:number) {
   sorts.value.splice(idx, 1)
-}
-
-function init () {
-  prevConjunction.value = conjunction.value
-  prevFilters.value = JSON.parse(JSON.stringify(filters.value))
-  prevSorts.value = JSON.parse(JSON.stringify(sorts.value))
-}
-
-function apply () {
-  const haveUnsavedChanges = 
-    (JSON.stringify(filters.value) !== JSON.stringify(prevFilters.value)) ||
-    (JSON.stringify(sorts.value) !== JSON.stringify(prevSorts.value)) ||
-    (conjunction.value !== prevConjunction.value)
-  if (haveUnsavedChanges) emit('close', filters.value, conjunction.value, sorts.value)
 }
 </script>

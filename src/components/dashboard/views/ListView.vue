@@ -38,16 +38,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, PropType } from 'vue'
+import { ref, computed } from 'vue'
 import router from '@/router'
 import { Page } from '@/utils/config'
 import { initCrud } from '@/utils/dashboard'
 import { useStore } from '@/utils/store'
 import View from './View.vue'
-import Pagination from '../elements/Pagination.vue'
-import PageHeader from '../elements/PageHeader.vue'
-import Table from '../elements/Table.vue'
 import FilterMenu from '../elements/FilterMenu.vue'
+import Pagination from '../elements/Pagination.vue'
+import Table from '../elements/Table.vue'
 import PrimaryButton from '../elements/buttons/PrimaryButton.vue'
 import DeleteButton from '../elements/buttons/DeleteButton.vue'
 import DeleteModal from '../modals/DeleteModal.vue'

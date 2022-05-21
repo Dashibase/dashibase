@@ -53,13 +53,13 @@
 import { ref, computed } from 'vue'
 import router from '@/router'
 import { Page, AttributeType } from '@/utils/config'
-import { useStore } from '@/utils/store'
 import { initCrud } from '@/utils/dashboard'
+import { useStore } from '@/utils/store'
 import View from './View.vue'
-import Pagination from '../elements/Pagination.vue'
 import FilterMenu from '../elements/FilterMenu.vue'
-import PrimaryButton from '../elements/buttons/PrimaryButton.vue'
+import Pagination from '../elements/Pagination.vue'
 import DeleteButton from '../elements/buttons/DeleteButton.vue'
+import PrimaryButton from '../elements/buttons/PrimaryButton.vue'
 import DeleteModal from '../modals/DeleteModal.vue'
 
 const store = useStore()

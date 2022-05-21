@@ -5,8 +5,8 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
 import router from '@/router'
-import { useStore } from '@/utils/store'
 import { initDashboard, initUserData } from '@/utils/dashboard'
+import { useStore } from '@/utils/store'
 
 const route = useRoute()
 const store = useStore()

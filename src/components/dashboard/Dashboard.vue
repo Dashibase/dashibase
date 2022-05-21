@@ -23,10 +23,10 @@
 import { useRoute } from 'vue-router'
 import router from '@/router'
 import { useStore } from '@/utils/store'
-import SidePanel from './SidePanel.vue'
-import MainPanel from './MainPanel.vue'
 import Loading from './Loading.vue'
 import LoadData from './LoadData.vue'
+import MainPanel from './MainPanel.vue'
+import SidePanel from './SidePanel.vue'
 
 const store = useStore()
 const route = useRoute()
