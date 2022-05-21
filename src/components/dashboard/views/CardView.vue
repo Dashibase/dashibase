@@ -20,6 +20,9 @@
     </div>
     <!-- Cards -->
     <div class="px-4 md:px-10 grid grid-cols-1 md:grid-cols-2 gap-2 text-neutral-800 dark:text-neutral-200">
+      <div v-if="items.length === 0" class="text-sm">
+        No cards found.
+      </div>
       <button v-for="(item, i) in items" :key="item.id" class="text-left border rounded px-2 py-1 flex justify-between hover:shadow-lg hover:scale-[101%] transition border-neutral-300 bg-white dark:border-neutral-700 dark:bg-neutral-800"
         @click.exact="router.push(`/${page.page_id}/view/${item.id}`)"
         @click.shift.left.exact="event => selectCard(i, event)">
