@@ -7,11 +7,12 @@ import {
 } from 'vue'
 import * as _ from 'lodash'
 import { createClient } from '@supabase/supabase-js'
-import { supabase } from './supabase'
+import { isHostedByDashibase, supabase } from './supabase'
 import { useStore } from './store'
 import { Page, Attribute, AttributeType } from './config'
-import router from '../router'
+import router from '@/router'
 import { isUUID } from './utils'
+import config from '@/dashibaseConfig'
 
 const pageConfigs = {
   list: {
@@ -32,6 +33,12 @@ export async function initDashboard () {
 
   const store = useStore()
   if (!store.user.id) return
+
+  if (!isHostedByDashibase) {
+    store.dashboard.pages = config.pages
+    return
+  }
+
   if (store.initializing.dashboard) return
 
   store.initializing.dashboard = true
@@ -116,25 +123,6 @@ export async function initUserData () {
   } finally {
     store.initializing.data = false
   }
-}
-
-/*
-Initialize computed loading value for loading screen
-*/
-export function initLoading (loading:boolean) {
-
-  const { emit } = getCurrentInstance() as ComponentInternalInstance
-
-  const innerLoading = computed({
-    get () {
-      return loading
-    },
-    set (value:boolean) {
-      emit('update:loading', value)
-    },
-  })
-
-  return { loading: innerLoading, }
 }
 
 /*
@@ -307,7 +295,14 @@ export function initCrud (page:Page, itemId:string|number='') {
     if (error) {
       warning.value = error.message
     } else {
-      initUserData().then(() => store.loading = false)
+      initUserData()
+        .then(() => {
+          items.value = JSON.parse(JSON.stringify(cache.value.data || []))
+          item.value = JSON.parse(JSON.stringify(itemId ? cache.value.data.find((item:any) => item.id === itemId) || {} : cache.value.data[0] || {}))
+          itemsCount.value = cache.value.count
+          router.push({path: `/${page.page_id}`})
+          store.loading = false
+        })
     }
   }
 

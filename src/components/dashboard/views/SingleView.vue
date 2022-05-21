@@ -141,7 +141,6 @@ async function deleteItem () {
   const confirm = await deleteModal.value.confirm()
   if (confirm) {
     deleteItems([props.itemId])
-      .then(() => router.push(`/${props.pageId}`))
   }
 }
 

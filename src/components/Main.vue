@@ -28,9 +28,10 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
 import { User as SupabaseUser } from '@supabase/supabase-js'
-import { supabase } from '@/utils/supabase'
+import { isHostedByDashibase, supabase } from '@/utils/supabase'
 import { useStore } from '@/utils/store'
 import router from '@/router'
+import config from '@/dashibaseConfig'
 import Placeholder from './dashboard/Placeholder.vue'
 
 const store = useStore()
@@ -38,23 +39,37 @@ const route = useRoute()
 
 if (!store.user.id && !['/signin', '/signup'].includes(route.path)) router.push('/signin')
 
-const intervalId = setInterval(() => {
-  if (supabase) {
-    clearInterval(intervalId)
+if (isHostedByDashibase) {
+  const intervalId = setInterval(() => {
+    if (supabase) {
+      clearInterval(intervalId)
 
-    store.dashboard.supabaseAnonKey = window.localStorage.getItem('dashibase.supabase_anon_key') || ''
-    store.dashboard.supabaseUrl = window.localStorage.getItem('dashibase.supabase_url') || ''
-    store.dashboard.name = window.localStorage.getItem('dashibase.app_name') || ''
-    store.dashboard.id = window.localStorage.getItem('dashibase.dashboard_id') || ''
+      store.dashboard.supabaseAnonKey = window.localStorage.getItem('dashibase.supabase_anon_key') || ''
+      store.dashboard.supabaseUrl = window.localStorage.getItem('dashibase.supabase_url') || ''
+      store.dashboard.name = window.localStorage.getItem('dashibase.app_name') || ''
+      store.dashboard.id = window.localStorage.getItem('dashibase.dashboard_id') || ''
 
-    const user = supabase.auth.user()
-    if (user) store.user = user
-    supabase.auth.onAuthStateChange((_, session) => {
-      store.user = session?.user as SupabaseUser
-    })
-    if (!store.user.id) {
-      if (!['/signin', '/signup'].includes(route.path)) router.push('/signin')
+      const user = supabase.auth.user()
+      if (user) store.user = user
+      supabase.auth.onAuthStateChange((_, session) => {
+        store.user = session?.user as SupabaseUser
+      })
+      if (!store.user.id) {
+        if (!['/signin', '/signup'].includes(route.path)) router.push('/signin')
+      }
     }
+  }, 100)
+} else {
+  store.dashboard.supabaseAnonKey = config.supabase_anon_key
+  store.dashboard.supabaseUrl = config.supabase_url
+  store.dashboard.name = config.name
+  const user = supabase.auth.user()
+  if (user) store.user = user
+  supabase.auth.onAuthStateChange((_, session) => {
+    store.user = session?.user as SupabaseUser
+  })
+  if (!store.user.id) {
+    if (!['/signin', '/signup'].includes(route.path)) router.push('/signin')
   }
-}, 100)
+}
 </script>
