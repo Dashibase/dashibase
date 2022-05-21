@@ -30,6 +30,10 @@
       </div>
       <Pagination v-if="maxPagination > 1" class="mt-10 px-10" :paginationList="paginationList" :maxPagination="maxPagination" v-model="paginationNum" />
     </div>
+    <DeleteModal ref="deleteModal">
+      <template #title>Confirm deletion</template>
+      <p>{{ `Are you sure you want to delete ${selected.length > 1 ? 'these items' : 'this item'}?` }}</p>
+    </DeleteModal>
   </View>
 </template>
 
@@ -83,9 +87,7 @@ function viewRow (itemIdx:number) {
 
 async function deleteRows () {
   if (!deleteModal.value) return
-  deleteModal.value.title = 'Confirm deletion'
-  deleteModal.value.message = `Are you sure you want to delete ${selected.value.length > 1 ? 'these items' : 'this item'}?`
-  const confirm = await deleteModal.value?.confirm()
+  const confirm = await deleteModal.value.confirm()
   if (confirm) {
     deleteItems(selected.value.map((idx:number) => items.value[idx].id))
       .then(() => table.value.selected = [])

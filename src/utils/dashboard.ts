@@ -220,7 +220,7 @@ export function initCrud (page:Page, itemId:string='') {
       request = request.order(sort.column, { ascending: sort.ascending })
     })
 
-    const { data, error, count } = await request
+    const { data, error } = await request
       .range(startRow, startRow + maxItems - 1)
 
     store.loading = false
@@ -230,51 +230,6 @@ export function initCrud (page:Page, itemId:string='') {
       items.value = data
     }
   })
-
-  /*
-  Insert a new item into table named <page.table_id>
-  */
-  async function createItem (item:any) {
-    warning.value = ''
-    store.loading = true
-    // Check required attributes
-    const unfilledRequiredAttributes = page.attributes.filter((attribute:any) => {
-      if (attribute.required) {
-        const value = item[attribute.id]
-        if (!!value) {
-          return false
-        } else if (attribute.type === AttributeType.Bool) {
-          item[attribute.id] = false
-          return false
-        } else if (attribute.type === AttributeType.Enum) {
-          item[attribute.id] = attribute.enumOptions ? attribute.enumOptions[0] : ''
-          return false
-        } else return true
-      } else {
-        return false
-      }
-    })
-    if (unfilledRequiredAttributes.length) {
-      warning.value = `${unfilledRequiredAttributes.map((attribute:any) => attribute.label).join(', ')} need${unfilledRequiredAttributes.length === 1 ? 's' : ''} to be filled`
-      store.loading = false
-      return
-    }
-    item.user = store.user.id
-    // Insert new item
-    const { error } = await supabase
-      .from(page.table_id)
-      .insert([
-        item
-      ])
-    store.loading = false
-
-    if (error) {
-      warning.value = error.message
-    } else {
-      window.localStorage.removeItem(page.table_id)
-      router.push({path: `/${page.page_id}`})
-    }
-  }
 
   /*
   Retrieve row from <page.table_id> with id corresponding to itemId
@@ -342,22 +297,25 @@ export function initCrud (page:Page, itemId:string='') {
   /*
   Upsert row into <page.table_id> with user corresponding to user_id and id corresponding to itemId
   */
-  async function upsertItem (itemId:string='') {
+  async function upsertItem (item:any) {
     warning.value = ''
-
     store.loading = true
-
-    // let item = items.value[0]
-    // if (itemId) item = items.value.find((item:any) => item.id === itemId) || {}
-    item.value.user = store.user.id
+    item.user = store.user.id
 
     // Check required attributes
     const unfilledRequiredAttributes = page.attributes.filter((attribute:any) => {
       if (attribute.required) {
-        const value = item.value[attribute.id]
-        if (!!value) return false
-        else if (attribute.type === AttributeType.Bool) return false
-        else return true
+        const value = item[attribute.id]
+        console.log(value)
+        if (!!value) {
+          return false
+        } else if (attribute.type === AttributeType.Bool) {
+          item[attribute.id] = false
+          return false
+        } else if (attribute.type === AttributeType.Enum) {
+          item[attribute.id] = attribute.enumOptions ? attribute.enumOptions[0] : ''
+          return false
+        } else return true
       } else {
         return false
       }
@@ -370,7 +328,7 @@ export function initCrud (page:Page, itemId:string='') {
     // Run upsert since user may or may not have inserted before
     const { error } = await supabase
       .from(page.table_id)
-      .upsert([item.value])
+      .upsert([item])
     if (error) {
       store.loading = false
       warning.value = error.message
@@ -394,11 +352,9 @@ export function initCrud (page:Page, itemId:string='') {
       .from(page.table_id)
       .delete()
       .or(itemIds.map(id => `id.eq.${id}`).join(','))
-      // .match({ id: itemId })
     if (error) {
       warning.value = error.message
     } else {
-      // getItems(maxItems, true).then(() => store.loading = false)
       initUserData().then(() => store.loading = false)
     }
   }
@@ -453,7 +409,6 @@ export function initCrud (page:Page, itemId:string='') {
     maxPagination,
     paginationList,
     haveUnsavedChanges,
-    createItem,
     getItem,
     getItems,
     upsertItem,

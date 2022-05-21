@@ -40,6 +40,10 @@
       </button>
     </div>
     <Pagination v-if="maxPagination > 1" class="mt-10 px-10" :paginationList="paginationList" :maxPagination="maxPagination" v-model="paginationNum" />
+    <DeleteModal ref="deleteModal">
+      <template #title>Confirm deletion</template>
+      <p>{{ `Are you sure you want to delete ${selected.length > 1 ? 'these rows' : 'this row'}?` }}</p>
+    </DeleteModal>
   </View>
 </template>
 
@@ -72,7 +76,7 @@ const page = computed(():Page => {
   return store.dashboard.pages.find(page => page.page_id === props.pageId) || {} as Page
 })
 
-const view = ref<any|null>(null)
+const deleteModal = ref<any|null>(null)
 
 const { items, warning, paginationNum, maxPagination, paginationList, deleteItems, filterItems } = initCrud(page.value)
 
@@ -87,10 +91,8 @@ function selectCard (idx:number, event:Event) {
 }
 
 async function deleteCards () {
-  if (!view.value) return
-  view.value.deleteModal.title = 'Confirm deletion'
-  view.value.deleteModal.message = `Are you sure you want to delete ${selected.value.length > 1 ? 'these rows' : 'this row'}?`
-  const confirm = await view.value.deleteModal.confirm()
+  if (!deleteModal.value) return
+  const confirm = await deleteModal.value.confirm()
   if (confirm) {
     deleteItems(selected.value.map((idx:number) => items.value[idx].id))
       .then(() => selected.value = [])

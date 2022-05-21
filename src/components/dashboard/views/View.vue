@@ -6,18 +6,9 @@
       </PageHeader>
     </div>
     <slot />
-    <DeleteModal ref="deleteModal" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
 import PageHeader from '../elements/PageHeader.vue'
-import DeleteModal from '../modals/DeleteModal.vue'
-
-const deleteModal = ref<any|null>(null)
-
-defineExpose({
-  deleteModal,
-})
 </script>

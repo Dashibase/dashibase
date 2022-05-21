@@ -1,5 +1,5 @@
 <template>
-  <View ref="view">
+  <View>
     <template #header>
       <div>
         {{ page.name }}
@@ -73,29 +73,26 @@
         {{ warning }}
       </div>
       <!-- Buttons -->
-      <div v-if="itemId" class="px-4 md:px-10 flex justify-between gap-4">
-        <DeleteButton :disabled="store.loading" @click="deleteItem">
-          Delete
-        </DeleteButton>
+      <div class="px-4 md:px-10 flex justify-between gap-4">
+        <div>
+          <DeleteButton v-if="itemId" :disabled="store.loading" @click="deleteItem">
+            Delete
+          </DeleteButton>
+        </div>
         <div class="flex gap-4">
-          <TertiaryButton :disabled="store.loading" @click="router.go(-1)">
+          <TertiaryButton v-if="createMode || itemId" :disabled="store.loading" @click="router.go(-1)">
             Back
           </TertiaryButton>
-          <PrimaryButton :disabled="!haveUnsavedChanges || store.loading" @click="upsertItem(itemId)">
+          <PrimaryButton :disabled="!haveUnsavedChanges || store.loading" @click="upsertItem(item)">
             Save
           </PrimaryButton>
         </div>
       </div>
-      <div v-else class="px-4 md:px-10 flex justify-end gap-4">
-        <TertiaryButton v-if="createMode" :disabled="store.loading" @click="router.go(-1)">
-          Back
-        </TertiaryButton>
-        <PrimaryButton :disabled="!haveUnsavedChanges || store.loading"
-          @click="createMode ? createItem(item) : upsertItem()">
-          Save
-        </PrimaryButton>
-      </div>
     </div>
+    <DeleteModal ref="deleteModal">
+      <template #title>Confirm deletion</template>
+      <p>Are you sure you want to delete this?</p>
+    </DeleteModal>
   </View>
 </template>
 
@@ -110,6 +107,7 @@ import Toggle from '../elements/Toggle.vue'
 import PrimaryButton from '../elements/buttons/PrimaryButton.vue'
 import TertiaryButton from '../elements/buttons/TertiaryButton.vue'
 import DeleteButton from '../elements/buttons/DeleteButton.vue'
+import DeleteModal from '../modals/DeleteModal.vue'
 
 const store = useStore()
 
@@ -132,9 +130,7 @@ const page = computed(():Page => {
   return store.dashboard.pages.find(page => page.page_id === props.pageId) || {} as Page
 })
 
-const view = ref<any|null>(null)
-
-const { item, warning, haveUnsavedChanges, createItem, upsertItem, deleteItems } = initCrud(page.value, props.itemId)
+const { item, warning, haveUnsavedChanges, upsertItem, deleteItems } = initCrud(page.value, props.itemId)
 
 if (props.createMode) {
   item.value = {} as {[k:string]:any}
@@ -145,11 +141,10 @@ function update (attributeId:string, newVal:any) {
   haveUnsavedChanges.value = true
 }
 
+const deleteModal = ref<any|null>(null)
 async function deleteItem () {
-  if (!view.value) return
-  view.value.deleteModal.title = 'Confirm deletion'
-  view.value.deleteModal.message = 'Are you sure you want to delete this?'
-  const confirm = await view.value.deleteModal.confirm()
+  if (!deleteModal.value) return
+  const confirm = await deleteModal.value.confirm()
   if (confirm) {
     deleteItems([props.itemId])
       .then(() => router.push(`/${props.pageId}`))
