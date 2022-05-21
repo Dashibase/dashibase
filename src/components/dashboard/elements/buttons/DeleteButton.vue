@@ -1,16 +1,12 @@
 <template>
-  <Button :disabled="props.disabled" class="border"
-    :class="store.darkMode ? 'border-neutral-700 text-neutral-200 hover:text-red-400 hover:border-red-400 disabled:text-neutral-600 disabled:border-neutral-700' : 'border-neutral-300 bg-neutral-50 text-neutral-600 hover:text-red-600 hover:border-red-600 disabled:text-neutral-300 disabled:bg-neutral-50'"
-    @click="emit('click')">
+  <Button class="border border-neutral-300 bg-neutral-50 text-neutral-600 hover:text-red-600 hover:border-red-600 disabled:text-neutral-300 disabled:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:text-red-400 dark:hover:border-red-400 dark:disabled:text-neutral-600 dark:disabled:border-neutral-700"
+    :disabled="props.disabled" @click="emit('click')">
     <slot />
   </Button>
 </template>
 
 <script setup lang="ts">
-import { useStore } from '@/utils/store'
 import Button from './Button.vue'
-
-const store = useStore()
 
 const props = defineProps({
   disabled: {

@@ -8,12 +8,12 @@
     <div class="flex flex-col gap-6 max-w-[40rem]">
       <!-- Attribute Inputs -->
       <div v-for="attribute in page.attributes" :key="attribute.id">
-        <div class="px-4 md:px-10 transition" :class="store.darkMode ? 'text-neutral-200' : 'text-neutral-800'">
+        <div class="px-4 md:px-10 transition text-neutral-800 dark:text-neutral-200">
           
           <!-- Attribute label -->
-          <label :for="attribute.id" class="block text-sm font-medium transition" :class="store.darkMode ? 'text-neutral-400' : 'text-neutral-600'">
+          <label :for="attribute.id" class="block text-sm font-medium transition text-neutral-600 dark:text-neutral-400">
             {{ attribute.label }}
-            <span v-if="attribute.required" class="font-normal pl-2 transition" :class="store.darkMode ? 'text-neutral-600' : 'text-neutral-400'">required</span>
+            <span v-if="attribute.required" class="font-normal pl-2 transition text-neutral-400 dark:text-neutral-600">required</span>
           </label>
 
           <!-- Attribute value -->
@@ -22,8 +22,7 @@
             <div v-if="(page.readonly || attribute.readonly)">
               <!-- AttributeType.LongText -->
               <textarea v-if="attribute.type === AttributeType.LongText" readonly :id="attribute.id" :value="item[attribute.id] || ''" 
-                class="sm:text-sm w-full shadow-sm bg-transparent transition"
-                :class="store.darkMode ? 'border-neutral-700 focus:border-neutral-700' : 'border-gray-300 focus:border-gray-300'" />
+                class="sm:text-sm w-full shadow-sm bg-transparent transition border-gray-300 focus:border-gray-300 dark:border-neutral-700 dark:focus:border-neutral-700" />
               <!-- AttributeType.Bool -->
               <div v-else-if="attribute.type === AttributeType.Bool" disabled>
                 <Toggle :modelValue="item[attribute.id] || false" />
@@ -31,8 +30,7 @@
               </div>
               <!-- Default -->
               <input v-else type="text" readonly :id="attribute.id" :value="item[attribute.id] || ''"
-                class="sm:text-sm w-full shadow-sm bg-transparent transition"
-                :class="store.darkMode ? 'border-neutral-700 focus:border-neutral-700' : 'border-neutral-300 focus:border-neutral-300'" />
+                class="sm:text-sm w-full shadow-sm bg-transparent transition border-neutral-300 focus:border-neutral-300 dark:border-neutral-700 dark:focus:border-neutral-700" />
             </div>
             <!-- Else input is writeable -->
             <div v-else>
@@ -40,8 +38,7 @@
               <input v-if="attribute.type === AttributeType.Date" type="date" :disabled="store.loading" :id="attribute.id"
                 :value="item[attribute.id] || ''"
                 @input="update(attribute.id, ($event.target as HTMLInputElement).value)"
-                class="sm:text-sm w-full border shadow-sm cursor-pointer transition"
-                :class="store.darkMode ? 'bg-neutral-900 border-neutral-700 focus:border-neutral-500' : 'bg-white border-neutral-300 focus:border-neutral-500'" />
+                class="sm:text-sm w-full border shadow-sm cursor-pointer transition bg-white border-neutral-300 focus:border-neutral-500 dark:bg-neutral-900 dark:border-neutral-700 dark:focus:border-neutral-500" />
               <!-- AttributeType.Bool -->
               <div v-else-if="attribute.type === AttributeType.Bool" class="sm:text-sm flex items-center gap-2">
                 <Toggle :modelValue="item[attribute.id] || false" @update:modelValue="value => update(attribute.id, value)" />
@@ -50,20 +47,17 @@
               <!-- AttributeType.Enum -->
               <select v-else-if="attribute.type === AttributeType.Enum" :disabled="store.loading" :id="attribute.id" :value="item[attribute.id] || (attribute.enumOptions ? attribute.enumOptions[0] : '')"
                 @input="update(attribute.id, ($event.target as HTMLInputElement).value)"
-                class="sm:text-sm shadow-sm pr-8 cursor-pointer transition"
-                :class="store.darkMode ? 'bg-neutral-900 border-neutral-700 focus:border-neutral-500' : 'bg-white border-neutral-300 focus:border-neutral-500'">
+                class="sm:text-sm shadow-sm pr-8 cursor-pointer transition bg-white border-neutral-300 focus:border-neutral-500 dark:bg-neutral-900 dark:border-neutral-700 dark:focus:border-neutral-500">
                 <option v-for="option in attribute.enumOptions" :key="option" :value="option">{{ option }}</option>
               </select>
               <!-- AttributeType.LongText -->
               <textarea v-else-if="attribute.type === AttributeType.LongText" :disabled="store.loading" :id="attribute.id" :value="item[attribute.id] || ''"
                 @input="update(attribute.id, ($event.target as HTMLInputElement).value)"
-                class="sm:text-sm w-full border shadow-sm transition"
-                :class="store.darkMode ? 'bg-neutral-900 border-neutral-700 focus:border-neutral-500' : 'bg-white border-neutral-300 focus:border-neutral-500'" />
+                class="sm:text-sm w-full border shadow-sm transition bg-white border-neutral-300 focus:border-neutral-500 dark:bg-neutral-900 dark:border-neutral-700 dark:focus:border-neutral-500" />
               <!-- Default -->
               <input v-else type="text" :disabled="store.loading" :id="attribute.id" :value="item[attribute.id] || ''"
                 @input="update(attribute.id, ($event.target as HTMLInputElement).value)"
-                class="sm:text-sm w-full shadow-sm transition"
-                :class="store.darkMode ? 'bg-neutral-900 border-neutral-700 focus:border-neutral-500' : 'bg-white border-neutral-300 focus:border-neutral-500'" />
+                class="sm:text-sm w-full shadow-sm transition bg-white border-neutral-300 focus:border-neutral-500 dark:bg-neutral-900 dark:border-neutral-700 dark:focus:border-neutral-500" />
             </div>
           </div>
         </div>
@@ -97,7 +91,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, PropType } from 'vue'
+import { ref, computed } from 'vue'
 import router from '@/router'
 import { Page, AttributeType } from '@/utils/config'
 import { useStore } from '@/utils/store'

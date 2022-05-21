@@ -1,5 +1,5 @@
 <template>
-  <span class="inline-flex items-center justify-center rounded-full" :class="classes" :style="styles">
+  <span class="inline-flex items-center justify-center rounded-full text-neutral-600 dark:text-neutral-300" :class="classes" :style="styles">
     <span class="font-medium leading-none uppercase">{{ initials }}</span>
   </span>
 </template>
@@ -26,7 +26,7 @@ const sizes = {
 } as {[k:string]: string[]}
 
 const classes = computed(() => {
-  return sizes[props.size].concat([store.darkMode ? 'text-neutral-300' : 'text-neutral-600'])
+  return sizes[props.size]
 })
 
 const styles = computed(() => {

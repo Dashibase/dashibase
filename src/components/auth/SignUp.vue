@@ -1,28 +1,33 @@
 <template>
-  <div class="h-screen min-h-full flex flex-col justify-center py-12 sm:px-6 lg:px-8" :class="store.darkMode ? 'bg-neutral-800 text-neutral-300' : 'bg-white text-neutral-800'">
+  <div class="h-screen min-h-full flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-white text-neutral-800 dark:bg-neutral-800 dark:text-neutral-300">
     <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
       <div class="py-8 px-4 shadow-center sm:rounded-lg sm:px-10">
         <AppLogo />
-        <div class="space-y-6 pt-4">
+        <div class="space-y-6 pt-4 text-neutral-600 dark:text-neutral-400">
           <div class="sm:mx-auto sm:w-full sm:max-w-md">
-            <UserCircleIcon class="mx-auto h-12 w-auto" :class="store.darkMode ? 'text-neutral-400' : 'text-neutral-700'" />
-            <h2 class="mt-6 text-center text-3xl font-extrabold">Create your account</h2>
+            <UserCircleIcon class="mx-auto h-12 w-auto" />
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-neutral-700 dark:text-neutral-300">Create your account</h2>
+            <p class="mt-2 text-center text-sm">
+              Or
+              <button @click="$router.push('/signin')" class="font-medium text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-500">
+                sign in
+              </button>
+            </p>
           </div>
           <!-- Inputs -->
           <div>
-            <label for="email" class="block text-sm font-medium" :class="store.darkMode ? 'text-neutral-400' : 'text-neutral-700'"> Email address </label>
+            <label for="email" class="block text-sm font-medium">Email address</label>
             <div class="mt-1">
               <input id="email" :disabled="loading" v-model="email" name="email" type="email" autocomplete="email" required
-                class="bg-transparent block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-0 sm:text-sm"
-                :class="store.darkMode ? 'border-neutral-600 focus:border-neutral-600' : 'border-neutral-300 focus:border-neutral-300'" />
+                class="bg-transparent w-full px-3 py-2 shadow-sm sm:text-sm border-neutral-300 focus:border-neutral-300 dark:border-neutral-600 dark:focus:border-neutral-600 dark:autofill:text-neutral-800" />
             </div>
           </div>
           <div>
-            <label for="password" class="block text-sm font-medium" :class="store.darkMode ? 'text-neutral-400' : 'text-neutral-700'"> Password </label>
+            <label for="password" class="block text-sm font-medium">Password</label>
             <div class="mt-1">
-              <input id="password" @keyup.enter="signUp" :disabled="loading" v-model="password" name="password" type="password" autocomplete="current-password" required
-                class="bg-transparent block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-0 sm:text-sm"
-                :class="store.darkMode ? 'border-neutral-600 focus:border-neutral-600' : 'border-neutral-300 focus:border-neutral-300'" />
+              <input id="password" :disabled="loading" v-model="password" name="password" type="password" autocomplete="current-password" required
+                class="bg-transparent w-full px-3 py-2 shadow-sm sm:text-sm border-neutral-300 focus:border-neutral-300 dark:border-neutral-600 dark:focus:border-neutral-600 dark:autofill:text-neutral-800"
+                @keyup.enter="signUp" />
             </div>
           </div>
           <!-- Warning -->
@@ -31,8 +36,7 @@
           </div>
           <!-- Button -->
           <div>
-            <button class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium focus:outline-none focus:ring-0"
-              :class="store.darkMode ? 'text-neutral-800 bg-green-300 hover:bg-green-400' : 'text-white bg-green-500 hover:bg-green-600'"
+            <button class="w-full py-2 px-4 rounded-md shadow-sm sm:text-sm font-medium text-white bg-green-500 hover:bg-green-600 dark:text-neutral-800 dark:bg-green-300 dark:hover:bg-green-400"
               @click="signUp" :disabled="loading || success">
               {{ loading ? 'Loading...' : (success ? (confirmEmail ? 'Check your email!' : 'Redirecting...') : 'Create account') }}
             </button>
@@ -49,12 +53,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { UserCircleIcon } from '@heroicons/vue/solid'
+import router from '@/router'
 import { supabase } from '@/utils/supabase'
-import { useStore } from '@/utils/store'
 import AppLogo from '../branding/AppLogo.vue'
 import PoweredBy from '../branding/PoweredBy.vue'
-
-const store = useStore()
 
 const minPasswordLength = 6 // Set to minimum password length in Supabase
 const confirmEmail = true // Assuming confirm email is set to True in Supabase
@@ -84,7 +86,7 @@ async function signUp () {
       success.value = true
       if (!confirmEmail) {
         // Redirect user if confirmEmail is false
-        window.location.href = '/'
+        router.push('/')
       }
     }
   }

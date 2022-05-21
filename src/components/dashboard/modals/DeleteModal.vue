@@ -1,7 +1,7 @@
 <template>
   <Modal v-model="show">
     <template #icon>
-      <ExclamationIcon class="mt-0.5 shrink-0 w-7" :class="store.darkMode ? 'text-red-500' : 'text-red-500'" />
+      <ExclamationIcon class="mt-0.5 shrink-0 w-7 text-red-500" />
     </template>
     <template #title>
       <slot name="title">
@@ -23,12 +23,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { ExclamationIcon } from '@heroicons/vue/solid'
-import { useStore } from '@/utils/store'
 import TertiaryButton from '../elements/buttons/TertiaryButton.vue'
 import DeleteButton from '../elements/buttons/DeleteButton.vue'
 import Modal from './Modal.vue'
-
-const store = useStore()
 
 const show = ref(false)
 const resolvePromise = ref<Function|undefined>(undefined)

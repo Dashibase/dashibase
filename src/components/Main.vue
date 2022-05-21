@@ -1,22 +1,42 @@
 <template>
-  <router-view />
-  <div class="z-50 absolute w-full top-0 bg-white transition-all duration-500"
-    :class="store.dashboard.name ? 'opacity-0 pointer-events-none' : 'opacity-100'">
-    <Placeholder />
+  <div class="dark:bg-neutral-800">
+    <!-- <router-view /> -->
+    <router-view v-slot="{ Component }">
+      <transition mode="out-in">
+        <component :is="Component" />
+      </transition>
+    </router-view>
+    <div class="z-50 absolute w-full top-0 bg-red-500 transition-all duration-500"
+      :class="store.dashboard.name ? 'opacity-0 pointer-events-none' : 'opacity-100'">
+      <Placeholder />
+    </div>
   </div>
 </template>
+
+<style scoped>
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 0.25s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+  opacity: 0.3;
+}
+</style>
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
 import { User as SupabaseUser } from '@supabase/supabase-js'
 import { supabase } from '@/utils/supabase'
 import { useStore } from '@/utils/store'
+import router from '@/router'
 import Placeholder from './dashboard/Placeholder.vue'
 
 const store = useStore()
 const route = useRoute()
 
-if (!store.user.id && !['/signin', '/signup'].includes(route.path)) window.location.href = '/signin'
+if (!store.user.id && !['/signin', '/signup'].includes(route.path)) router.push('/signin')
 
 const intervalId = setInterval(() => {
   if (supabase) {
@@ -33,7 +53,7 @@ const intervalId = setInterval(() => {
       store.user = session?.user as SupabaseUser
     })
     if (!store.user.id) {
-      if (!['/signin', '/signup'].includes(route.path)) window.location.href = '/signin'
+      if (!['/signin', '/signup'].includes(route.path)) router.push('/signin')
     }
   }
 }, 100)
