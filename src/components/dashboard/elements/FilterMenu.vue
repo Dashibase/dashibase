@@ -28,7 +28,7 @@
               </select>
               <select :value="filter.operator" @input="updateFilter(i, 'operator', ($event.target as HTMLInputElement).value)"
                 class="w-max max-w-[4rem] sm:max-w-max border-0 rounded-md py-0 px-1 pr-8 focus:outline-none focus:ring-0 text-xs cursor-pointer bg-white dark:bg-neutral-700">
-                <option value="eq">is</option>
+                <option value="fts">contains</option>
                 <option value="neq">is not</option>
               </select>
               <input :value="filter.value" @input="updateFilter(i, 'value', ($event.target as HTMLInputElement).value)" placeholder="Enter condition"
@@ -138,7 +138,7 @@ const filters = ref([] as Filter[])
 function addFilter () {
   filters.value.push({
     column: props.attributes[0].id,
-    operator: 'eq',
+    operator: 'fts',
     value: '',
   })
 }
