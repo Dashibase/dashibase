@@ -1,6 +1,6 @@
 <template>
   <table class="w-full table-fixed border-t transition text-neutral-500 dark:border-neutral-750 dark:text-neutral-400">
-    <thead class="drop-shadow dark:border-b-2 dark:border-b-neutral-750">
+    <thead class="drop-shadow border-b-2 border-b-transparent dark:border-b-neutral-750">
       <tr class="transition bg-neutral-100 dark:bg-[#2A2A2A]">
         <th class="hidden sm:table-cell px-1 py-2 text-center text-xs font-medium uppercase tracking-wider w-[1rem] text-neutral-400 dark:text-neutral-600">
           <span v-if="!selected.length">#</span>
