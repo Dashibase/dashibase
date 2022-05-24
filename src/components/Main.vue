@@ -5,7 +5,7 @@
         <component :is="Component" />
       </transition>
     </router-view>
-    <div class="z-50 absolute w-full top-0 transition-all duration-500"
+    <div class="z-50 absolute w-full top-0 transition-all duration-500 bg-white"
       :class="store.dashboard.name ? 'opacity-0 pointer-events-none' : 'opacity-100'">
       <Placeholder />
     </div>

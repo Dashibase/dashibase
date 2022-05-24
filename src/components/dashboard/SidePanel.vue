@@ -44,7 +44,7 @@
           </div>
         </div>
         <div class="py-3 px-4 sm:px-6 flex justify-between items-center">
-          <div class="hidden sm:block w-full cursor-pointer font-medium" @click="signOut">
+          <div class="hidden sm:block cursor-pointer font-medium" @click="signOut">
             Sign out
           </div>
           <DarkMode class="hidden sm:flex" />
