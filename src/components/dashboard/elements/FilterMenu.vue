@@ -3,7 +3,7 @@
       <PopoverButton :class="open ? '' : 'text-opacity-90'">
       <SecondaryButton>
         Filter
-        <AdjustmentsIcon v-if="!filters.length" class="w-4" />
+        <FilterIcon v-if="!filters.length" class="w-4" />
         <div v-if="filters.length" class="rounded-full px-1.5 text-xs mt-0.5 transition bg-neutral-200 dark:bg-neutral-800">
           {{ filters.length }}
         </div>
@@ -86,7 +86,8 @@
 <script setup lang="ts">
 import { ref, PropType } from 'vue'
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/vue'
-import { XIcon, PlusIcon, AdjustmentsIcon, SwitchVerticalIcon } from '@heroicons/vue/solid'
+import { XIcon, PlusIcon, SwitchVerticalIcon } from '@heroicons/vue/solid'
+import { FilterIcon } from '@heroicons/vue/outline'
 import SecondaryButton from './buttons/SecondaryButton.vue'
 
 interface Header {

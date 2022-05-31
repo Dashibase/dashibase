@@ -1,6 +1,6 @@
 <template>
   <div class="w-full mb-24">
-    <div class="px-4 md:px-10 py-12 flex flex-col sm:flex-row justify-between gap-4 sm:items-end">
+    <div class="px-4 md:px-10 pt-20 pb-10 flex flex-col sm:flex-row justify-between gap-4 sm:items-end">
       <PageHeader>
         <slot name="header" />
       </PageHeader>
