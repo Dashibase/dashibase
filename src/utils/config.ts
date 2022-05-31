@@ -21,6 +21,8 @@ export interface Page {
   table_id: string; // Name of the Supabase table
   mode: string; // One of ['single', 'list', 'card']
   readonly: boolean; // Whether this page is read-only
+  id_col: string; // Name of column that refers to the row or item ID - defaults to 'id'
+  user_col: string; // Name of column that refers to the user ID and is a foreign key to auth.users - defaults to 'user'
   attributes: Array<Attribute> // Which columns/attributes to show to the user
 }
 
@@ -32,6 +34,7 @@ export interface Attribute {
   label: string; // Label that will be seen by the user
   required: boolean;  // Whether the attribute is required
   readonly: boolean; // Whether the attribute is read-only
+  hidden: boolean; // Whether the attribute is hidden when displayed in table or cards
   type: AttributeType; // Type of attribute that determines UI of input
   enumOptions?: string[]; // If attribute type is enum, this lists the options
 }

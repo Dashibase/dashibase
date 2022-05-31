@@ -1,5 +1,5 @@
 <template>
-  <Button class="shadow bg-neutral-50 text-neutral-600 hover:bg-white hover:text-neutral-900 disabled:text-neutral-300 dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-600 dark:hover:text-white dark:disabled:text-neutral-600 dark:disabled:bg-neutral-700"
+  <Button class="shadow border border-transparent bg-overlay text-primary hover:bg-highlight hover:text-primary-focus disabled:bg-input-disabled disabled:text-tertiary dark:bg-overlay-dark dark:text-primary-dark dark:hover:bg-highlight-dark dark:hover:text-primary-focus-dark dark:disabled:bg-input-disabled-dark dark:disabled:text-tertiary-dark"
     :disabled="props.disabled" @click="emit('click')">
     <slot />
   </Button>

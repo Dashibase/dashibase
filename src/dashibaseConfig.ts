@@ -20,6 +20,14 @@ const DASHIBASE_CONFIG:Config = {
           readonly: false,
           type: AttributeType.Text,
         } as Attribute,
+        {
+          id: "value",
+          label: "Value",
+          required: false,
+          readonly: false,
+          type: AttributeType.Enum,
+          enumOptions: ['foo', 'bar'], // Specify enum options
+        } as Attribute,
       ]
     },
   ] as Page[],

@@ -1,5 +1,5 @@
 <template>
-<!-- Component used to run database queries on every page navigation -->
+<!-- Component used to asynchronously run database queries on every page navigation -->
 </template>
 
 <script setup lang="ts">

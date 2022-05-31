@@ -59,12 +59,15 @@ export async function initDashboard () {
         table_id: view.table_id,
         mode: view.mode,
         readonly: view.readonly,
+        id_col: view.id_col || 'id',
+        user_col: view.user_col || 'user',
         attributes: view.attributes.map((attribute:any) => {
           return {
             id: attribute.id,
             label: attribute.label,
             required: attribute.required,
             readonly: attribute.readonly,
+            hidden: attribute.hidden || false,
             type: Object.values(AttributeType).includes(attribute.type) ? attribute.type : AttributeType.Text,
             enumOptions: attribute.enumOptions || [],
           } as Attribute
@@ -89,22 +92,53 @@ export async function initUserData () {
   try {
     const supabase = createClient(store.dashboard.supabaseUrl, store.dashboard.supabaseAnonKey)
     const promises = store.dashboard.pages.map(page => {
+      // First get all attribute IDs and split them into table and column
+      let attributeIds = page.attributes.map((attr:any) => {
+        const rgx = /^((?<table>.*?)\.)?(?<column>.*?)$/
+        const matches = attr.id.match(rgx)
+        return {
+          table: matches.groups.table || '',
+          column: matches.groups.column
+        }
+      })
+      // Get set of tables
+      const tables = attributeIds.map(attr => attr.table).filter((val, idx, self) => self.indexOf(val) === idx)
+      // Add ID attributes
+      tables.forEach(table => {
+        attributeIds.push({
+          table,
+          column: page.id_col, // NOTE: This will break table joins
+        })
+      })
+      attributeIds = attributeIds.filter((attr, idx, self) => self.findIndex(i => i.table === attr.table && i.column === attr.column) === idx)
+      // Build selectionQuery
+      const selectionQuery = tables.map(table => {
+        const attributes = attributeIds.filter(attr => attr.table === table).map(attr => attr.column).join(',')
+        if (table === '') return attributes
+        else return `${table}(${attributes})`
+      }).join(',')
       return new Promise(async (resolve, reject) => {
         const { data, error, count } = await supabase
           .from(page.table_id)
-          .select(page.attributes.map((attribute:any) => attribute.id).join(',') + ',id', { count: 'exact' })
-          .eq('user', store.user.id)
+          .select(selectionQuery, { count: 'exact' })
+          .eq(page.user_col, store.user.id)
           .range(0, pageConfigs[page.mode].maxItems-1)
         if (error) reject(error.message)
-        else resolve({ data, count })
+        else resolve({ data, count, attributeIds })
       })
     })
     await Promise.all(promises)
       .then(responses => {   
         store.data = responses.map((response:any, i) => {
+          const data = response.data.map((row:any) => {
+            return response.attributeIds.map((attr:any) => {
+              if (attr.table === '') return [attr.column, row[attr.column]]
+              else return [`${attr.table}.${attr.column}`, row[attr.table][attr.column]]
+            }).reduce((a:Object, v:string[]) => ({...a, [v[0]]: v[1]}), {})
+          })
           return {
             id: store.dashboard.pages[i].page_id,
-            data: response.data,
+            data,
             count: response.count
           }
         })
@@ -131,7 +165,7 @@ export function initCrud (page:Page, itemId:string|number='') {
   })
   // If page.mode is 'single' make sure there is at least an empty object
   const items = ref(JSON.parse(JSON.stringify(cache.value.data || [])))
-  const item = ref(JSON.parse(JSON.stringify(itemId  ? items.value.find((item:any) => item.id === itemId) || {} : items.value[0] || {})))
+  const item = ref(JSON.parse(JSON.stringify(itemId  ? items.value.find((item:any) => item[page.id_col] === itemId) || {} : items.value[0] || {})))
   // total number of items in Supabase table
   const itemsCount = ref(cache.value.count)
   // haveUnsavedChanges is used to denote if changes have been made by the user
@@ -139,7 +173,7 @@ export function initCrud (page:Page, itemId:string|number='') {
   watch (cache, (newCache, prevCache) => {
     if (prevCache.data) return
     items.value = JSON.parse(JSON.stringify(cache.value.data || []))
-    item.value = JSON.parse(JSON.stringify(itemId ? cache.value.data.find((item:any) => item.id === itemId) || {} : cache.value.data[0] || {}))
+    item.value = JSON.parse(JSON.stringify(itemId ? cache.value.data.find((item:any) => item[page.id_col] === itemId) || {} : cache.value.data[0] || {}))
     itemsCount.value = cache.value.count
   })
 
@@ -170,8 +204,8 @@ export function initCrud (page:Page, itemId:string|number='') {
     const startRow = Math.max(0, currentPagination - 1) * maxItems
     let request = supabase
       .from(page.table_id)
-      .select(page.attributes.map((attribute:any) => attribute.id).join(',') + ',id')
-      .eq('user', store.user.id)
+      .select(page.attributes.map((attribute:any) => attribute.id).join(',') + `,${page.id_col}`)
+      .eq(page.user_col, store.user.id)
 
     if (filters.value.length) {
       if (conjunction.value === 'and') {
@@ -205,15 +239,15 @@ export function initCrud (page:Page, itemId:string|number='') {
     // If itemId is a number instead of UUID, run parseInt
     if (typeof itemId === 'string' && !isUUID(itemId)) itemId = parseInt(itemId)
     if (!page.attributes) return
-    if (items.value.find((item:any) => item.id === itemId)) {
-      item.value = items.value.find((item:any) => item.id === itemId)
+    if (items.value.find((item:any) => item[page.id_col] === itemId)) {
+      item.value = items.value.find((item:any) => item[page.id_col] === itemId)
       return
     }
     store.loading = true
     const { data, error } = await supabase
       .from(page.table_id)
-      .select(page.attributes.map((attribute:any) => attribute.id).join(',') + ',id')
-      .eq('id', itemId)
+      .select(page.attributes.map((attribute:any) => attribute.id).join(',') + `,${page.id_col}`)
+      .eq(page.id_col, itemId)
       .single()
       store.loading = false
     if (error) {
@@ -253,20 +287,52 @@ export function initCrud (page:Page, itemId:string|number='') {
       store.loading = false
       return
     }
-    // Run upsert since user may or may not have inserted before
-    const { error } = await supabase
-      .from(page.table_id)
-      .upsert([item])
-    if (error) {
-      store.loading = false
-      warning.value = error.message
-    } else {
-      initUserData().then(() => {
-        store.loading = false
-        haveUnsavedChanges.value = false
-        router.push({path: `/${page.page_id}`})
+    
+    // Get all attribute IDs and split them into table and column
+    let attributeIds = page.attributes.map((attr:any) => {
+      const rgx = /^((?<table>.*?)\.)?(?<column>.*?)$/
+      const matches = attr.id.match(rgx)
+      return {
+        table: matches.groups.table || '',
+        column: matches.groups.column
+      }
+    })
+    // Get set of tables
+    const tables = attributeIds.map(attr => attr.table).filter((val, idx, self) => self.indexOf(val) === idx)
+    // Reverse sort so that working table is last to be updated
+    tables.sort().reverse()
+    // Add ID attributes
+    tables.forEach(table => {
+      attributeIds.push({
+        table,
+        column: page.id_col, // NOTE: This will break table joins
       })
-    }
+    })
+    attributeIds = attributeIds.filter((attr, idx, self) => self.findIndex(i => i.table === attr.table && i.column === attr.column) === idx)
+
+    // Run upsert for each table
+    tables.forEach(async table => {
+      // Build item
+      const tableAttributes = attributeIds.filter(attr => attr.table === table)
+      const newItem = {user: store.user.id} as {[k:string]:any}
+      tableAttributes.forEach(attr => {
+        newItem[attr.column] = item[table === '' ? attr.column : `${table}.${attr.column}`]
+      })
+      // Run upsert since user may or may not have inserted before
+      const { error } = await supabase
+        .from(table === '' ? page.table_id : table)
+        .upsert([newItem])
+      if (error) {
+        store.loading = false
+        warning.value = error.message
+      } else {
+        initUserData().then(() => {
+          store.loading = false
+          haveUnsavedChanges.value = false
+          router.push({path: `/${page.page_id}`})
+        })
+      }
+    })
   }
 
   /*
@@ -279,7 +345,7 @@ export function initCrud (page:Page, itemId:string|number='') {
     const { error } = await supabase
       .from(page.table_id)
       .delete()
-      .or(itemIds.map(id => `id.eq.${id}`).join(','))
+      .or(itemIds.map(id => `${page.id_col}.eq.${id}`).join(','))
     if (error) {
       store.loading = false
       warning.value = error.message
@@ -287,7 +353,7 @@ export function initCrud (page:Page, itemId:string|number='') {
       initUserData()
         .then(() => {
           items.value = JSON.parse(JSON.stringify(cache.value.data || []))
-          item.value = JSON.parse(JSON.stringify(itemId ? cache.value.data.find((item:any) => item.id === itemId) || {} : cache.value.data[0] || {}))
+          item.value = JSON.parse(JSON.stringify(itemId ? cache.value.data.find((item:any) => item[page.id_col] === itemId) || {} : cache.value.data[0] || {}))
           itemsCount.value = cache.value.count
           router.push({path: `/${page.page_id}`})
           store.loading = false
@@ -308,8 +374,8 @@ export function initCrud (page:Page, itemId:string|number='') {
     store.loading = true
     let filterRequest = supabase
       .from(page.table_id)
-      .select(page.attributes.map((attribute:any) => attribute.id).join(',') + ',id', { count: 'exact' })
-      .eq('user', store.user.id)
+      .select(page.attributes.map((attribute:any) => attribute.id).join(',') + `,${page.id_col}`, { count: 'exact' })
+      .eq(page.user_col, store.user.id)
     
     // Apply filters
     if (newFilters.length) {

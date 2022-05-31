@@ -1,13 +1,14 @@
 <template>
-  <div class="dark:bg-neutral-800">
-    <router-view v-slot="{ Component }">
-      <transition mode="out-in">
-        <component :is="Component" />
-      </transition>
-    </router-view>
-    <div class="z-50 absolute w-full top-0 transition-all duration-500 bg-white"
-      :class="store.dashboard.name ? 'opacity-0 pointer-events-none' : 'opacity-100'">
+  <div class="bg-surface dark:bg-surface-dark">
+    <div v-if="!store.dashboard.id" class="absolute w-full top-0 z-0">
       <Placeholder />
+    </div>
+    <div class="z-10 relative">
+      <router-view v-slot="{ Component }">
+        <transition mode="out-in">
+          <component :is="Component" />
+        </transition>
+      </router-view>
     </div>
   </div>
 </template>
@@ -36,7 +37,7 @@ import Placeholder from './dashboard/Placeholder.vue'
 const store = useStore()
 const route = useRoute()
 
-if (!store.user.id && !['/signin', '/signup'].includes(route.path)) router.push('/signin')
+if (store.dashboard.id && !store.user.id && !['/signin', '/signup'].includes(route.path)) router.push('/signin')
 
 function checkUser () {
   const user = supabase.auth.user()
