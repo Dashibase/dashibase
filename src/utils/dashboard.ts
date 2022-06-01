@@ -44,7 +44,7 @@ export async function initDashboard () {
 
     const { data, error } = await baseSupabase
       .from('views')
-      .select('label,table_id,attributes,mode,readonly')
+      .select('label,page_id,table_id,attributes,mode,readonly')
       .eq('dashboard', store.dashboard.id)
       .order('order')
 
