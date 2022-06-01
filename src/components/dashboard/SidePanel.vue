@@ -33,7 +33,7 @@
             <Avatar />
           </div>
           <div class="font-medium text-sm opacity-0 group-hover:opacity-100 transition cursor-pointer" @click="signOut">
-            Sign out
+            Log out
           </div>
         </div>
         <DarkMode />
@@ -72,7 +72,7 @@
                   <button @click="openLink(page.page_id, close)" class="px-4 sm:px-6 py-4 block w-full truncate font-medium text-left">{{ page.name }}</button>
                 </template>
               </template>
-              <a class="cursor-pointer hover:bg-neutral-100 font-medium px-4 sm:px-6 py-4 block w-full truncate" @click="signOut">Sign out</a>
+              <a class="cursor-pointer hover:bg-neutral-100 font-medium px-4 sm:px-6 py-4 block w-full truncate" @click="signOut">Log out</a>
             </div>
           </div>
         </div>
