@@ -42,6 +42,23 @@ export async function initDashboard () {
     const baseSupabase = createClient(baseSupabaseUrl, baseSupabaseAnonKey)
     baseSupabase.auth.session = () => null
 
+    let appId = 'demo' // Placeholder ID
+    // If in production, get appId from host name
+    if (process.env.NODE_ENV !== 'development') {
+      const host = window.location.host
+      appId = host.split('.')[0]
+    }
+    const response = await baseSupabase.from('dashboards').select('id,supabase_url,supabase_anon_key,app_name').eq('app_id', appId).single()
+    if (response.error) {
+      throw Error(response.error.message)
+      return
+    } else {
+      store.dashboard.supabaseUrl = response.data.supabase_url as string
+      store.dashboard.supabaseAnonKey = response.data.supabase_anon_key as string
+      store.dashboard.name = response.data.app_name
+      document.title = response.data.app_name
+    }
+
     const { data, error } = await baseSupabase
       .from('views')
       .select('label,page_id,table_id,attributes,mode,readonly')
