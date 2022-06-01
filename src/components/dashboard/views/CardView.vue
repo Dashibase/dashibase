@@ -35,9 +35,9 @@
           </div>
           <div v-for="attribute in page.attributes.filter(attr => !attr.hidden).slice(1).filter(attribute => item[attribute.id] || attribute.type === AttributeType.Bool)" :key="attribute.id"
             class="flex flex-col">
-            <div class="text-xs text-tertiary dark:text-tertiary-dark uppercase">{{ attribute.label }}</div>
+            <div class="text-2xs text-tertiary dark:text-tertiary-dark uppercase">{{ attribute.label }}</div>
             <div v-if="attribute.type === AttributeType.Enum || attribute.type === AttributeType.Bool" class="mt-0.5 truncate text-xs font-semibold bg-neutral-600 text-white w-max px-2 py-0.5 rounded dark:bg-neutral-400 dark:text-neutral-800">{{ item[attribute.id] }}</div>
-            <div v-else class="-mt-0.5 truncate text-sm">{{ item[attribute.id] }}</div>
+            <div v-else class=" truncate text-sm">{{ item[attribute.id] }}</div>
           </div>
         </div>
       </button>
