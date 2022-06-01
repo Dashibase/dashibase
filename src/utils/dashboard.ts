@@ -55,7 +55,7 @@ export async function initDashboard () {
     store.dashboard.pages = data.map(view => {
       return {
         name: view.label,
-        page_id: view.table_id, // TODO: Support page_id
+        page_id: view.page_id || view.table_id, // TODO: Support page_id
         table_id: view.table_id,
         mode: view.mode,
         readonly: view.readonly,
