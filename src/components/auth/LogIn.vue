@@ -1,7 +1,7 @@
 <template>
   <div class="h-screen min-h-full grid lg:grid-cols-2 bg-white text-neutral-800 dark:bg-neutral-800 dark:text-neutral-300">
-    <div class="flex flex-col justify-center items-center">
-      <div class="w-96 max-w-xl">
+    <div class="flex flex-col justify-center items-center max-w-screen">
+      <div class="sm:w-96">
         <AppLogo class="w-max" />
         <div class="space-y-6 text-neutral-600 dark:text-neutral-400">
           <h2 class="mt-6 text-left text-4xl font-extrabold text-neutral-700 dark:text-neutral-300">Log in</h2>
@@ -33,7 +33,7 @@
               </PrimaryButton>
             </div>
           </div>
-          <div class="text-xs flex justify-between">
+          <div class="text-xs sm:flex justify-between space-y-1">
             <div>
               Don't have an account?
               <router-link to="/signup" class="font-semibold hover:underline">Sign up</router-link>

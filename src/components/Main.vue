@@ -37,7 +37,7 @@ import Placeholder from './dashboard/Placeholder.vue'
 const store = useStore()
 const route = useRoute()
 
-if (store.dashboard.id && !store.user.id && !['/signin', '/signup'].includes(route.path)) router.push('/signin')
+if (store.dashboard.id && !store.user.id && !['/login', '/signup'].includes(route.path)) router.push('/login')
 
 function checkUser () {
   const user = supabase.auth.user()
@@ -46,7 +46,7 @@ function checkUser () {
     store.user = session?.user as SupabaseUser
   })
   if (!store.user.id) {
-    if (!['/signin', '/signup'].includes(route.path)) router.push('/signin')
+    if (!['/login', '/signup'].includes(route.path)) router.push('/login')
   }
 }
 

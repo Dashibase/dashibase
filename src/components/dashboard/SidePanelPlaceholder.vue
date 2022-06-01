@@ -32,36 +32,6 @@
 <script setup lang="ts">
 import {
   Popover,
-  PopoverButton,
-  PopoverPanel
 } from '@headlessui/vue'
-import {
-  MenuIcon,
-  UserCircleIcon,
-  XIcon,
-} from '@heroicons/vue/solid'
-import { useRoute } from 'vue-router'
-import router from '@/router'
-import { useStore } from '@/utils/store'
-import { supabase } from '@/utils/supabase'
-import AppLogo from '../branding/AppLogo.vue'
-import Avatar from './elements/Avatar.vue'
-import DarkMode from './elements/DarkMode.vue'
 import Placeholder from './elements/Placeholder.vue'
-
-const store = useStore()
-const route = useRoute()
-
-async function signOut () {
-  store.loading = true
-  window.localStorage.clear()
-  const { error } = await supabase.auth.signOut()
-  store.loading = false
-  if (error) {
-    console.error(error)
-  } else {
-    store.$reset()
-    router.push('/signin')
-  }
-}
 </script>
