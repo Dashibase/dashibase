@@ -36,7 +36,7 @@
           <div class="text-xs flex justify-between">
             <div>
               Already have an account?
-              <router-link to="/signin" class="font-semibold hover:underline">Sign in</router-link>
+              <router-link to="/signin" class="font-semibold hover:underline">Log in</router-link>
             </div>
             <div>
               <PoweredBy />

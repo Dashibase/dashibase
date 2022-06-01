@@ -128,6 +128,14 @@ const { item, warning, haveUnsavedChanges, getItem, upsertItem, deleteItems } = 
 
 if (props.createMode) {
   item.value = {} as {[k:string]:any}
+  page.value.attributes.forEach(attr => {
+    if (attr.type === AttributeType.Bool) {
+      item.value[attr.id] = false
+    } else if (attr.type === AttributeType.Enum) {
+      if (attr.enumOptions && attr.enumOptions.length) item.value[attr.id] = attr.enumOptions[0]
+      else item.value[attr.id] = ''
+    }
+  })
 }
 
 function update (attributeId:string, newVal:any) {
