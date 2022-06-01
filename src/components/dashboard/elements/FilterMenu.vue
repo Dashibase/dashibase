@@ -1,17 +1,15 @@
 <template>
   <Popover v-slot="{ open }" class="relative">
-      <PopoverButton :class="open ? '' : 'text-opacity-90'">
-      <SecondaryButton>
-        Filter
-        <FilterIcon v-if="!filters.length" class="w-4" />
-        <div v-if="filters.length" class="rounded-full px-1.5 text-xs mt-0.5 transition bg-neutral-200 dark:bg-neutral-800">
-          {{ filters.length }}
-        </div>
-      </SecondaryButton>
+    <PopoverButton :class="[open ? '' : 'text-opacity-90', 'shadow border border-transparent bg-overlay text-primary hover:bg-highlight hover:text-primary-focus disabled:bg-input-disabled disabled:text-tertiary dark:bg-overlay-dark dark:text-primary-dark dark:hover:bg-highlight-dark dark:hover:text-primary-focus-dark dark:disabled:bg-input-disabled-dark dark:disabled:text-tertiary-dark block rounded-md py-1 px-3 inline-flex justify-center items-center gap-1 text-sm font-medium focus:outline-none focus:ring-0 transition']">
+      Filter
+      <FilterIcon v-if="!filters.length" class="w-4" />
+      <div v-if="filters.length" class="rounded-full px-1.5 text-xs mt-0.5 transition bg-neutral-200 dark:bg-neutral-800">
+        {{ filters.length }}
+      </div>
     </PopoverButton>
     <transition enter-active-class="transition ease-out duration-200" enter-from-class="transform opacity-0 scale-95" enter-to-class="transform opacity-100 scale-100" leave-active-class="transition ease-in duration-75" leave-from-class="transform opacity-100 scale-100" leave-to-class="transform opacity-0 scale-95" @after-enter="init" @after-leave="apply">
-      <PopoverPanel class="min-w-[20rem] origin-top-right fixed sm:absolute left-4 sm:right-0 sm:left-auto mt-2 rounded-md shadow-lg ring-0 ring-opacity-5 focus:outline-none z-50 bg-white text-neutral-800 dark:bg-neutral-700 dark:text-neutral-200">
-        <div v-if="filters.length" class="px-3 py-3 text-xs flex flex-col gap-2 w-max text-neutral-700 dark:text-neutral-200">
+      <PopoverPanel class="min-w-[20rem] origin-top-right fixed sm:absolute left-4 sm:right-0 sm:left-auto mt-2 rounded-md shadow-lg ring-0 ring-opacity-5 focus:outline-none z-50 bg-overlay dark:bg-overlay-dark text-primary dark:text-primary-dark">
+        <div v-if="filters.length" class="px-3 py-3 text-xs flex flex-col gap-2 w-max text-primary dark:text-primary-dark">
           <div>Show rows</div>
           <div class="flex items-end w-full justify-between" v-for="filter, i in filters" :key="i">
             <div class="flex items-end w-max">
@@ -45,18 +43,16 @@
     </transition>
   </Popover>
   <Popover v-slot="{ open }" class="relative">
-      <PopoverButton :class="open ? '' : 'text-opacity-90'">
-      <SecondaryButton>
-        Sort
-        <SwitchVerticalIcon v-if="!sorts.length" class="w-4" />
-        <div v-if="sorts.length" class="rounded-full px-1.5 text-xs mt-0.5 transition bg-neutral-200 dark:bg-neutral-800">
-          {{ sorts.length }}
-        </div>
-      </SecondaryButton>
+    <PopoverButton :class="[open ? '' : 'text-opacity-90', 'shadow border border-transparent bg-overlay text-primary hover:bg-highlight hover:text-primary-focus disabled:bg-input-disabled disabled:text-tertiary dark:bg-overlay-dark dark:text-primary-dark dark:hover:bg-highlight-dark dark:hover:text-primary-focus-dark dark:disabled:bg-input-disabled-dark dark:disabled:text-tertiary-dark block rounded-md py-1 px-3 inline-flex justify-center items-center gap-1 text-sm font-medium focus:outline-none focus:ring-0 transition']">
+      Sort
+      <SwitchVerticalIcon v-if="!sorts.length" class="w-4" />
+      <div v-if="sorts.length" class="rounded-full px-1.5 text-xs mt-0.5 transition bg-neutral-200 dark:bg-neutral-800">
+        {{ sorts.length }}
+      </div>
     </PopoverButton>
     <transition enter-active-class="transition ease-out duration-200" enter-from-class="transform opacity-0 scale-95" enter-to-class="transform opacity-100 scale-100" leave-active-class="transition ease-in duration-75" leave-from-class="transform opacity-100 scale-100" leave-to-class="transform opacity-0 scale-95" @after-enter="init" @after-leave="apply">
-      <PopoverPanel class="min-w-[20rem] origin-top-right fixed sm:absolute left-4 sm:right-0 sm:left-auto mt-2 rounded-md shadow-lg ring-0 ring-opacity-5 focus:outline-none z-50 bg-white text-neutral-800 dark:bg-neutral-700 dark:text-neutral-200">
-        <div v-if="sorts.length" class="px-3 py-3 text-xs flex flex-col gap-2 w-full text-neutral-700 dark:text-neutral-200">
+      <PopoverPanel class="min-w-[20rem] origin-top-right fixed sm:absolute left-4 sm:right-0 sm:left-auto mt-2 rounded-md shadow-lg ring-0 ring-opacity-5 focus:outline-none z-50 bg-overlay text-primary dark:bg-overlay-dark dark:text-primary-dark">
+        <div v-if="sorts.length" class="px-3 py-3 text-xs flex flex-col gap-2 w-full text-primary dark:text-primary-dark">
           <div class="flex items-end w-full justify-between" v-for="sort, i in sorts" :key="i">
             <div class="flex items-end w-max">
               <div v-if="i === 0">Sort by</div>
