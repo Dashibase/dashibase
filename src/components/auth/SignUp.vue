@@ -1,5 +1,5 @@
 <template>
-  <div class="h-screen min-h-full grid lg:grid-cols-2 bg-white text-neutral-800 dark:bg-neutral-800 dark:text-neutral-300">
+  <div class="h-screen min-h-full grid lg:grid-cols-2 bg-surface text-primary dark:bg-surface-dark dark:text-primary-dark">
     <div class="flex flex-col justify-center items-center max-w-screen">
       <div class="sm:w-96">
         <AppLogo class="w-max" />
@@ -45,7 +45,7 @@
         </div>
       </div>
     </div>
-    <div class="hidden lg:block bank-note bg-neutral-100 dark:bg-neutral-800 dark:opacity-[3%]" />
+    <div class="hidden lg:block bank-note bg-backdrop dark:bg-backdrop-dark dark:opacity-[5%]" />
   </div>
 </template>
 

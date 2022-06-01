@@ -42,11 +42,14 @@ if (store.dashboard.id && !store.user.id && !['/login', '/signup'].includes(rout
 function checkUser () {
   const user = supabase.auth.user()
   if (user) store.user = user
+  else store.user = undefined as any
   supabase.auth.onAuthStateChange((_, session) => {
     store.user = session?.user as SupabaseUser
   })
   if (!store.user.id) {
     if (!['/login', '/signup'].includes(route.path)) router.push('/login')
+  } else {
+    if (['/login', '/signup'].includes(route.path)) router.push('/')
   }
 }
 
