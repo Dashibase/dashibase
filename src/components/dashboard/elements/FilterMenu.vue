@@ -9,7 +9,7 @@
     </PopoverButton>
     <transition enter-active-class="transition ease-out duration-200" enter-from-class="transform opacity-0 scale-95" enter-to-class="transform opacity-100 scale-100" leave-active-class="transition ease-in duration-75" leave-from-class="transform opacity-100 scale-100" leave-to-class="transform opacity-0 scale-95" @after-enter="init" @after-leave="apply">
       <PopoverPanel class="min-w-[20rem] origin-top-right fixed sm:absolute left-4 sm:right-0 sm:left-auto mt-2 rounded-md shadow-lg ring-0 ring-opacity-5 focus:outline-none z-50 bg-overlay dark:bg-overlay-dark text-primary dark:text-primary-dark">
-        <div v-if="filters.length" class="px-3 py-3 text-xs flex flex-col gap-2 w-max text-primary dark:text-primary-dark">
+        <div v-if="filters.length" class="px-3 py-3 text-xs flex flex-col gap-2 w-full text-primary dark:text-primary-dark">
           <div>Show rows</div>
           <div class="flex items-end w-full justify-between" v-for="filter, i in filters" :key="i">
             <div class="flex items-end w-max">
@@ -21,16 +21,23 @@
               </select>
               <div v-else>{{ conjunction }}</div>
               <select :value="filter.column" @input="updateFilter(i, 'column', ($event.target as HTMLInputElement).value)"
-                class="mt-1 block w-max max-w-[4rem] sm:max-w-max border-0 rounded-md py-0 px-1 pr-8 focus:outline-none focus:ring-0 text-xs cursor-pointer bg-white dark:bg-neutral-700">
-                <option v-for="attribute in attributes" :key="attribute.id" :value="attribute.id">{{ attribute.label }}</option>
+                class="mt-1 block w-max max-w-[4rem] sm:max-w-max border-0 rounded-md py-0 px-1 pr-8 focus:outline-none focus:ring-0 text-xs cursor-pointer bg-overlay dark:bg-overlay-dark">
+                <option v-for="attribute in attributes.filter(attr => Object.keys(filterOps).includes(getSupabaseType(tableId, attr.id)))" :key="attribute.id" :value="attribute.id">{{ attribute.label }}</option>
               </select>
-              <select :value="filter.operator" @input="updateFilter(i, 'operator', ($event.target as HTMLInputElement).value)"
-                class="w-max max-w-[4rem] sm:max-w-max border-0 rounded-md py-0 px-1 pr-8 focus:outline-none focus:ring-0 text-xs cursor-pointer bg-white dark:bg-neutral-700">
-                <option value="fts">contains</option>
-                <option value="neq">is not</option>
+              <select :value="filter.operator" v-if="filterOps[getSupabaseType(tableId, filter.column)].length > 1" @input="updateFilter(i, 'operator', ($event.target as HTMLInputElement).value)"
+                class="w-max max-w-[4rem] sm:max-w-max border-0 rounded-md py-0 px-1 pr-8 focus:outline-none focus:ring-0 text-xs cursor-pointer bg-overlay dark:bg-overlay-dark">
+                <option v-for="op in filterOps[getSupabaseType(tableId, filter.column)]" :key="op.id" :value="op.id">{{ op.label }}</option>
               </select>
-              <input :value="filter.value" @input="updateFilter(i, 'value', ($event.target as HTMLInputElement).value)" placeholder="Enter condition"
-                class="w-24 sm:w-40 rounded-md py-0 focus:outline-none focus:ring-0 text-xs bg-white border-neutral-300 focus:border-neutral-500 dark:bg-neutral-700 dark:border-neutral-700 dark:focus:border-neutral-500 dark:placeholder:text-neutral-400" />
+              <div v-else class="text-xs font-normal">{{ filterOps[getSupabaseType(tableId, filter.column)][0].label }}</div>
+              <input v-if="getSupabaseType(tableId, filter.column) === 'text'" :value="filter.value" @input="updateFilter(i, 'value', ($event.target as HTMLInputElement).value)" placeholder="Enter condition"
+                class="w-24 sm:w-32 rounded-md py-0 focus:outline-none focus:ring-0 text-xs border-neutral-300 focus:border-neutral-500 bg-overlay dark:bg-overlay-dark dark:border-neutral-700 dark:focus:border-neutral-500 dark:placeholder:text-neutral-400" />
+              <input v-else-if="getSupabaseType(tableId, filter.column) === 'date'" type="date" :value="filter.value" @input="updateFilter(i, 'value', ($event.target as HTMLInputElement).value)" placeholder="Enter condition"
+                class="rounded-md p-0 border-none focus:outline-none focus:ring-0 text-xs border-neutral-300 focus:border-neutral-500 bg-overlay dark:bg-overlay-dark dark:border-neutral-700 dark:focus:border-neutral-500 dark:placeholder:text-neutral-400" />
+              <select v-else-if="getSupabaseType(tableId, filter.column) === 'boolean'" :value="filter.value" @input="updateFilter(i, 'value', ($event.target as HTMLInputElement).value)"
+                class="rounded-md py-0 border-none focus:outline-none focus:ring-0 text-xs border-neutral-300 focus:border-neutral-500 bg-overlay dark:bg-overlay-dark dark:border-neutral-700 dark:focus:border-neutral-500 dark:placeholder:text-neutral-400">
+                <option :value="true">true</option>
+                <option :value="false">false</option>
+              </select>
             </div>
             <XIcon class="w-3.5 hover:text-red-600 cursor-pointer" @click="deleteFilter(i)" />
           </div>
@@ -80,11 +87,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, PropType } from 'vue'
+import { ref, computed, PropType, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { useStore } from '@/utils/store'
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/vue'
 import { XIcon, PlusIcon, SwitchVerticalIcon } from '@heroicons/vue/solid'
 import { FilterIcon } from '@heroicons/vue/outline'
 import SecondaryButton from './buttons/SecondaryButton.vue'
+import { getSchema } from '@/utils/dashboard'
 
 interface Header {
   id: string;
@@ -94,7 +104,7 @@ interface Header {
 interface Filter {
   column: string;
   operator: string;
-  value: string;
+  value: any;
 }
 
 interface Sort {
@@ -109,6 +119,8 @@ const props = defineProps({
   },
 })
 
+const route = useRoute()
+const store = useStore()
 const emit = defineEmits(['close'])
 
 function init () {
@@ -132,6 +144,21 @@ const conjunction = ref('and')
 const prevFilters = ref([] as Filter[])
 const filters = ref([] as Filter[])
 
+const filterOps = {
+  'text': [
+    { label: 'contains', id: 'fts', },
+    { label: 'is not', id: 'neq', },
+  ],
+  'date': [
+    { label: 'after', id: 'gt', },
+    { label: 'on', id: 'eq', },
+    { label: 'before', id: 'lt', },
+  ],
+  'boolean': [
+    { label: 'is', id: 'is', },
+  ],
+} as {[k:string]:any[]}
+
 function addFilter () {
   filters.value.push({
     column: props.attributes[0].id,
@@ -142,6 +169,15 @@ function addFilter () {
 
 function updateFilter (idx:number, key:string, value:string) {
   (filters.value[idx] as {[k:string]: any})[key] = value
+  if (key === 'column') {
+    const type = getSupabaseType(tableId.value, value)
+    if (!filterOps[type].map(op => op.id).includes(filters.value[idx].operator)) {
+      filters.value[idx].operator = filterOps[type][0].id
+    }
+    if (type === 'boolean' && ![true, false].includes(filters.value[idx].value)) {
+      filters.value[idx].value = true
+    }
+  }
 }
 
 function deleteFilter (idx:number) {
@@ -166,4 +202,23 @@ function updateSort (idx:number, key:string, value:string) {
 function deleteSort (idx:number) {
   sorts.value.splice(idx, 1)
 }
+
+const schema = ref({} as any)
+
+const tableId = computed(() => {
+  const pageId = route.params.pageId
+  const page = store.dashboard.pages.find(page => page.page_id === pageId)
+  if (!page) return ''
+  else return page.table_id
+})
+
+function getSupabaseType (tableId:string, attributeId:string) {
+  if(Object.keys(schema.value).length === 0) return
+  else return schema.value[tableId].properties[attributeId].format
+}
+
+onMounted(async () => {
+  getSchema()
+    .then(retrievedSchema => schema.value = retrievedSchema)
+})
 </script>
