@@ -47,6 +47,8 @@ function checkUser () {
   })
   if (!store.user.id) {
     if (!['/login', '/signup'].includes(route.path)) router.push('/login')
+  } else {
+    if (['/login', '/signup'].includes(route.path)) router.push('/')
   }
 }
 
