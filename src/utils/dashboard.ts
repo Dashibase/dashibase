@@ -439,3 +439,9 @@ export function initCrud (page:Page, itemId:string|number='') {
     filterItems,
   }
 }
+
+export async function getSchema () {
+  const store = useStore()
+  const response = await fetch(`${store.dashboard.supabaseUrl}/rest/v1/?apikey=${store.dashboard.supabaseAnonKey}`)
+  return await (await response.json()).definitions
+}
