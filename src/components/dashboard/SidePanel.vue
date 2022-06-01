@@ -112,7 +112,7 @@ async function signOut () {
     console.error(error)
   } else {
     store.$reset()
-    router.push('/signin')
+    router.push('/login')
   }
 }
 

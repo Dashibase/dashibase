@@ -14,7 +14,7 @@
     </div>
     <div :class="[showNotFound ? 'opacity-100' : 'opacity-0', 'py-16']">
       <div :class="[showNotFound ? 'opacity-100 translate-y-0' : 'opacity-0 pointer-events-none translate-y-full', 'transition duration-[1.5s]']">
-        <a href="https://app.dashibase.com/signup" class="hover:underline">Create a Dashibase app</a> | <a href="https://app.dashibase.com/signin" class="hover:underline">Log in</a>
+        <a href="https://app.dashibase.com/signup" class="hover:underline">Create a Dashibase app</a> | <a href="https://app.dashibase.com/login" class="hover:underline">Log in</a>
       </div>
     </div>
   </div>
