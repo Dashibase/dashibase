@@ -4,7 +4,7 @@
       <div class="w-96 max-w-xl">
         <AppLogo class="w-max" />
         <div class="space-y-6 text-neutral-600 dark:text-neutral-400">
-          <h2 class="mt-6 text-left text-4xl font-extrabold text-neutral-700 dark:text-neutral-300">Sign in</h2>
+          <h2 class="mt-6 text-left text-4xl font-extrabold text-neutral-700 dark:text-neutral-300">Log in</h2>
           <!-- Inputs -->
           <div class="space-y-4">
             <div>
@@ -29,7 +29,7 @@
             <!-- Button -->
             <div>
               <PrimaryButton class="w-full h-10" @click="signIn">
-                {{ loading ? 'Loading...' : (success ? 'Redirecting...' : 'Sign in') }}
+                {{ loading ? 'Loading...' : (success ? 'Redirecting...' : 'Log in') }}
               </PrimaryButton>
             </div>
           </div>
