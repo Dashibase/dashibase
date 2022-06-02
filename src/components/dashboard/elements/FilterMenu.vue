@@ -15,7 +15,7 @@
             <div class="flex items-end w-max">
               <div v-if="i === 0">where</div>
               <select v-else-if="i === 1" v-model="conjunction"
-                class="w-max border-0 rounded-md -ml-1 py-0 px-0 pr-8 focus:outline-none focus:ring-0 text-xs cursor-pointer bg-white dark:bg-neutral-700">
+                class="w-max border-0 rounded-md -ml-1 py-0 px-0 pr-8 focus:outline-none focus:ring-0 text-xs cursor-pointer bg-overlay dark:bg-overlay-dark">
                 <option value="and">and</option>
                 <option value="or">or</option>
               </select>
