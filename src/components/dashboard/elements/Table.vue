@@ -2,7 +2,7 @@
   <div class="sm:rounded-lg border border-[#EAEAEA] dark:border-[#2F2F2F] shadow overflow-y-hidden">
     <table class="w-full table-fixed transition text-primary dark:text-primary-dark overflow-x-auto">
       <thead class="drop-shadow dark:border-b-2 dark:border-b-neutral-750">
-        <tr class="transition bg-input-disabled dark:bg-input-disabled-dark">
+        <tr class="transition bg-table-hover dark:bg-table-hover-dark">
           <th class="hidden sm:table-cell px-1 py-2 text-center text-xs font-medium uppercase tracking-wider w-[1rem] text-tertiary dark:text-tertiary-dark">
             <span v-if="!selected.length">#</span>
             <input v-if="selected.length" type="checkbox"
@@ -14,13 +14,13 @@
           </th>
         </tr>
       </thead>
-      <tbody class="divide-y transition text-neutral-800 divide-neutral-200 bg-input dark:bg-input-dark dark:text-neutral-200 dark:divide-neutral-750">
+      <tbody class="divide-y transition text-primary divide-neutral-200 bg-surface dark:bg-surface-dark dark:text-primary-dark dark:divide-neutral-750">
         <div v-if="items.length === 0" class="table-row text-sm bg-input-disabled dark:bg-input-disabled-dark text-secondary dark:text-secondary-dark">
           <td></td>
           <td class="px-2 py-2 max-w-0 whitespace-nowrap text-sm">No rows found.</td>
           <td v-for="attribute, i in attributes.slice(1)" :key="i"></td>
         </div>
-        <a v-for="item, i in items" :key="i" class="table-row cursor-pointer hover:bg-input-focus dark:hover:bg-input-focus-dark text-primary dark:text-primary-dark"
+        <a v-for="item, i in items" :key="i" class="table-row cursor-pointer hover:bg-table-hover dark:hover:bg-table-hover-dark text-primary dark:text-primary-dark"
           @click.exact="event => viewItem(i, event)"
           @click.shift.left.exact="event => selectRow(i, event)">
           <td class="hidden sm:table-cell w-10 px-1 py-2 whitespace-nowrap text-sm text-center transition group text-tertiary dark:text-tertiary-dark">
