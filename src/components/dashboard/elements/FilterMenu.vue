@@ -1,7 +1,7 @@
 <template>
   <Popover v-slot="{ open }" class="relative">
     <PopoverButton
-      :class="[open ? '' : 'text-opacity-90', 'shadow border border-transparent bg-overlay text-primary hover:bg-highlight hover:text-primary-focus disabled:bg-input-disabled disabled:text-tertiary dark:bg-overlay-dark dark:text-primary-dark dark:hover:bg-highlight-dark dark:hover:text-primary-focus-dark dark:disabled:bg-input-disabled-dark dark:disabled:text-tertiary-dark block rounded-md py-1 px-3 inline-flex justify-center items-center gap-1 text-sm font-medium focus:outline-none focus:ring-0 transition']">
+      :class="[open ? '' : 'text-opacity-90', 'shadow border border-transparent bg-overlay text-primary hover:bg-highlight hover:text-primary-focus disabled:bg-input-disabled disabled:text-tertiary dark:bg-overlay-dark dark:text-primary-dark dark:hover:bg-highlight-dark dark:hover:text-primary-focus-dark dark:disabled:bg-input-disabled-dark dark:disabled:text-tertiary-dark block rounded-md py-1 px-3 flex justify-center items-center gap-1 text-sm font-medium focus:outline-none focus:ring-0 transition']">
       Filter
       <FilterIcon v-if="!filters.length" class="w-4" />
       <div v-if="filters.length"
@@ -72,7 +72,7 @@
   </Popover>
   <Popover v-slot="{ open }" class="relative">
     <PopoverButton
-      :class="[open ? '' : 'text-opacity-90', 'shadow border border-transparent bg-overlay text-primary hover:bg-highlight hover:text-primary-focus disabled:bg-input-disabled disabled:text-tertiary dark:bg-overlay-dark dark:text-primary-dark dark:hover:bg-highlight-dark dark:hover:text-primary-focus-dark dark:disabled:bg-input-disabled-dark dark:disabled:text-tertiary-dark block rounded-md py-1 px-3 inline-flex justify-center items-center gap-1 text-sm font-medium focus:outline-none focus:ring-0 transition']">
+      :class="[open ? '' : 'text-opacity-90', 'shadow border border-transparent bg-overlay text-primary hover:bg-highlight hover:text-primary-focus disabled:bg-input-disabled disabled:text-tertiary dark:bg-overlay-dark dark:text-primary-dark dark:hover:bg-highlight-dark dark:hover:text-primary-focus-dark dark:disabled:bg-input-disabled-dark dark:disabled:text-tertiary-dark block rounded-md py-1 px-3 flex justify-center items-center gap-1 text-sm font-medium focus:outline-none focus:ring-0 transition']">
       Sort
       <SwitchVerticalIcon v-if="!sorts.length" class="w-4" />
       <div v-if="sorts.length" class="rounded-full px-1.5 text-xs mt-0.5 transition bg-neutral-200 dark:bg-neutral-800">
