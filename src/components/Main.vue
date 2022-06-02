@@ -14,6 +14,9 @@
 </template>
 
 <style>
+html {
+  scroll-behavior: smooth;
+}
 .v-enter-active,
 .v-leave-active {
   transition: opacity 0.25s ease;
