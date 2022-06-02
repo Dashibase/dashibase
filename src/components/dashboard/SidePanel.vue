@@ -1,6 +1,6 @@
 <template>
   <Popover class="">
-    <div class="h-full bg-gradient-to-b from-backdrop to-surface dark:from-backdrop-dark dark:to-surface-dark flex-none sm:w-64 flex flex-col justify-between text-primary dark:text-primary-dark">
+    <div id="sidepanel" class="h-full bg-gradient-to-b from-backdrop to-surface dark:from-backdrop-dark dark:to-surface-dark flex-none sm:w-64 flex flex-col justify-between text-primary dark:text-primary-dark">
       <div class="space-y-8">
         <div class="flex justify-between items-center sm:block w-full">
           <!-- App Name -->
@@ -99,6 +99,7 @@ import { supabase } from '@/utils/supabase'
 import AppLogo from '../branding/AppLogo.vue'
 import Avatar from './elements/Avatar.vue'
 import DarkMode from './elements/DarkMode.vue'
+import { onMounted } from 'vue'
 
 const store = useStore()
 const route = useRoute()
@@ -120,4 +121,14 @@ function openLink (link:string, close:()=>void) {
   router.push(`/${link}`)
   close()
 }
+
+const emit = defineEmits(['scroll'])
+
+onMounted(() => {
+  const sidePanel = document.getElementById('sidepanel')
+  if (!sidePanel) return
+  sidePanel.onwheel = (event:WheelEvent) => {
+    emit('scroll', event.deltaY)
+  }
+})
 </script>
