@@ -37,6 +37,7 @@ let __tla = new Promise(async () => {
         window.localStorage.setItem('dashibase.supabase_anon_key', supabaseAnonKey)
         window.localStorage.setItem('dashibase.app_name', response.data.app_name)
         window.localStorage.setItem('dashibase.dashboard_id', response.data.id)  
+        document.title = response.data.app_name
       }
     }
   }

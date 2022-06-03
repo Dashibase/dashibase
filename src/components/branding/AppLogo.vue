@@ -1,5 +1,5 @@
 <template>
-  <h2 class="text-lg text-center font-bold select-none transition text-neutral-700 dark:text-neutral-300">
+  <h2 class="text-xl text-center font-semibold select-none transition text-primary dark:text-neutral-300" :title="store.dashboard.name">
     {{ store.dashboard.name }}
   </h2>
 </template>

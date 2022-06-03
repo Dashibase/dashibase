@@ -1,5 +1,6 @@
 <template>
-  <span class="inline-flex items-center justify-center rounded-full text-neutral-600 dark:text-neutral-300" :class="sizes[props.size]" :style="bgColor">
+  <span class="inline-flex items-center justify-center rounded-full text-neutral-600 dark:text-neutral-300 cursor-default bg-neutral-200 dark:bg-neutral-750"
+    :class="sizes[props.size]" :title="store.user?.email || ''">
     <span class="font-medium leading-none uppercase">{{ initials }}</span>
   </span>
 </template>
@@ -16,7 +17,6 @@ const props = defineProps({
     default: 'xl',
   },
 })
-
 
 const sizes = {
   xs: ['text-xs', 'h-5', 'w-5'],

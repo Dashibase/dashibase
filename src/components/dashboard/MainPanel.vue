@@ -1,5 +1,5 @@
 <template>
-  <div class="z-50 w-full sm:h-full overflow-auto">
+  <div class="sm:ml-64 w-full sm:h-full sm:shadow">
     <slot />
   </div>
 </template>

@@ -20,6 +20,15 @@ const DASHIBASE_CONFIG:Config = {
           readonly: false,
           type: AttributeType.Text,
         } as Attribute,
+        {
+          // Enum example - this will generate a dropdown with the provided options
+          id: "foo",
+          label: "Foo",
+          required: false,
+          readonly: false,
+          type: AttributeType.Enum,
+          enumOptions: ['foo', 'bar'], // Specify enum options
+        } as Attribute,
       ]
     },
   ] as Page[],

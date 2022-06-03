@@ -38,7 +38,6 @@ const props = defineProps({
     required: true,
   },
 })
-
 const emits = defineEmits(['update:modelValue'])
 
 const paginationNum = computed({

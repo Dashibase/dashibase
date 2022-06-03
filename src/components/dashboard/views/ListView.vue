@@ -5,11 +5,11 @@
         {{ page.name }}
       </div>
       <div class="flex gap-2 items-end">
-        <FilterMenu :attributes="page.attributes" @close="filterItems"/>
+        <FilterMenu :attributes="page.attributes.filter(attr => !attr.hidden)" @close="filterItems"/>
         <DeleteButton v-if="selected.length" @click="deleteRows">
           Delete
         </DeleteButton>
-        <PrimaryButton v-if="!selected.length" @click="createRow">
+        <PrimaryButton v-if="!selected.length" :to="`/${props.pageId}/new`">
           New
         </PrimaryButton>
       </div>
@@ -21,14 +21,14 @@
     <!-- Mobile view -->
     <div class="mt-2 sm:hidden">
       <div class="overflow-x-auto">
-        <Table :headers="page.attributes.slice(0, 1)" :items="items" :countFrom="(paginationNum - 1) * maxItems" @viewItem="viewRow" />
+        <Table :attributes="page.attributes.filter(attr => !attr.hidden).slice(0, 1)" :items="items" :countFrom="(paginationNum - 1) * maxItems" @viewItem="viewRow" />
       </div>
       <Pagination v-if="maxPagination > 1" class="mt-10" :paginationList="paginationList" :maxPagination="maxPagination" v-model="paginationNum" />
     </div>
     <!-- Normal view -->
     <div class="hidden sm:block mb-24">
-      <div class="w-[calc(100vw-16rem)] overflow-x-auto">
-        <Table ref="table" :headers="page.attributes" :items="items" :countFrom="(paginationNum - 1) * maxItems" @viewItem="viewRow" />
+      <div class="px-4 md:px-10">
+        <Table ref="table" :attributes="page.attributes.filter(attr => !attr.hidden)" :items="items" :countFrom="(paginationNum - 1) * maxItems" @viewItem="viewRow" />
       </div>
       <Pagination v-if="maxPagination > 1" class="mt-10 px-10" :paginationList="paginationList" :maxPagination="maxPagination" v-model="paginationNum" />
     </div>
@@ -54,7 +54,6 @@ import DeleteButton from '../elements/buttons/DeleteButton.vue'
 import DeleteModal from '../modals/DeleteModal.vue'
 
 const store = useStore()
-
 const props = defineProps({
   pageId: {
     type: String,
@@ -77,12 +76,8 @@ const selected = computed(() => {
   else return table.value.selected
 })
 
-function createRow () {
-  router.push(`/${props.pageId}/new`)
-}
-
 function viewRow (itemIdx:number) {
-  const itemId = items.value[itemIdx].id
+  const itemId = items.value[itemIdx][page.value.id_col]
   router.push(`/${props.pageId}/view/${itemId}`)
 }
 
@@ -90,7 +85,7 @@ async function deleteRows () {
   if (!deleteModal.value) return
   const confirm = await deleteModal.value.confirm()
   if (confirm) {
-    deleteItems(selected.value.map((idx:number) => items.value[idx].id))
+    deleteItems(selected.value.map((idx:number) => items.value[idx][page.value.id_col]))
       .then(() => table.value.selected = [])
   }
 }

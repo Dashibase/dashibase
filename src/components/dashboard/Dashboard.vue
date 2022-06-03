@@ -1,11 +1,11 @@
 <template>
-  <div>
+  <div v-if="store.dashboard.id">
     <Loading />
     <div class="relative min-h-screen flex flex-col">
-      <div class="flex-grow w-full mx-auto sm:flex" :class="store.darkMode ? 'bg-neutral-800' : 'bg-neutral-50'">
-        <div v-if="store.user && store.user.id" class="flex-1 min-w-0 sm:flex w-full min-h-screen transition">
-          <SidePanel />
-          <MainPanel>
+      <div class="flex-grow w-full mx-auto sm:flex bg-surface dark:bg-surface-dark">
+        <div v-if="store.user && store.user.id" class="flex-1 min-w-0 sm:flex w-full transition">
+          <SidePanel @scroll="scrollMainPanel" />
+          <MainPanel id="mainpanel">
             <router-view v-slot="{ Component }">
               <transition mode="out-in">
                 <component :is="Component" :key="route.fullPath" />
@@ -33,5 +33,11 @@ const route = useRoute()
 
 if (route.path === '/' && store.dashboard.pages.length) {
   router.push(`/${store.dashboard.pages[0].page_id}`)
+}
+
+function scrollMainPanel(deltaY:number) {
+  const element = document.getElementById('mainpanel')
+  if (!element) return
+  element.scrollBy({top: deltaY, behavior: 'auto'})
 }
 </script>

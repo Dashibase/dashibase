@@ -1,37 +1,67 @@
 <p align="center">
-<img width="300" src="https://raw.githubusercontent.com/dashibase/dashibase/main/assets/dashibase-logo.png"/>
+<img width="150" src="./assets/dashibase-logo.png"/>
+<h1 align="center"><b>Dashibase</b></h1>
+<p align="center">
+  Lightspeed app-builder for Supabase users.
+    <br />
+    <a href="https://dashibase.com"><strong>Check it out now ⚡</strong></a>
+  </p>
 </p>
 
-### Announcement: Dashibase Beta is [now free](https://medium.com/dashibase/we-got-3-paid-signups-within-a-week-of-launching-then-we-refunded-them-and-made-dashibase-free-8a9e7c4b744a)!
+Need to build an app or a dashboard? Dashibase is the fastest app-builder for Supabase users.
 
-Come hang out with us in our cozy Slack community [here](https://join.slack.com/t/dashibase-community/shared_invite/zt-180rycyqv-ifRwyiQAiXUlBBVxgxQE7g) 🤗
+Beautiful presets in light and dark modes. CRUD interfaces with cards and table views. Form validation, elegant login and signup pages, and more. All with a simple JSON config file.
 
-# Dashibase
+<p align="center">
+  <img src="./assets/dashibase-screenshot.png" style="border-radius: 10px;" />
+  <br />
+  <br />
+  <a href="https://dashibase.com#join-waitlist">
+    <img src="https://img.shields.io/badge/We're%20open%20for%20beta!-Join-%2322c55e" />
+  </a>
+  <a href="https://twitter.com/dashibase">
+    <img src="https://img.shields.io/badge/Twitter-00acee?logo=twitter&logoColor=white" />
+  </a>
+  <a href="https://join.slack.com/t/dashibase-community/shared_invite/zt-180rycyqv-ifRwyiQAiXUlBBVxgxQE7g">
+    <img src="https://img.shields.io/badge/Slack-E4405F?logo=slack&logoColor=white" />
+  </a>
+  <img src="https://img.shields.io/github/license/dashibase/dashibase" />
+  <br />
+</p>
 
-[![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Just%20found%20out%20about%20Dashibase%20-%20a%20super%20simple%20way%20to%20build%20dashboards%20for%20Supabase%20users!&url=https://dashibase.com) [![We're open for beta!](https://img.shields.io/badge/We're%20open%20for%20beta!-Join-%2322c55e)](https://dashibase.com#join-beta) [![GPL-3.0](https://img.shields.io/github/license/dashibase/dashibase)](https://github.com/Dashibase/dashibase/blob/main/LICENSE)
-
-**[Dashibase](https://dashibase.com) is a no-code tool to build user dashboards supported by Supabase.**
-
-This repo contains the open-source code for setting up your own Dashibase dashboard if you are interested in hosting it yourself.
+This repo contains the open-source code for setting up your own Dashibase dashboard if you are interested in hosting it yourself. Otherwise, we also have a [hosted version](https://dashibase.com#join-waitlist).
 
 Contributions welcome!
 
-**Have suggestions for what to work on next? Support us by joining our [beta](https://dashibase.com#join-beta)!**
+**Have suggestions for what to work on next? Support us by joining our [beta](https://dashibase.com#join-waitlist)!**
 
 ---
 
 ## Features
 
-This is a work-in-progress but the following features are already supported.
+### Supported
 
-- [x] Authentication UIs including sign in and sign up - currently with email and password, third-party provider support coming soon
-- [x] Multiple display modes - [`single`](https://dashibase.com/demo/profile), [`list`](https://dashibase.com/demo/todo), [`card`](https://dashibase.com/demo/notes)
+- [x] Authentication UIs including sign in and sign up
+- [x] Multiple display modes - single, list, card
 - [x] CRUD functions
 - [x] Simple form validation during item creation by checking that required fields are filled in (required attributes are configured in `src/dashibaseConfig.ts`)
 - [x] Caching of dashboard data to reduce database queries and improve latency
 - [x] Dashboard is responsive and works on tablet and mobile
+- [x] Pagination support
+- [x] Filter and sort for list and card views
 
-![Dashibase Dashboard](https://raw.githubusercontent.com/dashibase/dashibase/main/assets/dashibase-screenshot.png)
+### In-progress
+
+- [ ] Better support for table joins
+- [ ] Charts display mode
+- [ ] Third-party authentication support
+
+### Backlog
+
+- [ ] Built-in analytics
+- [ ] User impersonation
+- [ ] Kanban display mode
+- [ ] Regex form validation
 
 ## Getting Started
 
@@ -60,4 +90,4 @@ npm run dev
 
 ## Like what you're seeing?
 
-We're hoping to turn this into our full-time job! Support us by [joining our beta](https://dashibase.com#join-beta) and visit us in our Slack [here](https://join.slack.com/t/dashibase-community/shared_invite/zt-180rycyqv-ifRwyiQAiXUlBBVxgxQE7g) 🥰
+We're hoping to turn this into our full-time job! Support us by [joining our beta](https://dashibase.com#join-waitlist), visit us in our [Slack](https://join.slack.com/t/dashibase-community/shared_invite/zt-180rycyqv-ifRwyiQAiXUlBBVxgxQE7g) and follow us on [Twitter](https://twitter.com/dashibase) for more updates.

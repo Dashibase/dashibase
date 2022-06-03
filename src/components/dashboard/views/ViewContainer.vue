@@ -11,7 +11,6 @@ import ListView from './ListView.vue'
 import SingleView from './SingleView.vue'
 
 const store = useStore()
-
 const props = defineProps({
   pageId: {
     type: String,

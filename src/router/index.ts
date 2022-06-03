@@ -1,7 +1,7 @@
 import { createWebHistory, createRouter, RouteLocation } from "vue-router"
 import Main from "@/components/Main.vue"
 import SignUp from "@/components/auth/SignUp.vue"
-import SignIn from "@/components/auth/SignIn.vue"
+import LogIn from "@/components/auth/LogIn.vue"
 import Dashboard from "@/components/dashboard/Dashboard.vue"
 import SingleView from "@/components/dashboard/views/SingleView.vue"
 import ViewContainer from "@/components/dashboard/views/ViewContainer.vue"
@@ -17,9 +17,9 @@ const routes = [
         name: "Sign Up",
         component: SignUp,
       }, {
-        path: "signin",
-        name: "Sign In",
-        component: SignIn,
+        path: "login",
+        name: "Log In",
+        component: LogIn,
       }, {
         path: "",
         component: Dashboard,
