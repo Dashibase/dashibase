@@ -1,10 +1,10 @@
 <template>
-  <Popover class="sm:h-screen animate-pulse">
+  <div class="sm:fixed sm:h-screen animate-pulse">
     <div class="h-full bg-gradient-to-b from-backdrop to-surface dark:from-backdrop-dark dark:to-surface-dark flex-none sm:w-64 flex flex-col justify-between text-primary dark:text-primary-dark">
       <div class="space-y-8">
-        <div class="flex justify-between items-center sm:block w-full">
+        <div class="px-4 sm:px-0 flex justify-between items-center sm:block w-full">
           <!-- App Name -->
-          <div class="px-7 py-4">
+          <div class="sm:px-7 py-4">
             <Placeholder class="w-48 sm:w-full h-10" />
           </div>
           <div class="w-full mr-5 sm:hidden flex items-center justify-end gap-5">
@@ -26,12 +26,9 @@
         <Placeholder class="flex-shrink-0 h-8 w-8 rounded-full" />
       </div>
     </div>
-  </Popover>
+  </div>
 </template>
 
 <script setup lang="ts">
-import {
-  Popover,
-} from '@headlessui/vue'
 import Placeholder from './elements/Placeholder.vue'
 </script>

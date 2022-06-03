@@ -103,6 +103,7 @@ import { onMounted } from 'vue'
 
 const store = useStore()
 const route = useRoute()
+const emit = defineEmits(['scroll'])
 
 async function signOut () {
   store.loading = true
@@ -122,9 +123,8 @@ function openLink (link:string, close:()=>void) {
   close()
 }
 
-const emit = defineEmits(['scroll'])
-
 onMounted(() => {
+  // Scroll mainpanel even when cursor is on sidepanel
   const sidePanel = document.getElementById('sidepanel')
   if (!sidePanel) return
   sidePanel.onwheel = (event:WheelEvent) => {

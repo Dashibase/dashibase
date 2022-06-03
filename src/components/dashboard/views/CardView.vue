@@ -65,15 +65,14 @@ import PrimaryButton from '../elements/buttons/PrimaryButton.vue'
 import DeleteModal from '../modals/DeleteModal.vue'
 
 const store = useStore()
-
-const selected = ref([] as number[])
-
 const props = defineProps({
   pageId: {
     type: String,
     required: true,
   },
 })
+
+const selected = ref([] as number[])
 
 const page = computed(():Page => {
   return store.dashboard.pages.find(page => page.page_id === props.pageId) || {} as Page
