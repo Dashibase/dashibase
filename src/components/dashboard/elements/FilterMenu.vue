@@ -62,7 +62,7 @@
           </div>
         </div>
         <button
-          class="group px-3 py-3 w-full text-left bg-transparent rounded-b-md inline-flex text-xs focus:outline-none focus:ring-0 transition flex justify-between"
+          class="group px-3 py-3 w-full text-left bg-transparent rounded-b-md text-xs focus:outline-none focus:ring-0 transition flex justify-between"
           @click="addFilter">
           <span>Add filter</span>
           <PlusIcon class="w-3.5 group-hover:text-green-600 dark:group-hover:text-green-300" />
