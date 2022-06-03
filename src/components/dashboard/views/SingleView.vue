@@ -92,7 +92,6 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import router from '@/router'
 import { Page, AttributeType } from '@/utils/config'
 import { initCrud } from '@/utils/dashboard'
 import { useStore } from '@/utils/store'

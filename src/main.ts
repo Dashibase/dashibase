@@ -24,5 +24,4 @@ const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)
 pinia.use(resetStore)
 
-
 createApp(App).use(router).use(pinia).mount('#app')
