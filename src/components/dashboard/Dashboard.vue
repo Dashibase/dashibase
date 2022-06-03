@@ -3,7 +3,7 @@
     <Loading />
     <div class="relative min-h-screen flex flex-col">
       <div class="flex-grow w-full mx-auto sm:flex bg-surface dark:bg-surface-dark">
-        <div v-if="store.user && store.user.id" class="flex-1 min-w-0 sm:flex w-full h-screen transition">
+        <div v-if="store.user && store.user.id" class="flex-1 min-w-0 sm:flex w-full transition">
           <SidePanel @scroll="scrollMainPanel" />
           <MainPanel id="mainpanel">
             <router-view v-slot="{ Component }">

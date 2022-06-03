@@ -1,6 +1,6 @@
 <template>
   <Popover class="">
-    <div id="sidepanel" class="h-full bg-gradient-to-b from-backdrop to-surface dark:from-backdrop-dark dark:to-surface-dark flex-none sm:w-64 flex flex-col justify-between text-primary dark:text-primary-dark">
+    <div id="sidepanel" class="sm:fixed h-full bg-gradient-to-b from-backdrop to-surface dark:from-backdrop-dark dark:to-surface-dark flex-none sm:w-64 flex flex-col justify-between text-primary dark:text-primary-dark">
       <div class="space-y-8">
         <div class="flex justify-between items-center sm:block w-full">
           <!-- App Name -->
