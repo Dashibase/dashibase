@@ -33,7 +33,7 @@
               </PrimaryButton>
             </div>
           </div>
-          <div class="text-xs sm:flex justify-between space-y-1">
+          <div class="text-xs sm:flex justify-between">
             <div>
               Already have an account?
               <router-link to="/login" class="font-semibold hover:underline">Log in</router-link>
