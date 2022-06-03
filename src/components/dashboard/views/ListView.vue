@@ -34,7 +34,7 @@
     </div>
     <DeleteModal ref="deleteModal">
       <template #title>Confirm deletion</template>
-      <p>{{ `Are you sure you want to delete ${selected.length > 1 ? 'these items' : 'this item'}?` }}</p>
+      <p>{{ `Are you sure you want to delete ${selected.length > 1 ? 'these rows' : 'this row'}?` }}</p>
     </DeleteModal>
   </View>
 </template>
@@ -85,8 +85,10 @@ async function deleteRows () {
   if (!deleteModal.value) return
   const confirm = await deleteModal.value.confirm()
   if (confirm) {
-    deleteItems(selected.value.map((idx:number) => items.value[idx][page.value.id_col]))
+    setTimeout(() => {
+      deleteItems(selected.value.map((idx:number) => items.value[idx][page.value.id_col]))
       .then(() => table.value.selected = [])
+    }, 100)
   }
 }
 </script>

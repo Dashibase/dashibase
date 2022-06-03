@@ -46,7 +46,7 @@
     <Pagination v-if="maxPagination > 1" class="mt-10 px-1 sm:px-10" :paginationList="paginationList" :maxPagination="maxPagination" v-model="paginationNum" />
     <DeleteModal ref="deleteModal">
       <template #title>Confirm deletion</template>
-      <p>{{ `Are you sure you want to delete ${selected.length > 1 ? 'these rows' : 'this row'}?` }}</p>
+      <p>{{ `Are you sure you want to delete ${selected.length > 1 ? 'these cards' : 'this card'}?` }}</p>
     </DeleteModal>
   </View>
 </template>
@@ -54,6 +54,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import router from '@/router'
+import { useRoute } from 'vue-router'
 import { Page, AttributeType } from '@/utils/config'
 import { initCrud } from '@/utils/dashboard'
 import { useStore } from '@/utils/store'
@@ -92,8 +93,10 @@ async function deleteCards () {
   if (!deleteModal.value) return
   const confirm = await deleteModal.value.confirm()
   if (confirm) {
-    deleteItems(selected.value.map((idx:number) => items.value[idx][page.value.id_col]))
-      .then(() => selected.value = [])
+    setTimeout(() => {
+      deleteItems(selected.value.map((idx:number) => items.value[idx][page.value.id_col]))
+        .then(() => selected.value = [])
+    }, 100)
   }
 }
 </script>
