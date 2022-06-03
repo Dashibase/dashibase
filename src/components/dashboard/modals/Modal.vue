@@ -44,14 +44,12 @@ import { XIcon } from '@heroicons/vue/solid'
 import { useStore } from '@/utils/store'
 
 const store = useStore()
-
 const props = defineProps({
   modelValue: {
     type: Boolean,
     default: false,
   },
 })
-
 const emit = defineEmits(['update:modelValue'])
 
 const show = computed({
@@ -60,6 +58,6 @@ const show = computed({
   },
   set (value:boolean) {
     emit('update:modelValue', value)
-  }
+  },
 })
 </script>

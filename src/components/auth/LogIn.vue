@@ -57,7 +57,6 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { UserCircleIcon } from '@heroicons/vue/solid'
 import router from '@/router'
 import { supabase } from '@/utils/supabase'
 import AppLogo from '../branding/AppLogo.vue'
@@ -89,10 +88,5 @@ async function signIn () {
     // Redirect to dashboard
     router.push('/')
   }
-}
-
-function goToSignUp (event:Event) {
-  event.preventDefault()
-  router.push('/signup')
 }
 </script>

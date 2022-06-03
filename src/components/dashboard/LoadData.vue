@@ -10,6 +10,7 @@ import { useStore } from '@/utils/store'
 
 const route = useRoute()
 const store = useStore()
+
 initDashboard().then(() => {
   if (route.path === '/' && store.dashboard.pages.length) router.push(`/${store.dashboard.pages[0].page_id}`)
 })

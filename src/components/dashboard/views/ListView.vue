@@ -54,7 +54,6 @@ import DeleteButton from '../elements/buttons/DeleteButton.vue'
 import DeleteModal from '../modals/DeleteModal.vue'
 
 const store = useStore()
-
 const props = defineProps({
   pageId: {
     type: String,

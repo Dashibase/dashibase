@@ -51,8 +51,6 @@
 import { ref, PropType } from 'vue'
 import { Attribute, AttributeType } from '@/utils/config'
 
-const selected = ref([] as number[])
-
 const props = defineProps({
   attributes: {
     type: Array as PropType<Attribute[]>,
@@ -67,8 +65,9 @@ const props = defineProps({
     default: 0,
   },
 })
-
 const emit = defineEmits(['createItem', 'viewItem', 'deleteItem'])
+
+const selected = ref([] as number[])
 
 function viewItem (itemIdx:number, event:Event) {
   event.preventDefault()

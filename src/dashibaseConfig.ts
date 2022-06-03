@@ -21,8 +21,9 @@ const DASHIBASE_CONFIG:Config = {
           type: AttributeType.Text,
         } as Attribute,
         {
-          id: "value",
-          label: "Value",
+          // Enum example - this will generate a dropdown with the provided options
+          id: "foo",
+          label: "Foo",
           required: false,
           readonly: false,
           type: AttributeType.Enum,

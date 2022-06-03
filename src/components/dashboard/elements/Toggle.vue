@@ -19,7 +19,6 @@ const props = defineProps({
     default: false,
   }
 })
-
 const emits = defineEmits(['update:modelValue'])
 
 const selected = computed({

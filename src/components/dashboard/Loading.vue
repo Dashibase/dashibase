@@ -29,9 +29,9 @@ import {
   TransitionRoot
 } from '@headlessui/vue'
 import { useStore } from '@/utils/store'
-import SidePanelPlaceholder from './SidePanelPlaceholder.vue';
-import MainPanel from './MainPanel.vue';
-import PlaceholderView from './views/PlaceholderView.vue';
+import SidePanelPlaceholder from './SidePanelPlaceholder.vue'
+import MainPanel from './MainPanel.vue'
+import PlaceholderView from './views/PlaceholderView.vue'
 
 const store = useStore()
 </script>

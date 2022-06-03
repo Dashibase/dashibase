@@ -26,9 +26,6 @@
 import { computed, PropType } from 'vue'
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/vue'
 import { SelectorIcon } from '@heroicons/vue/solid'
-import { useStore } from '@/utils/store'
-
-const store = useStore()
 
 interface Option {
   label: string;
@@ -45,7 +42,6 @@ const props = defineProps({
     required: true,
   },
 })
-
 const emits = defineEmits(['update:modelValue'])
 
 const selected = computed({
@@ -54,7 +50,7 @@ const selected = computed({
   },
   set (newValue:string | boolean | number) {
     emits('update:modelValue', newValue)
-  }
+  },
 })
 
 const selectedLabel = computed(() => {

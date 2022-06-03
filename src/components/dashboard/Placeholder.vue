@@ -22,7 +22,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useStore } from '@/utils/store'
+
 const store = useStore()
+
+// Show "Not found" message if dashboard is not loaded after 3 seconds
 const showNotFound = ref(false)
 setTimeout(() => {
   if (!store.dashboard.name) showNotFound.value = true
