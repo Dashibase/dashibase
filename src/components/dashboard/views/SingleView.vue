@@ -24,7 +24,7 @@
               <textarea v-if="attribute.type === AttributeType.LongText" readonly :id="attribute.id" :value="item[attribute.id] || ''" 
                 class="sm:text-sm w-full shadow-sm bg-input-disabled dark:bg-input-disabled-dark transition border-neutral-300 focus:border-neutral-300 dark:border-neutral-700 dark:focus:border-neutral-700" />
               <!-- AttributeType.Bool -->
-              <div v-else-if="attribute.type === AttributeType.Bool">
+              <div v-else-if="attribute.type === AttributeType.Bool" class="sm:text-sm flex items-center gap-2">
                 <Toggle :modelValue="item[attribute.id] || false" :disabled="true" />
                 <span class="capitalize">{{ [true, 'true'].includes(item[attribute.id]) }}</span>
               </div>
