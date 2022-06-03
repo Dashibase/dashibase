@@ -146,7 +146,7 @@ async function deleteItem () {
   if (!deleteModal.value) return
   const confirm = await deleteModal.value.confirm()
   if (confirm) {
-    deleteItems([props.itemId])
+    setTimeout(() => deleteItems([props.itemId]), 100) 
   }
 }
 
