@@ -51,7 +51,6 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { UserCircleIcon } from '@heroicons/vue/solid'
 import router from '@/router'
 import { supabase } from '@/utils/supabase'
 import AppLogo from '../branding/AppLogo.vue'

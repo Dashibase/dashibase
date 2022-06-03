@@ -23,10 +23,7 @@ module.exports = {
           150: '#EDEDED',
           750: '#333333',
         },
-        sidepanel: '#F5F5F5',
-        'sidepanel-dark': '#141414',
-        mainpanel: '#FFFFFF',
-        'mainpanel-dark': '#1F1F1F',
+        // Light mode colors
         'primary-focus': '#333333',
         primary: '#454545',
         secondary: '#5B5B5B',
@@ -39,6 +36,7 @@ module.exports = {
         input: '#FBFBFB',
         'input-disabled': '#F1F1F1',
         'input-focus': '#FFFFFF',
+        // Dark mode colors
         'primary-focus-dark': '#D9D9D9',
         'primary-dark': '#C8C8C8',
         'secondary-dark': '#9F9F9F',

@@ -62,8 +62,6 @@ import FilterMenu from '../elements/FilterMenu.vue'
 import Pagination from '../elements/Pagination.vue'
 import DeleteButton from '../elements/buttons/DeleteButton.vue'
 import PrimaryButton from '../elements/buttons/PrimaryButton.vue'
-import SecondaryButton from '../elements/buttons/SecondaryButton.vue'
-import TertiaryButton from '../elements/buttons/TertiaryButton.vue'
 import DeleteModal from '../modals/DeleteModal.vue'
 
 const store = useStore()
