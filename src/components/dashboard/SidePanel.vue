@@ -2,12 +2,12 @@
   <Popover class="">
     <div id="sidepanel" class="sm:fixed h-full bg-gradient-to-b from-backdrop to-surface dark:from-backdrop-dark dark:to-surface-dark flex-none sm:w-64 flex flex-col justify-between text-primary dark:text-primary-dark">
       <div class="space-y-8">
-        <div class="flex justify-between items-center sm:block w-full">
+        <div class="px-4 sm:px-0 flex justify-between items-center sm:block w-full">
           <!-- App Name -->
-          <div class="px-7 py-6">
+          <div class="sm:px-7 py-6">
             <AppLogo class="w-max" />
           </div>
-          <div class="mr-4 sm:hidden flex items-center gap-4">
+          <div class="sm:hidden flex items-center gap-4">
             <DarkMode />
             <PopoverButton class="rounded-md p-2 inline-flex items-center justify-center text-neutral-400 hover:text-neutral-500 hover:bg-neutral-100 focus:outline-none focus:ring-0">
               <span class="sr-only">Open menu</span>
