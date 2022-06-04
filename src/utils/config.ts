@@ -24,6 +24,7 @@ export interface Page {
   readonly: boolean; // Whether this page is read-only
   id_col: string; // Name of column that refers to the row or item ID - defaults to 'id'
   user_col: string; // Name of column that refers to the user ID and is a foreign key to auth.users - defaults to 'user'
+  enforce_user_col: boolean;
   attributes: Array<Attribute> // Which columns/attributes to show to the user
 }
 
