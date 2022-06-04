@@ -77,7 +77,7 @@ const selected = computed(() => {
 })
 
 function viewRow (itemIdx:number) {
-  const itemId = items.value[itemIdx][page.value.id_col]
+  const itemId = items.value[itemIdx][page.value.id_col || 'id']
   router.push(`/${props.pageId}/view/${itemId}`)
 }
 
@@ -86,7 +86,7 @@ async function deleteRows () {
   const confirm = await deleteModal.value.confirm()
   if (confirm) {
     setTimeout(() => {
-      deleteItems(selected.value.map((idx:number) => items.value[idx][page.value.id_col]))
+      deleteItems(selected.value.map((idx:number) => items.value[idx][page.value.id_col || 'id']))
       .then(() => table.value.selected = [])
     }, 100)
   }

@@ -17,10 +17,10 @@ We currently support 3 display modes
 - 'card' is similar to 'list' but represents each row as a card instead
 */
 export interface Page {
-  name: string; // Name of the page that will be seen by the user
-  page_id: string; // View ID, used for the URL
-  table_id: string; // Name of the Supabase table
-  mode: string; // One of ['single', 'list', 'card']
+  name: string; // Name of the page that will be seen by the user (required)
+  page_id: string; // View ID, used for the URL (required)
+  table_id: string; // Name of the Supabase table (required)
+  mode: string; // One of ['single', 'list', 'card'] (required)
   readonly: boolean; // Whether this page is read-only
   id_col: string; // Name of column that refers to the row or item ID - defaults to 'id'
   user_col: string; // Name of column that refers to the user ID and is a foreign key to auth.users - defaults to 'user'
@@ -31,12 +31,12 @@ export interface Page {
 An Attribute corresponds to a column/attribute in a Supabase table
 */
 export interface Attribute {
-  id: string; // Column ID
-  label: string; // Label that will be seen by the user
+  id: string; // Column ID (required)
+  label: string; // Label that will be seen by the user (required)
   required: boolean;  // Whether the attribute is required
   readonly: boolean; // Whether the attribute is read-only
   hidden: boolean; // Whether the attribute is hidden when displayed in table or cards
-  type: AttributeType; // Type of attribute that determines UI of input
+  type: AttributeType; // Type of attribute that determines UI of input (required)
   enumOptions?: string[]; // If attribute type is enum, this lists the options
 }
 
@@ -53,8 +53,8 @@ Config - Dashibase Config
 */
 
 export interface Config {
-  name: string; // Name of your app or dashboard - shown in title of the webpage via `components/branding/AppLogo.vue`
-  supabase_url: string; // Supabase credentials - see https://app.supabase.io/project/YOUR_PROJECT_ID/settings/api
-  supabase_anon_key: string; // Supabase credentials - see https://app.supabase.io/project/YOUR_PROJECT_ID/settings/api
+  name: string; // Name of your app or dashboard (required) - shown in title of the webpage via `components/branding/AppLogo.vue`
+  supabase_url: string; // Supabase credentials (required) - see https://app.supabase.io/project/YOUR_PROJECT_ID/settings/api
+  supabase_anon_key: string; // Supabase credentials (required) - see https://app.supabase.io/project/YOUR_PROJECT_ID/settings/api
   pages: Array<Page>; // Array of Views
 }
