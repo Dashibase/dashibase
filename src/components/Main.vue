@@ -1,6 +1,6 @@
 <template>
   <div class="bg-surface dark:bg-surface-dark">
-    <div v-if="!store.dashboard.id" class="absolute w-full top-0 z-0">
+    <div v-if="!store.dashboard.name" class="absolute w-full top-0 z-0">
       <Placeholder />
     </div>
     <div class="z-10 relative">
@@ -40,7 +40,7 @@ import Placeholder from './dashboard/Placeholder.vue'
 const store = useStore()
 const route = useRoute()
 
-if (store.dashboard.id && !store.user.id && !['/login', '/signup'].includes(route.path)) router.push('/login')
+if (store.dashboard.name && !store.user.id && !['/login', '/signup'].includes(route.path)) router.push('/login')
 
 function checkUser () {
   const user = supabase.auth.user()

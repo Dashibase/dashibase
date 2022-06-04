@@ -120,7 +120,7 @@ export async function initUserData () {
       tables.forEach(table => {
         attributeIds.push({
           table,
-          column: page.id_col, // NOTE: This will break table joins
+          column: page.id_col || 'id', // NOTE: This will break table joins
         })
       })
       attributeIds = attributeIds.filter((attr, idx, self) => self.findIndex(i => i.table === attr.table && i.column === attr.column) === idx)
@@ -134,7 +134,7 @@ export async function initUserData () {
         const { data, error, count } = await supabase
           .from(page.table_id)
           .select(selectionQuery, { count: 'exact' })
-          .eq(page.user_col, store.user.id)
+          .eq(page.user_col || 'user', store.user.id)
           .range(0, pageConfigs[page.mode].maxItems-1)
         if (error) reject(error.message)
         else resolve({ data, count, attributeIds })
@@ -178,7 +178,7 @@ export function initCrud (page:Page, itemId:string|number='') {
   })
   // If page.mode is 'single' make sure there is at least an empty object
   const items = ref(JSON.parse(JSON.stringify(cache.value.data || [])))
-  const item = ref(JSON.parse(JSON.stringify(itemId  ? items.value.find((item:any) => item[page.id_col] === itemId) || {} : items.value[0] || {})))
+  const item = ref(JSON.parse(JSON.stringify(itemId  ? items.value.find((item:any) => item[page.id_col || 'id'] === itemId) || {} : items.value[0] || {})))
   // total number of items in Supabase table
   const itemsCount = ref(cache.value.count)
   // haveUnsavedChanges is used to denote if changes have been made by the user
@@ -186,7 +186,7 @@ export function initCrud (page:Page, itemId:string|number='') {
   watch (cache, (newCache, prevCache) => {
     if (prevCache.data) return
     items.value = JSON.parse(JSON.stringify(cache.value.data || []))
-    item.value = JSON.parse(JSON.stringify(itemId ? cache.value.data.find((item:any) => item[page.id_col] === itemId) || {} : cache.value.data[0] || {}))
+    item.value = JSON.parse(JSON.stringify(itemId ? cache.value.data.find((item:any) => item[page.id_col || 'id'] === itemId) || {} : cache.value.data[0] || {}))
     itemsCount.value = cache.value.count
   })
 
@@ -217,8 +217,8 @@ export function initCrud (page:Page, itemId:string|number='') {
     const startRow = Math.max(0, currentPagination - 1) * maxItems
     let request = supabase
       .from(page.table_id)
-      .select(page.attributes.map((attribute:any) => attribute.id).join(',') + `,${page.id_col}`)
-      .eq(page.user_col, store.user.id)
+      .select(page.attributes.map((attribute:any) => attribute.id).join(',') + `,${page.id_col || 'id'}`)
+      .eq(page.user_col || 'user', store.user.id)
 
     if (filters.value.length) {
       if (conjunction.value === 'and') {
@@ -252,15 +252,15 @@ export function initCrud (page:Page, itemId:string|number='') {
     // If itemId is a number instead of UUID, run parseInt
     if (typeof itemId === 'string' && !isUUID(itemId)) itemId = parseInt(itemId)
     if (!page.attributes) return
-    if (items.value.find((item:any) => item[page.id_col] === itemId)) {
-      item.value = items.value.find((item:any) => item[page.id_col] === itemId)
+    if (items.value.find((item:any) => item[page.id_col || 'id'] === itemId)) {
+      item.value = items.value.find((item:any) => item[page.id_col || 'id'] === itemId)
       return
     }
     store.loading = true
     const { data, error } = await supabase
       .from(page.table_id)
-      .select(page.attributes.map((attribute:any) => attribute.id).join(',') + `,${page.id_col}`)
-      .eq(page.id_col, itemId)
+      .select(page.attributes.map((attribute:any) => attribute.id).join(',') + `,${page.id_col || 'id'}`)
+      .eq(page.id_col || 'id', itemId)
       .single()
       store.loading = false
     if (error) {
@@ -318,7 +318,7 @@ export function initCrud (page:Page, itemId:string|number='') {
     tables.forEach(table => {
       attributeIds.push({
         table,
-        column: page.id_col, // NOTE: This will break table joins
+        column: page.id_col || 'id', // NOTE: This will break table joins
       })
     })
     attributeIds = attributeIds.filter((attr, idx, self) => self.findIndex(i => i.table === attr.table && i.column === attr.column) === idx)
@@ -352,13 +352,14 @@ export function initCrud (page:Page, itemId:string|number='') {
   Delete rows from <page.table_id> with id corresponding to itemId
   */
   async function deleteItems (itemIds:string[], event:Event|null=null) {
+    console.log(itemIds)
     warning.value = ''
     if (event) event.preventDefault()
     store.loading = true
     const { error } = await supabase
       .from(page.table_id)
       .delete()
-      .or(itemIds.map(id => `${page.id_col}.eq.${id}`).join(','))
+      .or(itemIds.map(id => `${page.id_col || 'id'}.eq.${id}`).join(','))
     if (error) {
       store.loading = false
       warning.value = error.message
@@ -366,7 +367,7 @@ export function initCrud (page:Page, itemId:string|number='') {
       initUserData()
         .then(() => {
           items.value = JSON.parse(JSON.stringify(cache.value.data || []))
-          item.value = JSON.parse(JSON.stringify(itemId ? cache.value.data.find((item:any) => item[page.id_col] === itemId) || {} : cache.value.data[0] || {}))
+          item.value = JSON.parse(JSON.stringify(itemId ? cache.value.data.find((item:any) => item[page.id_col || 'id'] === itemId) || {} : cache.value.data[0] || {}))
           itemsCount.value = cache.value.count
           router.push({path: `/${page.page_id}`})
           store.loading = false
@@ -387,8 +388,8 @@ export function initCrud (page:Page, itemId:string|number='') {
     store.loading = true
     let filterRequest = supabase
       .from(page.table_id)
-      .select(page.attributes.map((attribute:any) => attribute.id).join(',') + `,${page.id_col}`, { count: 'exact' })
-      .eq(page.user_col, store.user.id)
+      .select(page.attributes.map((attribute:any) => attribute.id).join(',') + `,${page.id_col || 'id'}`, { count: 'exact' })
+      .eq(page.user_col || 'user', store.user.id)
     
     // Apply filters
     if (newFilters.length) {

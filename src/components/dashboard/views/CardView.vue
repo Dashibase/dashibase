@@ -24,7 +24,7 @@
         No cards found.
       </div>
       <button v-for="(item, i) in items" :key="i" class="text-left border border-2 rounded-lg p-7 flex justify-between hover:shadow-md hover:scale-[101%] transition border-neutral-100 bg-overlay dark:bg-overlay-dark dark:border-neutral-750 shadow"
-        @click.exact="router.push(`/${page.page_id}/view/${item[page.id_col]}`)"
+        @click.exact="router.push(`/${page.page_id}/view/${item[page.id_col || 'id']}`)"
         @click.shift.left.exact="event => selectCard(i, event)">
         <div class="flex flex-col gap-2 w-full">
           <div class="font-semibold text-2xl flex items-center justify-between">
@@ -94,7 +94,7 @@ async function deleteCards () {
   const confirm = await deleteModal.value.confirm()
   if (confirm) {
     setTimeout(() => {
-      deleteItems(selected.value.map((idx:number) => items.value[idx][page.value.id_col]))
+      deleteItems(selected.value.map((idx:number) => items.value[idx][page.value.id_col || 'id']))
         .then(() => selected.value = [])
     }, 100)
   }

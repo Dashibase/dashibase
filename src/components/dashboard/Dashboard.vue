@@ -1,5 +1,5 @@
 <template>
-  <div v-if="store.dashboard.id">
+  <div v-if="store.dashboard.name">
     <Loading />
     <div class="relative min-h-screen flex flex-col">
       <div class="flex-grow w-full mx-auto sm:flex bg-surface dark:bg-surface-dark">
