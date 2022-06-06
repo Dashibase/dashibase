@@ -57,7 +57,7 @@ export async function initDashboard () {
 
     const { data, error } = await baseSupabase
       .from('views')
-      .select('label,page_id,table_id,attributes,mode,readonly')
+      .select('label,page_id,table_id,attributes,mode,readonly,id_col,user_col,enforce_user_col')
       .eq('dashboard', store.dashboard.id)
       .order('order')
 
@@ -73,7 +73,7 @@ export async function initDashboard () {
         mode: view.mode,
         readonly: view.readonly,
         id_col: view.id_col || 'id',
-        enforce_user_col: view.enforce_user_col || true,
+        enforce_user_col: typeof view.enforce_user_col === "boolean" ? view.enforce_user_col : true,
         user_col: view.user_col || 'user',
         attributes: view.attributes.map((attribute:any) => {
           return {
