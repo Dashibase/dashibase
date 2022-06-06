@@ -125,8 +125,8 @@ import { useRoute } from 'vue-router'
 import { useStore } from '@/utils/store'
 import { Attribute } from '@/utils/config'
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/vue'
-import { XIcon, PlusIcon, SwitchVerticalIcon } from '@heroicons/vue/solid'
-import { FilterIcon } from '@heroicons/vue/outline'
+import { XIcon, PlusIcon } from '@heroicons/vue/solid'
+import { FilterIcon, SwitchVerticalIcon } from '@heroicons/vue/outline'
 import { getSchema } from '@/utils/dashboard'
 
 
