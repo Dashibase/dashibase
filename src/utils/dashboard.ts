@@ -73,6 +73,7 @@ export async function initDashboard () {
         mode: view.mode,
         readonly: view.readonly,
         id_col: view.id_col || 'id',
+        enforce_user_col: view.enforce_user_col || true,
         user_col: view.user_col || 'user',
         attributes: view.attributes.map((attribute:any) => {
           return {
@@ -131,11 +132,18 @@ export async function initUserData () {
         else return `${table}(${attributes})`
       }).join(',')
       return new Promise(async (resolve, reject) => {
-        const { data, error, count } = await supabase
-          .from(page.table_id)
-          .select(selectionQuery, { count: 'exact' })
-          .eq(page.user_col || 'user', store.user.id)
-          .range(0, pageConfigs[page.mode].maxItems-1)
+        const { data, error, count } = page.enforce_user_col ?
+          await supabase
+            .from(page.table_id)
+            .select(selectionQuery, { count: 'exact' })
+            .eq(page.user_col || 'user', store.user.id)
+            .range(0, pageConfigs[page.mode].maxItems-1)
+        :
+          await supabase
+            .from(page.table_id)
+            .select(selectionQuery, { count: 'exact' })
+            .range(0, pageConfigs[page.mode].maxItems-1)
+        
         if (error) reject(error.message)
         else resolve({ data, count, attributeIds })
       })
@@ -215,10 +223,15 @@ export function initCrud (page:Page, itemId:string|number='') {
     warning.value = ''
     store.loading = true
     const startRow = Math.max(0, currentPagination - 1) * maxItems
-    let request = supabase
+    let request = page.enforce_user_col ?
+      supabase
       .from(page.table_id)
       .select(page.attributes.map((attribute:any) => attribute.id).join(',') + `,${page.id_col || 'id'}`)
       .eq(page.user_col || 'user', store.user.id)
+    :
+      supabase
+      .from(page.table_id)
+      .select(page.attributes.map((attribute:any) => attribute.id).join(',') + `,${page.id_col || 'id'}`)
 
     if (filters.value.length) {
       if (conjunction.value === 'and') {
@@ -327,7 +340,7 @@ export function initCrud (page:Page, itemId:string|number='') {
     tables.forEach(async table => {
       // Build item
       const tableAttributes = attributeIds.filter(attr => attr.table === table)
-      const newItem = {user: store.user.id} as {[k:string]:any}
+      const newItem = page.enforce_user_col ? {user: store.user.id} as {[k:string]:any} : {} as {[k:string]:any}
       tableAttributes.forEach(attr => {
         newItem[attr.column] = item[table === '' ? attr.column : `${table}.${attr.column}`]
       })
@@ -386,10 +399,15 @@ export function initCrud (page:Page, itemId:string|number='') {
     sorts.value = newSorts
 
     store.loading = true
-    let filterRequest = supabase
+    let filterRequest = page.enforce_user_col ? 
+      supabase
       .from(page.table_id)
       .select(page.attributes.map((attribute:any) => attribute.id).join(',') + `,${page.id_col || 'id'}`, { count: 'exact' })
       .eq(page.user_col || 'user', store.user.id)
+    :
+      supabase
+      .from(page.table_id)
+      .select(page.attributes.map((attribute:any) => attribute.id).join(',') + `,${page.id_col || 'id'}`, { count: 'exact' })
     
     // Apply filters
     if (newFilters.length) {
