@@ -66,6 +66,10 @@
       <div v-if="warning" class="px-4 md:px-10 text-sm text-red-500">
         {{ warning }}
       </div>
+      <!-- Triggers -->
+      <div v-if="page.triggers.length" class="w-full py-2 px-4 md:px-10 flex gap-2 justify-end">
+        <SecondaryButton v-for="trigger in page.triggers" :key="trigger.id" @click="trigger.call ? trigger.call([item]) : null">{{ trigger.label }}</SecondaryButton>
+      </div>
       <!-- Buttons -->
       <div class="px-4 md:px-10 flex justify-between gap-4">
         <div>
@@ -99,6 +103,7 @@ import View from './View.vue'
 import Toggle from '../elements/Toggle.vue'
 import DeleteButton from '../elements/buttons/DeleteButton.vue'
 import PrimaryButton from '../elements/buttons/PrimaryButton.vue'
+import SecondaryButton from '../elements/buttons/SecondaryButton.vue'
 import TertiaryButton from '../elements/buttons/TertiaryButton.vue'
 import DeleteModal from '../modals/DeleteModal.vue'
 
@@ -119,7 +124,14 @@ const props = defineProps({
 })
 
 const page = computed(():Page => {
-  return store.dashboard.pages.find(page => page.page_id === props.pageId) || {} as Page
+  const page = store.dashboard.pages.find(page => page.page_id === props.pageId) || {} as Page
+  // Create functions
+  page.triggers = page.triggers ? page.triggers.map(trigger => {
+    const args = ['items']
+    trigger.call = new Function(...args, trigger.code)
+    return trigger
+  }) : []
+  return page
 })
 
 const { item, warning, haveUnsavedChanges, getItem, upsertItem, deleteItems } = initCrud(page.value, props.itemId)

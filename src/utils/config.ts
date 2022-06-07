@@ -25,7 +25,8 @@ export interface Page {
   id_col: string; // Name of column that refers to the row or item ID - defaults to 'id'
   user_col: string; // Name of column that refers to the user ID and is a foreign key to auth.users - defaults to 'user'
   enforce_user_col: boolean; // Whether this page enforces having a user_col foreign key in the corresponding Supabase table
-  attributes: Array<Attribute> // Which columns/attributes to show to the user
+  attributes: Array<Attribute>; // Which columns/attributes to show to the user
+  triggers: Array<Trigger>;
 }
 
 /*
@@ -47,6 +48,16 @@ export enum AttributeType {
   Date = "DATE",
   Bool = "BOOL",
   Enum = "ENUM",
+}
+
+/*
+A Trigger is a function that is triggered by a button click and accepts selected items as parameters
+*/
+export interface Trigger {
+  id: string; // Trigger ID
+  label: string; // Trigger label shown on the button
+  code: string; // Code that triggers when button is clicked, accepts an "items" argument which represents an array of data items
+  call?: Function; // Do not set - automatically initialized based on Trigger.code 
 }
 
 /*
