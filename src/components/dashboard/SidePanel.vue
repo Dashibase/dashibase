@@ -59,7 +59,7 @@
             <!-- Profile -->
             <a class="py-6 flex items-center space-x-3 px-4 sm:px-6 select-none w-full" :title="store.user?.email || ''">
               <div class="flex-shrink-0 h-12 w-12">
-                <UserCircleIcon class="h-12 w-auto text-neutral-400" />
+                <Avatar />
               </div>
               <div class="space-y-1 shrink font-medium truncate text-neutral-800 dark:text-neutral-200">
                 {{ store.user?.email || '' }}
