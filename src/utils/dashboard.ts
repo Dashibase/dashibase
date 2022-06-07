@@ -57,7 +57,7 @@ export async function initDashboard () {
 
     const { data, error } = await baseSupabase
       .from('views')
-      .select('label,page_id,table_id,attributes,mode,readonly,id_col,user_col,enforce_user_col')
+      .select('label,page_id,table_id,attributes,mode,readonly,id_col,user_col,enforce_user_col,triggers')
       .eq('dashboard', store.dashboard.id)
       .order('order')
 
@@ -85,7 +85,8 @@ export async function initDashboard () {
             type: Object.values(AttributeType).includes(attribute.type) ? attribute.type : AttributeType.Text,
             enumOptions: attribute.enumOptions || [],
           } as Attribute
-        })
+        }),
+        triggers: view.triggers,
       } as Page
     })
   } catch (error) {

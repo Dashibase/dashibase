@@ -14,6 +14,10 @@
         </PrimaryButton>
       </div>
     </template>
+    <!-- Triggers -->
+    <div v-if="page.triggers.length" class="w-full py-2 px-4 md:px-10 flex gap-2 justify-end">
+      <SecondaryButton v-for="trigger, i in page.triggers" :key="i" @click="trigger.call ? trigger.call(selectedItems, store.user) : null">{{ trigger.label }}</SecondaryButton>
+    </div>
     <!-- Warning -->
     <div v-if="warning" class="py-2 px-4 md:px-10 text-sm text-red-500">
       {{ warning }}
@@ -63,6 +67,7 @@ import FilterMenu from '../elements/FilterMenu.vue'
 import Pagination from '../elements/Pagination.vue'
 import DeleteButton from '../elements/buttons/DeleteButton.vue'
 import PrimaryButton from '../elements/buttons/PrimaryButton.vue'
+import SecondaryButton from '../elements/buttons/SecondaryButton.vue'
 import DeleteModal from '../modals/DeleteModal.vue'
 
 const store = useStore()
@@ -75,8 +80,19 @@ const props = defineProps({
 
 const selected = ref([] as number[])
 
+const selectedItems = computed(() => {
+  return selected.value.map((idx:number) => items.value[idx])
+})
+
 const page = computed(():Page => {
-  return store.dashboard.pages.find(page => page.page_id === props.pageId) || {} as Page
+  const page = store.dashboard.pages.find(page => page.page_id === props.pageId) || {} as Page
+  // Create functions
+  page.triggers = page.triggers ? page.triggers.map(trigger => {
+    const args = ['items', 'user']
+    trigger.call = new Function(...args, trigger.code)
+    return trigger
+  }) : []
+  return page
 })
 
 const deleteModal = ref<any|null>(null)
