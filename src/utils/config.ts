@@ -54,7 +54,6 @@ export enum AttributeType {
 A Trigger is a function that is triggered by a button click and accepts selected items as parameters
 */
 export interface Trigger {
-  id: string; // Trigger ID
   label: string; // Trigger label shown on the button
   code: string; // Code that triggers when button is clicked, accepts an "items" argument which represents an array of data items
   call?: Function; // Do not set - automatically initialized based on Trigger.code 

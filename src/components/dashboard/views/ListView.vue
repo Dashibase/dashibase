@@ -16,7 +16,7 @@
     </template>
     <!-- Triggers -->
     <div v-if="page.triggers.length" class="w-full py-2 px-4 md:px-10 flex gap-2 justify-end">
-      <SecondaryButton v-for="trigger in page.triggers" :key="trigger.id" @click="trigger.call ? trigger.call(selectedItems) : null">{{ trigger.label }}</SecondaryButton>
+      <SecondaryButton v-for="trigger, i in page.triggers" :key="i" @click="trigger.call ? trigger.call(selectedItems) : null">{{ trigger.label }}</SecondaryButton>
     </div>
     <!-- Warning -->
     <div v-if="warning" class="py-2 px-4 md:px-10 text-sm text-red-500">

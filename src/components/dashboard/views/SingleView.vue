@@ -68,7 +68,7 @@
       </div>
       <!-- Triggers -->
       <div v-if="page.triggers.length" class="w-full py-2 px-4 md:px-10 flex gap-2 justify-end">
-        <SecondaryButton v-for="trigger in page.triggers" :key="trigger.id" @click="trigger.call ? trigger.call([item]) : null">{{ trigger.label }}</SecondaryButton>
+        <SecondaryButton v-for="trigger, i in page.triggers" :key="i" @click="trigger.call ? trigger.call([item]) : null">{{ trigger.label }}</SecondaryButton>
       </div>
       <!-- Buttons -->
       <div class="px-4 md:px-10 flex justify-between gap-4">
