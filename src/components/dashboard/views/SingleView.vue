@@ -68,7 +68,7 @@
       </div>
       <!-- Triggers -->
       <div v-if="page.triggers.length" class="w-full py-2 px-4 md:px-10 flex gap-2 justify-end">
-        <SecondaryButton v-for="trigger, i in page.triggers" :key="i" @click="trigger.call ? trigger.call([item]) : null">{{ trigger.label }}</SecondaryButton>
+        <SecondaryButton v-for="trigger, i in page.triggers" :key="i" @click="trigger.call ? trigger.call([item], store.user) : null">{{ trigger.label }}</SecondaryButton>
       </div>
       <!-- Buttons -->
       <div class="px-4 md:px-10 flex justify-between gap-4">
@@ -127,7 +127,7 @@ const page = computed(():Page => {
   const page = store.dashboard.pages.find(page => page.page_id === props.pageId) || {} as Page
   // Create functions
   page.triggers = page.triggers ? page.triggers.map(trigger => {
-    const args = ['items']
+    const args = ['items', 'user']
     trigger.call = new Function(...args, trigger.code)
     return trigger
   }) : []

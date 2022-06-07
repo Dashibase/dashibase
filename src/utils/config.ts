@@ -55,7 +55,10 @@ A Trigger is a function that is triggered by a button click and accepts selected
 */
 export interface Trigger {
   label: string; // Trigger label shown on the button
-  code: string; // Code that triggers when button is clicked, accepts an "items" argument which represents an array of data items
+  // Code that triggers when button is clicked, accepts the following arguments:
+  // items - array of selected items or array of single item
+  // user - user object obtained from supabase.auth.user()
+  code: string;
   call?: Function; // Do not set - automatically initialized based on Trigger.code 
 }
 
