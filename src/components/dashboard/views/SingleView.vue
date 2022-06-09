@@ -50,6 +50,14 @@
                 class="sm:text-sm shadow-sm pr-8 cursor-pointer transition bg-input dark:bg-input-dark border-neutral-300 focus:border-neutral-500 dark:border-neutral-700 dark:focus:border-neutral-500">
                 <option v-for="option in attribute.enumOptions" :key="option" :value="option">{{ option }}</option>
               </select>
+              <!-- AttributeType.Page -->
+              <select v-else-if="attribute.type === AttributeType.PageX" :disabled="store.loading" :id="attribute.id" :value="item[attribute.id]"
+                @input="update(attribute.id, ($event.target as HTMLInputElement).value)"
+                class="sm:text-sm shadow-sm pr-8 cursor-pointer transition bg-input dark:bg-input-dark border-neutral-300 focus:border-neutral-500 dark:border-neutral-700 dark:focus:border-neutral-500">
+                <option v-for="item in getLinkedPageData(attribute.linkedPage)" :key="item[attribute.linkedPage.value_col]" :value="item[attribute.linkedPage.id_col]">
+                  {{ item[attribute.linkedPage.value_col] }}
+                </option>
+              </select>
               <!-- AttributeType.LongText -->
               <textarea v-else-if="attribute.type === AttributeType.LongText" :disabled="store.loading" :id="attribute.id" :value="item[attribute.id] || ''"
                 @input="update(attribute.id, ($event.target as HTMLInputElement).value)"
@@ -92,7 +100,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Page, AttributeType } from '@/utils/config'
+import { Page, AttributeType, LinkedPage } from '@/utils/config'
 import { initCrud } from '@/utils/dashboard'
 import { useStore } from '@/utils/store'
 import View from './View.vue'
@@ -122,7 +130,7 @@ const page = computed(():Page => {
   return store.dashboard.pages.find(page => page.page_id === props.pageId) || {} as Page
 })
 
-const { item, warning, haveUnsavedChanges, getItem, upsertItem, deleteItems } = initCrud(page.value, props.itemId)
+const { item, warning, haveUnsavedChanges, getLinkedPageData, getItem, upsertItem, deleteItems } = initCrud(page.value, props.itemId)
 
 if (props.createMode) {
   item.value = {} as {[k:string]:any}

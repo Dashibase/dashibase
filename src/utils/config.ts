@@ -39,6 +39,16 @@ export interface Attribute {
   hidden: boolean; // Whether the attribute is hidden when displayed in table or cards
   type: AttributeType; // Type of attribute that determines UI of input (required)
   enumOptions?: string[]; // If attribute type is enum, this lists the options
+  linkedPage?: LinkedPage; // If attribute type is Page, this contains information for fetching and displaying the linked data
+}
+
+/*
+If AttributeType is Page, then the object below is used to help fetch and display the linked data from a separate Supabase table
+*/
+export interface LinkedPage {
+  name: string;
+  id_col: string;
+  value_col: string;
 }
 
 export enum AttributeType {
@@ -47,6 +57,7 @@ export enum AttributeType {
   Date = "DATE",
   Bool = "BOOL",
   Enum = "ENUM",
+  PageX = "PAGE",
 }
 
 /*

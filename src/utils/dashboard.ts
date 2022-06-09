@@ -3,7 +3,7 @@ import * as _ from 'lodash'
 import { createClient } from '@supabase/supabase-js'
 import config from '@/dashibaseConfig'
 import router from '@/router'
-import { Page, Attribute, AttributeType } from './config'
+import { Page, Attribute, AttributeType, LinkedPage } from './config'
 import { useStore } from './store'
 import { isHostedByDashibase, supabase } from './supabase'
 import { isUUID } from './utils'
@@ -84,6 +84,7 @@ export async function initDashboard () {
             hidden: attribute.hidden || false,
             type: Object.values(AttributeType).includes(attribute.type) ? attribute.type : AttributeType.Text,
             enumOptions: attribute.enumOptions || [],
+            linkedPage: attribute.linkedPage,
           } as Attribute
         })
       } as Page
@@ -256,6 +257,13 @@ export function initCrud (page:Page, itemId:string|number='') {
       items.value = data
     }
   })
+
+  /*
+  Retrieve linked page data
+  */
+  function getLinkedPageData(pageInfo:LinkedPage){
+    return store.data.find((pageData:any) => pageData.id === pageInfo.name)?.data;
+  }
 
   /*
   Retrieve row from <page.table_id> with id corresponding to itemId
@@ -448,6 +456,7 @@ export function initCrud (page:Page, itemId:string|number='') {
     maxPagination,
     paginationList,
     haveUnsavedChanges,
+    getLinkedPageData,
     getItem,
     upsertItem,
     deleteItems,
