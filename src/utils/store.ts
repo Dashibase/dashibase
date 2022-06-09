@@ -15,6 +15,7 @@ export const useStore = defineStore(
       supabaseUrl: '',
       supabaseAnonKey: '',
       pages: [] as Page[],
+      schema: null as any,
     })
     const data = ref([] as { id: string; data: unknown; count: number; }[])
     const initializing = ref({

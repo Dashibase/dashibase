@@ -7,6 +7,7 @@ import { Page, Attribute, AttributeType } from './config'
 import { useStore } from './store'
 import { isHostedByDashibase, supabase } from './supabase'
 import { isUUID } from './utils'
+import { Schema } from './schema'
 
 const pageConfigs = {
   list: {
@@ -96,41 +97,96 @@ export async function initDashboard () {
 }
 
 /*
+Build a SELECT query from multiple attributes strings
+e.g. "title", "actors(name)", "actors(age)" -> "title,actors(name,age)"
+*/
+function buildQuery (attributes:string[]) {
+  // TODO: Design better regex
+  const nestedRgx = /(.*?(\(|$))+?/g
+  const splitAttributes = attributes.map(attr => {
+    const matches = attr.match(nestedRgx)
+    if (!matches) return []
+    else return matches.map(m => {
+      // Remove brackets e.g. "a(" -> "a"
+      const bracketRgx = /(.*?)(\(|\)|$)+?/
+      const bracketMatch = m.match(bracketRgx)
+      if (bracketMatch) return bracketMatch[1]
+      else return m
+    }).filter(m => !!m)
+  })
+  const queryObj = {} as {[k:string]:any}
+  splitAttributes.forEach(split => {
+    let tmpObj = queryObj
+    split.forEach(attr => {
+      if (!(attr in tmpObj)) tmpObj[attr] = {} as {[k:string]:any}
+      tmpObj = tmpObj[attr]
+    })
+  })
+  function buildString (obj:any):string {
+    return Object.keys(obj).map(key => {
+      if (Object.keys(obj[key]).length) {
+        return key + '(' + buildString(obj[key]) + ')'
+      } else {
+        return key
+      }
+    }).join(',')
+  }
+  return buildString(queryObj)
+}
+
+/*
+Assume only first-degree joins
+*/
+function getJoinedTablesAndAttributes (attributes:string[]) {
+  function unionArray (obj:string[], src:string[]) {
+    if (!obj) return src
+    if (!src) return obj
+    return _.union(obj, src)
+  }
+  const tableAttrs = attributes.filter(attr => attr.includes('('))
+    .map(attr => {
+      const foreignTable = attr.split('(')[0]
+      const foreignAttr = attr.split('(')[1].slice(0, -1)
+      return {[foreignTable]: [foreignAttr]}
+    })
+  let allTableAttrs = {} as {[k:string]: string[]}
+  tableAttrs.forEach(tableAttr => {
+    allTableAttrs = _.mergeWith(allTableAttrs, tableAttr, unionArray)
+  })
+  return allTableAttrs
+}
+
+/*
 Initialize user data and store in Pinia store
 */
 export async function initUserData () {
   const store = useStore()
+  if (!store.dashboard.schema) {
+    await getSchema()
+  }
+  const schema = new Schema(store.dashboard.schema)
   if (!store.user.id) return
   if (store.initializing.data) return
   store.initializing.data = true
   try {
     const supabase = createClient(store.dashboard.supabaseUrl, store.dashboard.supabaseAnonKey)
     const promises = store.dashboard.pages.map(page => {
-      // First get all attribute IDs and split them into table and column
-      let attributeIds = page.attributes.map((attr:any) => {
-        const rgx = /^((?<table>.*?)\.)?(?<column>.*?)$/
-        const matches = attr.id.match(rgx)
-        return {
-          table: matches.groups.table || '',
-          column: matches.groups.column
-        }
-      })
-      // Get set of tables
-      const tables = attributeIds.map(attr => attr.table).filter((val, idx, self) => self.indexOf(val) === idx)
-      // Add ID attributes
-      tables.forEach(table => {
-        attributeIds.push({
-          table,
-          column: page.id_col || 'id', // NOTE: This will break table joins
+
+      const attributeIds = page.attributes.map(attr => attr.id)
+      // For each foreign table, add the foreign primary key
+      const foreignTables = [] as string[]
+      attributeIds.filter(attr => attr.includes('('))
+        .forEach(attr => {
+          const foreignTable = attr.split('(')[0]
+          if (!foreignTables.includes(foreignTable)) foreignTables.push(foreignTable)
         })
+      foreignTables.forEach(table => {
+        const foreignKeyAttr = `${table}(${schema.getPrimaryKey(table)})`
+        if (!attributeIds.includes(foreignKeyAttr)) attributeIds.push(foreignKeyAttr)
       })
-      attributeIds = attributeIds.filter((attr, idx, self) => self.findIndex(i => i.table === attr.table && i.column === attr.column) === idx)
-      // Build selectionQuery
-      const selectionQuery = tables.map(table => {
-        const attributes = attributeIds.filter(attr => attr.table === table).map(attr => attr.column).join(',')
-        if (table === '') return attributes
-        else return `${table}(${attributes})`
-      }).join(',')
+
+      const selectionQuery = buildQuery(attributeIds.concat(page.id_col || 'id'))
+
       return new Promise(async (resolve, reject) => {
         const { data, error, count } = page.enforce_user_col ?
           await supabase
@@ -145,17 +201,54 @@ export async function initUserData () {
             .range(0, pageConfigs[page.mode].maxItems-1)
         
         if (error) reject(error.message)
-        else resolve({ data, count, attributeIds })
+        else resolve({ data, count, attributeIds: page.attributes.map(attr => attr.id) })
       })
     })
     await Promise.all(promises)
-      .then(responses => {   
+      .then(responses => {
         store.data = responses.map((response:any, i) => {
+          const nestedRgx = /^(?<attribute>.*?)\((?<subAttribute>.*?)\)$/
+          function getNestedAttribute (item:any, attr:string):[string, any] {
+            const nestedMatch = attr.match(nestedRgx)
+            if (nestedMatch) {
+              const attribute = nestedMatch.groups?.attribute as string
+              const subAttribute = nestedMatch.groups?.subAttribute as string
+              let subItem = null as any
+              if (item.constructor === Array) {
+                subItem = item.map((i:any) => i[attribute])
+              } else {
+                subItem = item[attribute]
+              }
+              return [attr, getNestedAttribute(subItem, subAttribute)[1]]
+            } else {
+              if (item && item.constructor === Array) {
+                return [attr, item.map((i:any) => i[attr])]
+              } else {
+                return [attr, item ? item[attr] : null]
+              }
+            }
+          }
           const data = response.data.map((row:any) => {
-            return response.attributeIds.map((attr:any) => {
-              if (attr.table === '') return [attr.column, row[attr.column]]
-              else return [`${attr.table}.${attr.column}`, row[attr.table][attr.column]]
-            }).reduce((a:Object, v:string[]) => ({...a, [v[0]]: v[1]}), {})
+            const attributeIds = response.attributeIds as string[]
+            // For each foreign table, add the foreign primary key
+            const foreignTables = [] as string[]
+            attributeIds.filter(attr => attr.includes('('))
+              .forEach(attr => {
+                const foreignTable = attr.split('(')[0]
+                if (!foreignTables.includes(foreignTable)) foreignTables.push(foreignTable)
+              })
+            foreignTables.forEach(table => {
+              const foreignKeyAttr = `${table}(${schema.getPrimaryKey(table)})`
+              if (!attributeIds.includes(foreignKeyAttr)) attributeIds.push(foreignKeyAttr)
+            })
+            const item = attributeIds.map((attr:string) => {
+              return getNestedAttribute(row, attr)
+            }).reduce((a:Object, v:string[]) => ({...a, [v[0]]: v[1]}), {}) as {[k:string]:any}
+            const idCol = store.dashboard.pages[i].id_col || 'id'
+            if (!(idCol in item)) {
+              item[idCol] = row[idCol]
+            }
+            return item
           })
           return {
             id: store.dashboard.pages[i].page_id,
@@ -176,6 +269,7 @@ Initialize CRUD functions and related variables
 */
 export function initCrud (page:Page, itemId:string|number='') {
   const store = useStore()
+  const schema = new Schema(store.dashboard.schema)
   if (typeof itemId === 'string' && !isUUID(itemId)) itemId = parseInt(itemId)
   // warning will be displayed upon any CRUD errors
   const warning = ref('')
@@ -191,6 +285,11 @@ export function initCrud (page:Page, itemId:string|number='') {
   const itemsCount = ref(cache.value.count)
   // haveUnsavedChanges is used to denote if changes have been made by the user
   const haveUnsavedChanges = ref(false)
+  // joinedData is used to store data related to joined tables
+  const joinedData = ref({} as any)
+  getJoinedData()
+
+  // Update items when cache updates
   watch (cache, (newCache, prevCache) => {
     if (prevCache.data) return
     items.value = JSON.parse(JSON.stringify(cache.value.data || []))
@@ -257,6 +356,34 @@ export function initCrud (page:Page, itemId:string|number='') {
     }
   })
 
+  function getJoinedData () {
+    const attrTables = getJoinedTablesAndAttributes(page.attributes.map(attr => attr.id))
+    const selectPromises = Object.keys(attrTables)
+      .filter(foreignTableId => foreignTableId !== page.table_id)
+      .map(foreignTableId => {
+        return new Promise(async (resolve, reject) => {
+          const type = schema.getFkColumns(page.table_id, foreignTableId).length ? 'single' : 'multi'
+          const foreignAttributes = attrTables[foreignTableId]
+          const foreignPrimaryKey = schema.getPrimaryKey(foreignTableId) as string
+          if (!foreignAttributes.includes(foreignPrimaryKey)) foreignAttributes.push(foreignPrimaryKey)
+          const { data, error } = await supabase.from(foreignTableId)
+            .select(foreignAttributes.join(','))
+          if (error) reject(error.message)
+          else resolve({
+            tableId: foreignTableId,
+            idCol: foreignPrimaryKey,
+            data,
+            type,
+          })
+        })
+      })
+    Promise.all(selectPromises)
+      .then(responses => {
+        const joins = responses.reduce((a:any, v:any) => ({...a, [v.tableId]: v}), {})
+        joinedData.value = joins
+      })
+  }
+
   /*
   Retrieve row from <page.table_id> with id corresponding to itemId
   */
@@ -270,9 +397,10 @@ export function initCrud (page:Page, itemId:string|number='') {
       return
     }
     store.loading = true
+    const query = buildQuery(page.attributes.map(attr => attr.id))
     const { data, error } = await supabase
       .from(page.table_id)
-      .select(page.attributes.map((attribute:any) => attribute.id).join(',') + `,${page.id_col || 'id'}`)
+      .select(query)
       .eq(page.id_col || 'id', itemId)
       .single()
       store.loading = false
@@ -287,6 +415,7 @@ export function initCrud (page:Page, itemId:string|number='') {
   Upsert row into <page.table_id> with user corresponding to user_id and id corresponding to itemId
   */
   async function upsertItem (item:any) {
+    console.log(item)
     warning.value = ''
     store.loading = true
     item.user = store.user.id
@@ -313,6 +442,83 @@ export function initCrud (page:Page, itemId:string|number='') {
       store.loading = false
       return
     }
+
+    const foreignTableAttrs = getJoinedTablesAndAttributes(page.attributes.filter(attr => !attr.readonly).map(attr => attr.id))
+    // First update main table
+    // Gather main attributes
+    const mainAttributes = page.attributes.filter(attr => !attr.readonly).map(attr => attr.id).filter(attr => !attr.includes('('))
+    const mainItem = mainAttributes.map(attr => [attr, item[attr]]).reduce((a, v) => ({...a, [v[0]]: v[1]}), {}) as {[k:string]:any}
+    // Include outgoing foreign keys
+    Object.keys(foreignTableAttrs).filter(foreignTable => schema.getFkColumns(page.table_id, foreignTable).length)
+      .forEach(foreignTable => {
+        // mainAttributes.push(schema.getFkColumns(page.table_id, foreignTable)[0])
+        mainItem[schema.getFkColumns(page.table_id, foreignTable)[0]] = item[`${foreignTable}(${schema.getPrimaryKey(foreignTable)})`]
+      })
+    mainItem[schema.getPrimaryKey(page.table_id) as string] = item.id
+    const upsertRequest = await supabase
+      .from(page.table_id)
+      .upsert([mainItem])
+    if (upsertRequest.error) throw Error(upsertRequest.error.message)
+    
+    // Then update rest of the tables
+    const updatePromises = Object.keys(foreignTableAttrs).filter(foreignTable => schema.getFkColumns(page.table_id, foreignTable).length === 0)
+      .map(foreignTable => {
+        return new Promise<void>(async (resolve, reject) => {
+          if (schema.getFkColumns(foreignTable, page.table_id).length) {
+            // Foreign table points to main table directly
+            // We will run an update to set main table's primary key appropriately
+            const foreignItems = item[`${foreignTable}(${schema.getPrimaryKey(foreignTable)})`]
+              .map((id:any) => {
+                return {
+                  [schema.getPrimaryKey(foreignTable) as string]: id,
+                  [schema.getFkColumns(foreignTable, page.table_id)[0]]: item.id
+                }
+              })
+            console.log(foreignItems)
+            // Instead of deleting, we leave the unselected items empty
+            await supabase
+              .from(foreignTable)
+              .update({ [schema.getFkColumns(foreignTable, page.table_id)[0]]: null })
+              .match({ [schema.getFkColumns(foreignTable, page.table_id)[0]]: item.id })
+            console.log(`(${foreignItems.map((i:any) => i.id).join(',')})`)
+            // And update the selected items
+            await supabase
+              .from(foreignTable)
+              .update({ [schema.getFkColumns(foreignTable, page.table_id)[0]]: item.id })
+              .or(foreignItems.map((i:any) => `${schema.getPrimaryKey(foreignTable)}.eq.${i.id}`).join(','))
+          } else {
+            // Foreign table is connected via join table
+            // Find join table
+            const joinTable = schema.getJoinTable(page.table_id, foreignTable)
+            // Delete previous entries
+            const deleteRequest = await supabase
+              .from(joinTable)
+              .delete()
+              .match({ [schema.getFkColumns(joinTable, page.table_id)[0]]: item.id })
+            if (deleteRequest.error) reject(deleteRequest.error.message)
+            const joinItems = item[`${foreignTable}(${schema.getPrimaryKey(foreignTable)})`]
+              .map((id:any) => {
+                return {
+                  [schema.getFkColumns(joinTable, foreignTable)[0]]: id,
+                  [schema.getFkColumns(joinTable, page.table_id)[0]]: item.id
+                }
+              })
+            const upsertRequest = await supabase
+              .from(joinTable)
+              .upsert(joinItems)
+            if (upsertRequest.error) reject(upsertRequest.error.message)
+          }
+          resolve()
+        })
+      })
+    await Promise.all(updatePromises)
+    store.loading = false
+    haveUnsavedChanges.value = false
+    router.push({path: `/${page.page_id}`})
+    return
+
+
+
     
     // Get all attribute IDs and split them into table and column
     let attributeIds = page.attributes.map((attr:any) => {
@@ -365,7 +571,6 @@ export function initCrud (page:Page, itemId:string|number='') {
   Delete rows from <page.table_id> with id corresponding to itemId
   */
   async function deleteItems (itemIds:string[], event:Event|null=null) {
-    console.log(itemIds)
     warning.value = ''
     if (event) event.preventDefault()
     store.loading = true
@@ -448,6 +653,7 @@ export function initCrud (page:Page, itemId:string|number='') {
     maxPagination,
     paginationList,
     haveUnsavedChanges,
+    joinedData,
     getItem,
     upsertItem,
     deleteItems,
@@ -458,5 +664,7 @@ export function initCrud (page:Page, itemId:string|number='') {
 export async function getSchema () {
   const store = useStore()
   const response = await fetch(`${store.dashboard.supabaseUrl}/rest/v1/?apikey=${store.dashboard.supabaseAnonKey}`)
-  return await (await response.json()).definitions
+  const schema = await (await response.json()).definitions
+  store.dashboard.schema = schema
+  return schema 
 }
