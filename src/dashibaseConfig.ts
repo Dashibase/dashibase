@@ -19,7 +19,7 @@ const DASHIBASE_CONFIG:Config = {
           required: false,
           readonly: false,
           type: AttributeType.Text,
-        } as Attribute,
+        },
         {
           // Enum example - this will generate a dropdown with the provided options
           id: "foo",
@@ -28,8 +28,18 @@ const DASHIBASE_CONFIG:Config = {
           readonly: false,
           type: AttributeType.Enum,
           enumOptions: ['foo', 'bar'], // Specify enum options
-        } as Attribute,
-      ]
+        },
+        {
+          // Join example - for showing joined data from other tables
+          // This will also work with tables joined via join tables
+          // TODO: Add clearer documentation and examples
+          id: "foreign_table(foreign_table_col)",
+          label: "Join Example",
+          required: false,
+          readonly: false,
+          type: AttributeType.Join,
+        },
+      ] as Attribute[]
     },
   ] as Page[],
 }

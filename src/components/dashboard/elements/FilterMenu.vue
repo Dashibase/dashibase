@@ -95,7 +95,7 @@
               <div v-else>then</div>
               <select :value="sort.column" @input="updateSort(i, 'column', ($event.target as HTMLInputElement).value)"
                 class="mt-1 block w-max max-w-[5rem] sm:max-w-max border-0 rounded-md py-0 px-1 pr-8 focus:outline-none focus:ring-0 text-xs cursor-pointer bg-white dark:bg-neutral-700">
-                <option v-for="attribute in attributes" :key="attribute.id" :value="attribute.id">{{ attribute.label }}
+                <option v-for="attribute in attributes.filter(attr => attr.type !== AttributeType.Join)" :key="attribute.id" :value="attribute.id">{{ attribute.label }}
                 </option>
               </select>
               <select :value="sort.ascending"
@@ -123,7 +123,7 @@
 import { ref, computed, PropType, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStore } from '@/utils/store'
-import { Attribute } from '@/utils/config'
+import { Attribute, AttributeType } from '@/utils/config'
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/vue'
 import { XIcon, PlusIcon } from '@heroicons/vue/solid'
 import { FilterIcon, SwitchVerticalIcon } from '@heroicons/vue/outline'
@@ -172,7 +172,7 @@ function getSupabaseType(attributeId: string) {
   else return schema.value[tableId.value].properties[attributeId].format
 }
 
-onMounted(async () => {
+onMounted(() => {
   getSchema()
     .then(retrievedSchema => schema.value = retrievedSchema)
 })
