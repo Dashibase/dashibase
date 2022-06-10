@@ -1,11 +1,10 @@
 <template>
   <div class="w-72 text-primary dark:text-primary-dark">
     <Combobox as="div" v-model="innerSelected" multiple>
-      <div v-if="selected.length > 0 && options.length > 0" class="space-x-1">
-        <div v-for="i in selected" :title="options.find(opt => opt.value === i).label"
-          class="inline truncate text-xs font-semibold bg-neutral-600 text-white w-max max-w-[100%] px-2 py-0.5 rounded dark:bg-neutral-400 dark:text-neutral-800">
+      <div v-if="selected.length > 0 && options.length > 0" class="flex gap-1">
+        <Badge v-for="i in selected" @remove="remove(i)">
           {{ options.find(opt => opt.value === i).label }}
-        </div>
+        </Badge>
       </div>
       <div class="relative mt-1">
         <div
@@ -86,6 +85,7 @@ import {
   TransitionRoot,
 } from '@headlessui/vue'
 import { CheckIcon, SelectorIcon } from '@heroicons/vue/solid'
+import Badge from './Badge.vue'
 
 const props = defineProps({
   options: {
@@ -124,4 +124,8 @@ const filteredOptions = computed(() =>
           .includes(query.value.toLowerCase().replace(/\s+/g, ''))
       )
 )
+
+function remove (i:any) {
+  innerSelected.value.splice(innerSelected.value.findIndex(opt => opt.value === i), 1)
+}
 </script>

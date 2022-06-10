@@ -62,18 +62,21 @@
                 @input="update(attribute.id, ($event.target as HTMLInputElement).value)"
                 class="sm:text-sm w-full border shadow-sm transition bg-input dark:bg-input-dark border-neutral-300 focus:border-neutral-500 dark:border-neutral-700 dark:focus:border-neutral-500" />
               <!-- AttributeType.Join -->
-              <div v-else-if="attribute.type === AttributeType.Join && Object.keys(joinedData).length && getJoinType(attribute.id) === 'single'">
-                <select :disabled="store.loading" :id="attribute.id"
-                  :value="item[`${getForeignTable(attribute.id)}(${getForeignId(attribute.id)})`]"
-                  @input="update(`${getForeignTable(attribute.id)}(${getForeignId(attribute.id)})`, ($event.target as HTMLInputElement).value)"
-                  class="sm:text-sm shadow-sm pr-8 cursor-pointer transition bg-input dark:bg-input-dark border-neutral-300 focus:border-neutral-500 dark:border-neutral-700 dark:focus:border-neutral-500">
-                  <option v-for="option in getForeignOptions(attribute.id)" :value="option.value">
-                    {{ option.label }}
-                  </option>
-                </select>
-              </div>
-              <div v-else-if="attribute.type === AttributeType.Join && Object.keys(joinedData).length && getJoinType(attribute.id) === 'multi'">
-                <Combobox :options="getForeignOptions(attribute.id)" :selected="item[`${getForeignTable(attribute.id)}(${getForeignId(attribute.id)})`]" @update="value => update(`${getForeignTable(attribute.id)}(${getForeignId(attribute.id)})`, value)" />
+              <div v-else-if="attribute.type === AttributeType.Join" class="relative">
+                <div v-if="getJoinType(attribute.id) === 'single'">
+                  <select :disabled="store.loading" :id="attribute.id"
+                    :value="item[`${getForeignTable(attribute.id)}(${getForeignId(attribute.id)})`]"
+                    @input="update(`${getForeignTable(attribute.id)}(${getForeignId(attribute.id)})`, ($event.target as HTMLInputElement).value)"
+                    class="sm:text-sm shadow-sm pr-8 cursor-pointer transition bg-input dark:bg-input-dark border-neutral-300 focus:border-neutral-500 dark:border-neutral-700 dark:focus:border-neutral-500">
+                    <option v-for="option in getForeignOptions(attribute.id)" :value="option.value">
+                      {{ option.label }}
+                    </option>
+                  </select>
+                </div>
+                <div v-else-if="getJoinType(attribute.id) === 'multi'">
+                  <Combobox :options="getForeignOptions(attribute.id)" :selected="item[`${getForeignTable(attribute.id)}(${getForeignId(attribute.id)})`]" @update="value => update(`${getForeignTable(attribute.id)}(${getForeignId(attribute.id)})`, value)" />
+                </div>
+                <div v-else class="h-10 rounded bg-neutral-200 dark:bg-neutral-800 w-48 flex items-center px-5 text-sm animate-pulse">Loading...</div>
               </div>
               <!-- Default -->
               <input v-else type="text" :disabled="store.loading" :id="attribute.id" :value="item[attribute.id] || ''"
@@ -175,7 +178,7 @@ async function deleteItem () {
 }
 
 function getJoinType (attributeId:string) {
-  return joinedData.value[getForeignTable(attributeId)].type
+  return Object.keys(joinedData.value).length ? joinedData.value[getForeignTable(attributeId)].type : ''
 }
 
 function getForeignTable (attributeId:string) {
@@ -183,7 +186,7 @@ function getForeignTable (attributeId:string) {
 }
 
 function getForeignId (attributeId:string) {
-  return joinedData.value[getForeignTable(attributeId)].idCol
+  return Object.keys(joinedData.value).length ? joinedData.value[getForeignTable(attributeId)].idCol : ''
 }
 
 function getForeignAttr (attributeId:string) {
@@ -191,13 +194,13 @@ function getForeignAttr (attributeId:string) {
 }
 
 function getForeignOptions (attributeId:string) {
-  return joinedData.value[getForeignTable(attributeId)].data
+  return Object.keys(joinedData.value).length ? joinedData.value[getForeignTable(attributeId)].data
     .map((i:any) => {
       return {
         label: i[getForeignAttr(attributeId)],
         value: i[joinedData.value[getForeignTable(attributeId)].idCol],
       }
-    })
+    }) : []
 }
 
 if (props.itemId) getItem(props.itemId)

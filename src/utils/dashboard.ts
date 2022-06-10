@@ -511,60 +511,13 @@ export function initCrud (page:Page, itemId:string|number='') {
           resolve()
         })
       })
-    await Promise.all(updatePromises)
-    store.loading = false
-    haveUnsavedChanges.value = false
-    router.push({path: `/${page.page_id}`})
-    return
 
-
-
-    
-    // Get all attribute IDs and split them into table and column
-    let attributeIds = page.attributes.map((attr:any) => {
-      const rgx = /^((?<table>.*?)\.)?(?<column>.*?)$/
-      const matches = attr.id.match(rgx)
-      return {
-        table: matches.groups.table || '',
-        column: matches.groups.column
-      }
-    })
-    // Get set of tables
-    const tables = attributeIds.map(attr => attr.table).filter((val, idx, self) => self.indexOf(val) === idx)
-    // Reverse sort so that working table is last to be updated
-    tables.sort().reverse()
-    // Add ID attributes
-    tables.forEach(table => {
-      attributeIds.push({
-        table,
-        column: page.id_col || 'id', // NOTE: This will break table joins
+    Promise.all(updatePromises)
+      .then(initUserData)
+      .then(async () => {
+        await router.push({path: `/${page.page_id}`})
+        setTimeout(() => store.loading = false, 200)
       })
-    })
-    attributeIds = attributeIds.filter((attr, idx, self) => self.findIndex(i => i.table === attr.table && i.column === attr.column) === idx)
-
-    // Run upsert for each table
-    tables.forEach(async table => {
-      // Build item
-      const tableAttributes = attributeIds.filter(attr => attr.table === table)
-      const newItem = page.enforce_user_col ? {user: store.user.id} as {[k:string]:any} : {} as {[k:string]:any}
-      tableAttributes.forEach(attr => {
-        newItem[attr.column] = item[table === '' ? attr.column : `${table}.${attr.column}`]
-      })
-      // Run upsert since user may or may not have inserted before
-      const { error } = await supabase
-        .from(table === '' ? page.table_id : table)
-        .upsert([newItem])
-      if (error) {
-        store.loading = false
-        warning.value = error.message
-      } else {
-        initUserData().then(() => {
-          store.loading = false
-          haveUnsavedChanges.value = false
-          router.push({path: `/${page.page_id}`})
-        })
-      }
-    })
   }
 
   /*
