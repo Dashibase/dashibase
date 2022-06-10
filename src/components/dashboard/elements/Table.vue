@@ -33,9 +33,15 @@
               :checked="selected.includes(i)" />
           </td>
           <td v-for="attribute, i in attributes" :key="attribute.id"
-            class="px-2 py-2 max-w-0 whitespace-nowrap text-sm" :class="i === 0 ? 'font-medium' : ''">
-            <div class="flex items-center space-x-3 lg:pl-2">
+            class="px-2 py-2 max-w-0 whitespace-nowrap text-sm overflow-hidden" :class="i === 0 ? 'font-medium' : ''">
+            <div class="flex items-center lg:pl-2">
               <div v-if="(attribute.type === AttributeType.Enum && item[attribute.id]) || (attribute.type === AttributeType.Bool && ['true', 'false'].includes(String(item[attribute.id])))" class="truncate text-xs font-semibold bg-neutral-600 text-white w-max px-2 py-0.5 rounded dark:bg-neutral-400 dark:text-neutral-800">{{ item[attribute.id] }}</div>
+              <div v-else-if="attribute.type === AttributeType.Join && item[attribute.id] && item[attribute.id].constructor === Array" class="space-x-1">
+                <div v-for="i in item[attribute.id]" :title="i"
+                  class="inline truncate text-xs font-semibold bg-neutral-600 text-white w-max max-w-[100%] px-2 py-0.5 rounded dark:bg-neutral-400 dark:text-neutral-800">
+                  {{ i }}
+                </div>
+              </div>
               <div v-else class="truncate" :title="item[attribute.id]">
                 {{ item[attribute.id] }}
               </div>

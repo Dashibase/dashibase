@@ -38,10 +38,16 @@
               @click="event => selectCard(i, event)" />
           </div>
           <div v-for="attribute in page.attributes.filter(attr => !attr.hidden).slice(1).filter(attribute => item[attribute.id] || (attribute.type === AttributeType.Bool && ['true', 'false'].includes(String(item[attribute.id]))))" :key="attribute.id"
-            class="flex flex-col">
+            class="flex flex-col w-full">
             <div class="text-2xs text-tertiary dark:text-tertiary-dark uppercase">{{ attribute.label }}</div>
             <div v-if="attribute.type === AttributeType.Enum" class="mt-0.5 truncate text-xs font-semibold bg-neutral-600 text-white w-max px-2 py-0.5 rounded dark:bg-neutral-400 dark:text-neutral-800">{{ item[attribute.id] }}</div>
             <div v-else-if="attribute.type === AttributeType.Bool" class="mt-0.5 truncate text-xs font-semibold bg-neutral-600 text-white w-max px-2 py-0.5 rounded dark:bg-neutral-400 dark:text-neutral-800">{{ String(item[attribute.id]) }}</div>
+            <div v-else-if="attribute.type === AttributeType.Join && item[attribute.id] && item[attribute.id].constructor === Array" class="pt-1 leading-tight">
+              <div v-for="i in item[attribute.id]" :title="i"
+                class="mr-1 inline-block whitespace-nowrap text-xs font-semibold bg-neutral-600 text-white w-max max-w-full truncate px-2 py-0.5 rounded dark:bg-neutral-400 dark:text-neutral-800">
+                {{ i }}
+              </div>
+            </div>
             <div v-else class=" truncate text-sm">{{ item[attribute.id] }}</div>
           </div>
         </div>

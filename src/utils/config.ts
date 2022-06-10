@@ -48,6 +48,7 @@ export enum AttributeType {
   Date = "DATE",
   Bool = "BOOL",
   Enum = "ENUM",
+  Join = "JOIN",
 }
 
 /*

@@ -168,6 +168,7 @@ const tableId = computed(() => {
 
 function getSupabaseType(attributeId: string) {
   if (Object.keys(schema.value).length === 0) return
+  if (!schema.value[tableId.value].properties[attributeId]) return
   else return schema.value[tableId.value].properties[attributeId].format
 }
 

@@ -28,6 +28,13 @@
                 <Toggle :modelValue="item[attribute.id] || false" :disabled="true" />
                 <span class="capitalize">{{ [true, 'true'].includes(item[attribute.id]) }}</span>
               </div>
+              <!-- AttributeType.Join && Array -->
+              <div v-else-if="attribute.type === AttributeType.Join && item[attribute.id] && item[attribute.id].constructor === Array" class="sm:text-sm flex items-center gap-2">
+                <div v-for="i in item[attribute.id]" :title="i"
+                  class="truncate text-xs font-semibold bg-neutral-600 text-white w-max max-w-[100%] px-2 py-0.5 rounded dark:bg-neutral-400 dark:text-neutral-800">
+                  {{ i }}
+                </div>
+              </div>
               <!-- Default -->
               <input v-else type="text" readonly :id="attribute.id" :value="item[attribute.id] || ''"
                 class="sm:text-sm w-full shadow-sm bg-input-disabled dark:bg-input-disabled-dark transition border-neutral-300 focus:border-neutral-300 dark:border-neutral-700 dark:focus:border-neutral-700" />
@@ -54,6 +61,24 @@
               <textarea v-else-if="attribute.type === AttributeType.LongText" :disabled="store.loading" :id="attribute.id" :value="item[attribute.id] || ''"
                 @input="update(attribute.id, ($event.target as HTMLInputElement).value)"
                 class="sm:text-sm w-full border shadow-sm transition bg-input dark:bg-input-dark border-neutral-300 focus:border-neutral-500 dark:border-neutral-700 dark:focus:border-neutral-500" />
+              <!-- AttributeType.Join -->
+              <div v-else-if="attribute.type === AttributeType.Join" class="relative">
+                <div v-if="getJoinType(attribute.id) === 'single'">
+                  <select :disabled="store.loading" :id="attribute.id"
+                    :value="item[`${getForeignTable(attribute.id)}(${getForeignId(attribute.id)})`]"
+                    @input="update(`${getForeignTable(attribute.id)}(${getForeignId(attribute.id)})`, ($event.target as HTMLInputElement).value)"
+                    class="sm:text-sm shadow-sm pr-8 cursor-pointer transition bg-input dark:bg-input-dark border-neutral-300 focus:border-neutral-500 dark:border-neutral-700 dark:focus:border-neutral-500">
+                    <option v-for="option in getForeignOptions(attribute.id)" :value="option.value">
+                      {{ option.label }}
+                    </option>
+                  </select>
+                </div>
+                <div v-else-if="getJoinType(attribute.id) === 'multi'">
+                  <Combobox :options="getForeignOptions(attribute.id)" :selected="item[`${getForeignTable(attribute.id)}(${getForeignId(attribute.id)})`]"
+                    @update="value => update(`${getForeignTable(attribute.id)}(${getForeignId(attribute.id)})`, value)" />
+                </div>
+                <div v-else class="h-10 rounded bg-neutral-200 dark:bg-neutral-800 w-48 flex items-center px-5 text-sm animate-pulse">Loading...</div>
+              </div>
               <!-- Default -->
               <input v-else type="text" :disabled="store.loading" :id="attribute.id" :value="item[attribute.id] || ''"
                 @input="update(attribute.id, ($event.target as HTMLInputElement).value)"
@@ -106,6 +131,8 @@ import PrimaryButton from '../elements/buttons/PrimaryButton.vue'
 import SecondaryButton from '../elements/buttons/SecondaryButton.vue'
 import TertiaryButton from '../elements/buttons/TertiaryButton.vue'
 import DeleteModal from '../modals/DeleteModal.vue'
+import Combobox from '../elements/Combobox.vue'
+import { Schema } from '@/utils/schema'
 
 const store = useStore()
 const props = defineProps({
@@ -134,7 +161,7 @@ const page = computed(():Page => {
   return page
 })
 
-const { item, warning, haveUnsavedChanges, getItem, upsertItem, deleteItems } = initCrud(page.value, props.itemId)
+const { item, warning, haveUnsavedChanges, joinedData, getItem, upsertItem, deleteItems } = initCrud(page.value, props.itemId)
 
 if (props.createMode) {
   item.value = {} as {[k:string]:any}
@@ -149,6 +176,7 @@ if (props.createMode) {
 }
 
 function update (attributeId:string, newVal:any) {
+  const schema = new Schema(store.dashboard.schema)
   item.value[attributeId] = newVal
   haveUnsavedChanges.value = true
 }
@@ -160,6 +188,32 @@ async function deleteItem () {
   if (confirm) {
     setTimeout(() => deleteItems([props.itemId]), 100) 
   }
+}
+
+function getJoinType (attributeId:string) {
+  return Object.keys(joinedData.value).length ? joinedData.value[getForeignTable(attributeId)].type : ''
+}
+
+function getForeignTable (attributeId:string) {
+  return attributeId.split('(')[0]
+}
+
+function getForeignId (attributeId:string) {
+  return Object.keys(joinedData.value).length ? joinedData.value[getForeignTable(attributeId)].idCol : ''
+}
+
+function getForeignAttr (attributeId:string) {
+  return attributeId.split('(')[1].slice(0, -1)
+}
+
+function getForeignOptions (attributeId:string) {
+  return Object.keys(joinedData.value).length ? joinedData.value[getForeignTable(attributeId)].data
+    .map((i:any) => {
+      return {
+        label: i[getForeignAttr(attributeId)],
+        value: i[joinedData.value[getForeignTable(attributeId)].idCol],
+      }
+    }) : []
 }
 
 if (props.itemId) getItem(props.itemId)
