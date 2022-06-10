@@ -130,7 +130,9 @@ const filteredOptions = computed(() =>
 )
 
 function remove (i:any) {
-  // Even though splice is in-place, we need to set the value here explicitly to trigger the computed.set function
-  innerSelected.value = innerSelected.value.splice(innerSelected.value.findIndex(opt => opt.value === i), 1)
+  const deleteIdx = innerSelected.value.indexOf(i)
+  innerSelected.value.splice(deleteIdx, 1)
+  // We need to set the value here explicitly to trigger the computed.set function
+  innerSelected.value = innerSelected.value
 }
 </script>
