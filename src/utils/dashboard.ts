@@ -14,7 +14,7 @@ const pageConfigs = {
     maxItems: 20,
   },
   card: {
-    maxItems: 10,
+    maxItems: 12,
   },
   single: {
     maxItems: 1,

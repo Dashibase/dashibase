@@ -75,7 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, PropType } from 'vue'
+import { ref, computed, PropType } from 'vue'
 import {
   Combobox,
   ComboboxInput,
@@ -113,6 +113,7 @@ const innerSelected = computed({
     return props.selected
   },
   set (newSelected:any[]) {
+    console.log(newSelected)
     emit('update', newSelected)
   },
 })
@@ -129,6 +130,7 @@ const filteredOptions = computed(() =>
 )
 
 function remove (i:any) {
-  innerSelected.value.splice(innerSelected.value.findIndex(opt => opt.value === i), 1)
+  // Even though splice is in-place, we need to set the value here explicitly to trigger the computed.set function
+  innerSelected.value = innerSelected.value.splice(innerSelected.value.findIndex(opt => opt.value === i), 1)
 }
 </script>
