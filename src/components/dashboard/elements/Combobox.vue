@@ -108,10 +108,13 @@ const props = defineProps({
 const emit = defineEmits(['update'])
 
 const query = ref('')
-const innerSelected = ref(props.selected)
-
-watch(innerSelected, newSelected => {
-  emit('update', newSelected)
+const innerSelected = computed({
+  get ():any[] {
+    return props.selected
+  },
+  set (newSelected:any[]) {
+    emit('update', newSelected)
+  },
 })
 
 const filteredOptions = computed(() =>
