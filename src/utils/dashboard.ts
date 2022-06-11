@@ -175,7 +175,9 @@ function getJoinedTablesAndAttributes (attributes:string[]) {
   const tableAttrs = attributes.filter(attr => attr.includes('('))
     .map(attr => {
       const foreignTable = attr.split('(')[0]
-      const foreignAttr = attr.split('(')[1].slice(0, -1)
+      let foreignAttr = ''
+      if (attr.indexOf('(') > 0) foreignAttr = attr.slice(attr.indexOf('(')+1).slice(0, -1)
+      else foreignAttr = attr.split('(')[1].slice(0, -1)
       return {[foreignTable]: [foreignAttr]}
     })
   let allTableAttrs = {} as {[k:string]: string[]}
@@ -404,10 +406,20 @@ export function initCrud (page:Page, itemId:string|number='') {
           const foreignAttributes = attrTables[foreignTableId]
           const foreignPrimaryKey = schema.getPrimaryKey(foreignTableId) as string
           if (!foreignAttributes.includes(foreignPrimaryKey)) foreignAttributes.push(foreignPrimaryKey)
-          const { data, error } = await supabase.from(foreignTableId)
+          const response = await supabase.from(foreignTableId)
             .select(foreignAttributes.join(','))
-          if (error) reject(error.message)
-          else resolve({
+          if (response.error) reject(response.error.message)
+          
+          // May data to foreignAttributes
+          const data = response.data?.map((row:any) => {
+            // Build item using getNestedAttribute
+            const item = foreignAttributes.map((attr:string) => {
+              return getNestedAttribute(row, attr)
+            }).reduce((a:Object, v:string[]) => ({...a, [v[0]]: v[1]}), {}) as {[k:string]:any}
+            return item
+          })
+          
+          resolve({
             tableId: foreignTableId,
             idCol: foreignPrimaryKey,
             data,
@@ -435,22 +447,11 @@ export function initCrud (page:Page, itemId:string|number='') {
       return
     }
     store.loading = true
-    const attributeIds = page.attributes.map(attr => attr.id)
-    // For each foreign table, add the foreign primary key
-    const foreignTables = [] as string[]
-    attributeIds.filter(attr => attr.includes('('))
-      .forEach(attr => {
-        const foreignTable = attr.split('(')[0]
-        if (!foreignTables.includes(foreignTable)) foreignTables.push(foreignTable)
-      })
-    foreignTables.forEach(table => {
-      const foreignKeyAttr = `${table}(${schema.getPrimaryKey(table)})`
-      if (!attributeIds.includes(foreignKeyAttr)) attributeIds.push(foreignKeyAttr)
-    })
-    const query = buildQuery(attributeIds.concat(page.id_col || 'id'))
+    const attributeIds = addForeignKeyAttributes(page.attributes.map(attr => attr.id), page.id_col || 'id')
+    const selectionQuery = buildQuery(attributeIds)
     const { data, error } = await supabase
       .from(page.table_id)
-      .select(query)
+      .select(selectionQuery)
       .eq(page.id_col || 'id', itemId)
       .single()
       store.loading = false

@@ -203,7 +203,10 @@ function getForeignId (attributeId:string) {
 }
 
 function getForeignAttr (attributeId:string) {
-  return attributeId.split('(')[1].slice(0, -1)
+  let foreignAttr = ''
+  if (attributeId.indexOf('(') > 0) foreignAttr = attributeId.slice(attributeId.indexOf('(')+1).slice(0, -1)
+  else foreignAttr = attributeId.split('(')[1].slice(0, -1)
+  return foreignAttr
 }
 
 function getForeignOptions (attributeId:string) {
