@@ -74,7 +74,7 @@
                   </select>
                 </div>
                 <div v-else-if="getJoinType(attribute.id) === 'multi'">
-                  <Combobox :options="getForeignOptions(attribute.id)" :selected="item[`${getForeignTable(attribute.id)}(${getForeignId(attribute.id)})`]"
+                  <Combobox :options="getForeignOptions(attribute.id)" :selected="item[getForeignKey(attribute.id)]"
                     @update="value => update(`${getForeignTable(attribute.id)}(${getForeignId(attribute.id)})`, value)" />
                 </div>
                 <div v-else class="h-10 rounded bg-neutral-200 dark:bg-neutral-800 w-48 flex items-center px-5 text-sm animate-pulse">Loading...</div>
@@ -183,7 +183,27 @@ function getJoinType (attributeId:string) {
 }
 
 function getForeignTable (attributeId:string) {
-  return attributeId.split('(')[0]
+  // return attributeId.split('(')[0]
+  const nestedRgx = /(.*?(\(|$))+?/g
+  const match = attributeId.match(nestedRgx)?.slice(0, -1)
+  if (!match) return ''
+  return match[match.length - 2].slice(0, -1)
+}
+
+function getForeignKey (attributeId:string) {
+  if (!attributeId.includes('(')) return attributeId
+  const schema = new Schema(store.dashboard.schema)
+  const foreignTable = getForeignTable(attributeId)
+  const parts = attributeId.split('(')
+  let foreignKey = parts.map((str, i) => {
+    if (i < parts.length - 1) return str
+    else return schema.getPrimaryKey(foreignTable)
+  }).join('(')
+  parts.slice(0, -1).forEach(part => foreignKey += ')')
+  console.log(foreignKey)
+  console.log(item.value)
+  console.log(item.value[foreignKey])
+  return foreignKey
 }
 
 function getForeignId (attributeId:string) {
@@ -191,9 +211,20 @@ function getForeignId (attributeId:string) {
 }
 
 function getForeignAttr (attributeId:string) {
+  // let foreignAttr = ''
+  // if (attributeId.indexOf('(') > 0) foreignAttr = attributeId.slice(attributeId.indexOf('(')+1).slice(0, -1)
+  // else foreignAttr = attributeId.split('(')[1].slice(0, -1)
+  // return foreignAttr
+
+  const nestedRgx = /(.*?(\(|$))+?/g
+  const bracketRgx = /(.*?)(\(|\)|$)+?/
+  const subAttrs = attributeId.match(nestedRgx)?.slice(0, -1)
+  if (!subAttrs) return null
+  const foreignTable = subAttrs[subAttrs.length - 2].slice(0, -1)
   let foreignAttr = ''
-  if (attributeId.indexOf('(') > 0) foreignAttr = attributeId.slice(attributeId.indexOf('(')+1).slice(0, -1)
-  else foreignAttr = attributeId.split('(')[1].slice(0, -1)
+  const bracketMatch = subAttrs[subAttrs.length - 1].match(bracketRgx)
+  if (bracketMatch) foreignAttr = bracketMatch[1]
+  else foreignAttr = subAttrs[subAttrs.length - 1]
   return foreignAttr
 }
 
@@ -201,7 +232,7 @@ function getForeignOptions (attributeId:string) {
   return Object.keys(joinedData.value).length ? joinedData.value[getForeignTable(attributeId)].data
     .map((i:any) => {
       return {
-        label: i[getForeignAttr(attributeId)],
+        label: i[getForeignAttr(attributeId) as string],
         value: i[joinedData.value[getForeignTable(attributeId)].idCol],
       }
     }) : []

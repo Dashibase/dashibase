@@ -48,7 +48,6 @@ export async function initDashboard () {
     const response = await baseSupabase.from('dashboards').select('id,supabase_url,supabase_anon_key,app_name').eq('app_id', appId).single()
     if (response.error) {
       throw Error(response.error.message)
-      return
     } else {
       store.dashboard.supabaseUrl = response.data.supabase_url as string
       store.dashboard.supabaseAnonKey = response.data.supabase_anon_key as string
@@ -97,6 +96,34 @@ export async function initDashboard () {
 }
 
 /*
+Get foreign table from an attributeId
+*/
+function getForeignTable (attributeId:string) {
+  if (!attributeId.includes('(')) return ''
+  const nestedRgx = /(.*?(\(|$))+?/g
+  const match = attributeId.match(nestedRgx)?.slice(0, -1)
+  if (!match) return ''
+  return match[match.length - 2].slice(0, -1)
+}
+
+/*
+Get appropriate Foreign Key 
+*/
+function getForeignKey (attributeId:string) {
+  const store = useStore()
+  if (!attributeId.includes('(')) return attributeId
+  const schema = new Schema(store.dashboard.schema)
+  const foreignTable = getForeignTable(attributeId)
+  const parts = attributeId.split('(')
+  let foreignKey = parts.map((str, i) => {
+    if (i < parts.length - 1) return str
+    else return schema.getPrimaryKey(foreignTable)
+  }).join('(')
+  parts.slice(0, -1).forEach(part => foreignKey += ')')
+  return foreignKey
+}
+
+/*
 Add relevant primary key and foreign key attributes
 e.g. Given ["title", "actors(name)"]
 Add the relevant foreign primary key from the "actors" table
@@ -108,18 +135,11 @@ function addForeignKeyAttributes (attributes:string[], primaryKey:string|null=nu
     attributes = attributes.concat(primaryKey)
   }
   // For each foreign table, add the foreign primary key
-  const store = useStore()
-  const schema = new Schema(store.dashboard.schema)
-  const foreignTables = [] as string[]
   attributes.filter(attr => attr.includes('('))
     .forEach(attr => {
-      const foreignTable = attr.split('(')[0]
-      if (!foreignTables.includes(foreignTable)) foreignTables.push(foreignTable)
+      const foreignPrimaryKey = getForeignKey(attr)
+      if (!attributes.includes(foreignPrimaryKey)) attributes.push(foreignPrimaryKey)
     })
-  foreignTables.forEach(table => {
-    const foreignKeyAttr = `${table}(${schema.getPrimaryKey(table)})`
-    if (!attributes.includes(foreignKeyAttr)) attributes.push(foreignKeyAttr)
-  })
   return attributes
 }
 
@@ -128,6 +148,8 @@ Build a SELECT query from multiple attributes strings
 e.g. "title", "actors(name)", "actors(age)" -> "title,actors(name,age)"
 */
 function buildQuery (attributes:string[]) {
+  const store = useStore()
+  const schema = new Schema(store.dashboard.schema)
   // Combine attributes to build query string
   // TODO: Design better regex
   const nestedRgx = /(.*?(\(|$))+?/g
@@ -145,8 +167,9 @@ function buildQuery (attributes:string[]) {
   const queryObj = {} as {[k:string]:any}
   splitAttributes.forEach(split => {
     let tmpObj = queryObj
-    split.forEach(attr => {
+    split.forEach((attr, i) => {
       if (!(attr in tmpObj)) tmpObj[attr] = {} as {[k:string]:any}
+      if (i < split.length - 1) tmpObj[attr][schema.getPrimaryKey(attr) as string] = {}
       tmpObj = tmpObj[attr]
     })
   })
@@ -163,7 +186,7 @@ function buildQuery (attributes:string[]) {
 }
 
 /*
-Assume only first-degree joins
+Assume only first- and second-degree joins
 */
 function getJoinedTablesAndAttributes (attributes:string[]) {
   function unionArray (obj:string[], src:string[]) {
@@ -171,12 +194,23 @@ function getJoinedTablesAndAttributes (attributes:string[]) {
     if (!src) return obj
     return _.union(obj, src)
   }
+  const nestedRgx = /(.*?(\(|$))+?/g
+  const bracketRgx = /(.*?)(\(|\)|$)+?/
   const tableAttrs = attributes.filter(attr => attr.includes('('))
     .map(attr => {
-      const foreignTable = attr.split('(')[0]
+      const subAttrs = attr.match(nestedRgx)?.slice(0, -1)
+      if (!subAttrs) return null
+      const foreignTable = subAttrs[subAttrs.length - 2].slice(0, -1)
       let foreignAttr = ''
-      if (attr.indexOf('(') > 0) foreignAttr = attr.slice(attr.indexOf('(')+1).slice(0, -1)
-      else foreignAttr = attr.split('(')[1].slice(0, -1)
+      const bracketMatch = subAttrs[subAttrs.length - 1].match(bracketRgx)
+      if (bracketMatch) foreignAttr = bracketMatch[1]
+      else foreignAttr = subAttrs[subAttrs.length - 1]
+      
+
+      // const foreignTable = attr.split('(')[0]
+      // let foreignAttr = ''
+      // if (attr.indexOf('(') > 0) foreignAttr = attr.slice(attr.indexOf('(')+1).slice(0, -1)
+      // else foreignAttr = attr.split('(')[1].slice(0, -1)
       return {[foreignTable]: [foreignAttr]}
     })
   let allTableAttrs = {} as {[k:string]: string[]}
@@ -214,7 +248,7 @@ function getNestedAttribute (item:any, attr:string):[string, any] {
     return [attr, getNestedAttribute(subItem, subAttribute)[1]]
   } else {
     if (item && item.constructor === Array) {
-      return [attr, item.map((i:any) => i[attr])]
+      return [attr, item.map((i:any) => i ? i[attr] : null)]
     } else {
       return [attr, item ? item[attr] : null]
     }
@@ -239,6 +273,7 @@ export async function initUserData () {
 
       const attributeIds = addForeignKeyAttributes(page.attributes.map(attr => attr.id), page.id_col || 'id')
       const selectionQuery = buildQuery(attributeIds)
+      console.log(selectionQuery)
 
       return new Promise(async (resolve, reject) => {
         const { data, error, count } = page.enforce_user_col ?
@@ -430,6 +465,7 @@ export function initCrud (page:Page, itemId:string|number='') {
       .then(responses => {
         const joins = responses.reduce((a:any, v:any) => ({...a, [v.tableId]: v}), {})
         joinedData.value = joins
+        console.log(joins)
       })
   }
 
@@ -448,6 +484,7 @@ export function initCrud (page:Page, itemId:string|number='') {
     store.loading = true
     const attributeIds = addForeignKeyAttributes(page.attributes.map(attr => attr.id), page.id_col || 'id')
     const selectionQuery = buildQuery(attributeIds)
+    console.log(selectionQuery)
     const { data, error } = await supabase
       .from(page.table_id)
       .select(selectionQuery)
