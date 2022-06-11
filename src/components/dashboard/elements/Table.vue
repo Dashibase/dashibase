@@ -9,7 +9,7 @@
               class="cursor-pointer focus:outline-none focus:ring-0 focus:ring-offset-0 focus:border-0 h-4 w-4 rounded text-neutral-700 border-neutral-300 dark:bg-neutral-900 dark:border-neutral-600"
               @click="selectAll" :checked="selected.length === items.length" />
           </th>
-          <th v-for="attribute in attributes" :key="attribute.id" class="px-2 py-2 text-left text-xs font-medium uppercase tracking-wider w-[10rem]">
+          <th v-for="attribute in attributes" :key="attribute.id" class="px-2 py-2 text-left text-xs font-medium uppercase tracking-wider w-[10rem] truncate whitespace-nowrap">
             <span class="lg:pl-2">{{ attribute.label }}</span>
           </th>
         </tr>
