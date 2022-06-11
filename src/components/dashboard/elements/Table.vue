@@ -1,5 +1,5 @@
 <template>
-  <div class="sm:rounded-lg border border-[#EAEAEA] dark:border-[#2F2F2F] shadow overflow-y-hidden">
+  <div class="sm:rounded-lg border border-[#EAEAEA] dark:border-[#2F2F2F] shadow overflow-y-hidden w-full">
     <table class="w-full table-fixed transition text-primary dark:text-primary-dark overflow-x-auto">
       <thead class="drop-shadow dark:border-b-2 dark:border-b-neutral-750">
         <tr class="transition bg-table-hover dark:bg-table-hover-dark">

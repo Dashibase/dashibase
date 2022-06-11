@@ -33,8 +33,8 @@
         v-model="paginationNum" />
     </div>
     <!-- Normal view -->
-    <div class="hidden sm:block mb-24">
-      <div class="px-4 md:px-10">
+    <div class="hidden sm:block mb-24 w-full">
+      <div class="px-4 md:px-10 w-full">
         <Table ref="table" :attributes="page.attributes.filter(attr => !attr.hidden)" :items="items"
           :countFrom="(paginationNum - 1) * maxItems" @viewItem="viewRow" :readonly="page.readonly" />
       </div>
