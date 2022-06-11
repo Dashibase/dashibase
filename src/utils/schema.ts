@@ -130,7 +130,7 @@ export class Schema {
     return _.intersection(incoming1, incoming2)[0]
   }
 
-  getAttributeType (tableId:string, attributeId:string) {
-    return this.schema[tableId].properties[attributeId].type
+  getAttributeDetails (tableId:string, attributeId:string) {
+    return this.schema[tableId].properties[attributeId]
   }
 }

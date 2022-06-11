@@ -130,16 +130,30 @@ e.g. Given ["title", "actors(name)"]
 Add the relevant foreign primary key from the "actors" table
 We need this to key items in the foreign table
 */
-function addForeignKeyAttributes (attributes:string[], primaryKey:string|null=null) {
+function addForeignKeyAttributes (attributes:Attribute[], primaryKey:string|null=null) {
   // Add primaryKey if provided
   if (primaryKey) {
-    attributes = attributes.concat(primaryKey)
+    attributes = attributes.concat({
+      id: primaryKey,
+      label: primaryKey,
+      required: false,
+      readonly: false,
+      hidden: false,
+      type: AttributeType.Text
+    })
   }
   // For each foreign table, add the foreign primary key
-  attributes.filter(attr => attr.includes('('))
+  attributes.filter(attr => attr.id.includes('('))
     .forEach(attr => {
-      const foreignPrimaryKey = getForeignKey(attr)
-      if (!attributes.includes(foreignPrimaryKey)) attributes.push(foreignPrimaryKey)
+      const foreignPrimaryKey = getForeignKey(attr.id)
+      if (!attributes.some(attr => attr.id === foreignPrimaryKey)) attributes.push({
+        id: foreignPrimaryKey,
+        label: foreignPrimaryKey,
+        required: false,
+        readonly: false,
+        hidden: false,
+        type: AttributeType.Text
+      })
     })
   return attributes
 }
@@ -231,7 +245,7 @@ item = {
   }
 }
 attr = 'film(title)'
-returns 'Predestination'
+returns ['film(title)', 'Predestination']
 */
 function getNestedAttribute (item:any, attr:string):[string, any] {
   // Regex matches nested attributes with brackets like "film(title)"
@@ -272,9 +286,8 @@ export async function initUserData () {
     const supabase = createClient(store.dashboard.supabaseUrl, store.dashboard.supabaseAnonKey)
     const promises = store.dashboard.pages.map(page => {
 
-      const attributeIds = addForeignKeyAttributes(page.attributes.map(attr => attr.id), page.id_col || 'id')
-      const selectionQuery = buildQuery(attributeIds)
-      console.log(selectionQuery)
+      const attributeIds = addForeignKeyAttributes(page.attributes, page.id_col || 'id')
+      const selectionQuery = buildQuery(attributeIds.map(attr => attr.id))
 
       return new Promise(async (resolve, reject) => {
         const { data, error, count } = page.enforce_user_col ?
@@ -290,17 +303,26 @@ export async function initUserData () {
             .range(0, pageConfigs[page.mode].maxItems-1)
         
         if (error) reject(error.message)
-        else resolve({ data, count, attributeIds: page.attributes.map(attr => attr.id) })
+        else resolve({ data, count, page })
       })
     })
     await Promise.all(promises)
       .then(responses => {
         store.data = responses.map((response:any, i) => {
           const data = response.data.map((row:any) => {
-            const attributeIds = addForeignKeyAttributes(response.attributeIds, store.dashboard.pages[i].id_col || 'id')
+            const page = response.page as Page
+            const attributeIds = addForeignKeyAttributes(page.attributes, page.id_col || 'id')
             // Build item using getNestedAttribute
-            const item = attributeIds.map((attr:string) => {
-              return getNestedAttribute(row, attr)
+            const item = attributeIds.map(attr => {
+              const attrValue = getNestedAttribute(row, attr.id)
+              let attrDetails = {} as { format: string }
+              if (attr.id.includes('(')) attrDetails = schema.getAttributeDetails(attr.id.split('(').slice(-2, -1)[0], attr.id.split('(').slice(-1)[0].split(')')[0])
+              else attrDetails = schema.getAttributeDetails(page.table_id, attr.id)
+              if (['json', 'jsonb'].includes(attrDetails.format)) {
+                if (attr.type === AttributeType.LongText) attrValue[1] = JSON.stringify(attrValue[1], null, 2)
+                else attrValue[1] = JSON.stringify(attrValue[1])
+              }
+              return attrValue
             }).reduce((a:Object, v:string[]) => ({...a, [v[0]]: v[1]}), {}) as {[k:string]:any}
             return item
           })
@@ -377,8 +399,8 @@ export function initCrud (page:Page, itemId:string|number='') {
     store.loading = true
     const startRow = Math.max(0, currentPagination - 1) * maxItems
 
-    const attributeIds = addForeignKeyAttributes(page.attributes.map(attr => attr.id), page.id_col || 'id')
-    const selectionQuery = buildQuery(attributeIds)
+    const attributeIds = addForeignKeyAttributes(page.attributes, page.id_col || 'id')
+    const selectionQuery = buildQuery(attributeIds.map(attr => attr.id))
 
     let request = page.enforce_user_col ?
       supabase
@@ -414,8 +436,13 @@ export function initCrud (page:Page, itemId:string|number='') {
       // Map data
       const data = response.data.map((row:any) => {
         // Build item using getNestedAttribute
-        const item = attributeIds.map((attr:string) => {
-          return getNestedAttribute(row, attr)
+        const item = attributeIds.map(attr => {
+          const attrValue = getNestedAttribute(row, attr.id)
+          let attrDetails = {} as { format: string }
+          if (attr.id.includes('(')) attrDetails = schema.getAttributeDetails(attr.id.split('(').slice(-2, -1)[0], attr.id.split('(').slice(-1)[0].split(')')[0])
+          else attrDetails = schema.getAttributeDetails(page.table_id, attr.id)
+          if (['json', 'jsonb'].includes(attrDetails.format)) attrValue[1] = JSON.stringify(attrValue[1])
+          return attrValue
         }).reduce((a:Object, v:string[]) => ({...a, [v[0]]: v[1]}), {}) as {[k:string]:any}
         // Add idCol into item
         const idCol = page.id_col || 'id'
@@ -466,7 +493,6 @@ export function initCrud (page:Page, itemId:string|number='') {
       .then(responses => {
         const joins = responses.reduce((a:any, v:any) => ({...a, [v.tableId]: v}), {})
         joinedData.value = joins
-        console.log(joins)
       })
   }
 
@@ -483,9 +509,8 @@ export function initCrud (page:Page, itemId:string|number='') {
       return
     }
     store.loading = true
-    const attributeIds = addForeignKeyAttributes(page.attributes.map(attr => attr.id), page.id_col || 'id')
-    const selectionQuery = buildQuery(attributeIds)
-    console.log(selectionQuery)
+    const attributeIds = addForeignKeyAttributes(page.attributes, page.id_col || 'id')
+    const selectionQuery = buildQuery(attributeIds.map(attr => attr.id))
     const { data, error } = await supabase
       .from(page.table_id)
       .select(selectionQuery)
@@ -496,8 +521,13 @@ export function initCrud (page:Page, itemId:string|number='') {
       warning.value = error.message
     } else {
       // Build item using getNestedAttribute
-      const retrievedItem = attributeIds.map((attr:string) => {
-        return getNestedAttribute(data, attr)
+      const retrievedItem = attributeIds.map(attr => {
+        const attrValue = getNestedAttribute(data, attr.id)
+        let attrDetails = {} as { format: string }
+        if (attr.id.includes('(')) attrDetails = schema.getAttributeDetails(attr.id.split('(').slice(-2, -1)[0], attr.id.split('(').slice(-1)[0].split(')')[0])
+        else attrDetails = schema.getAttributeDetails(page.table_id, attr.id)
+        if (['json', 'jsonb'].includes(attrDetails.format)) attrValue[1] = JSON.stringify(attrValue[1])
+        return attrValue
       }).reduce((a:Object, v:string[]) => ({...a, [v[0]]: v[1]}), {}) as {[k:string]:any}
       // Add idCol into item
       const idCol = page.id_col || 'id'
@@ -542,8 +572,22 @@ export function initCrud (page:Page, itemId:string|number='') {
     const foreignTableAttrs = getJoinedTablesAndAttributes(page.attributes.filter(attr => !attr.readonly).map(attr => attr.id))
     // First update main table
     // Gather main attributes
-    const mainAttributes = page.attributes.filter(attr => !attr.readonly).map(attr => attr.id).filter(attr => !attr.includes('('))
-    const mainItem = mainAttributes.map(attr => [attr, item[attr]]).reduce((a, v) => ({...a, [v[0]]: v[1]}), {}) as {[k:string]:any}
+    const mainAttributes = page.attributes.filter(attr => !attr.readonly).filter(attr => !attr.id.includes('('))
+    const mainItem = mainAttributes.map(attr => [attr.id, item[attr.id]]).reduce((a, v) => ({...a, [v[0]]: v[1]}), {}) as {[k:string]:any}
+    try {
+      mainAttributes.map(attr => {
+        const attrDetails = schema.getAttributeDetails(page.table_id, attr.id)
+        try {
+          if (['json', 'jsonb'].includes(attrDetails.format)) mainItem[attr.id] = JSON.parse(mainItem[attr.id])
+        } catch (error) {
+          throw Error(`Could not parse ${attr.id}`)
+        }
+      })
+    } catch (error) {
+      warning.value = (error as Error).message
+      store.loading = false
+      return
+    }
     // Include outgoing foreign keys
     Object.keys(foreignTableAttrs).filter(foreignTable => schema.getFkColumns(page.table_id, foreignTable).length)
       .forEach(foreignTable => {
@@ -650,8 +694,8 @@ export function initCrud (page:Page, itemId:string|number='') {
     conjunction.value = newConjunction
     sorts.value = newSorts
 
-    const attributeIds = addForeignKeyAttributes(page.attributes.map(attr => attr.id), page.id_col || 'id')
-    const selectionQuery = buildQuery(attributeIds)
+    const attributeIds = addForeignKeyAttributes(page.attributes, page.id_col || 'id')
+    const selectionQuery = buildQuery(attributeIds.map(attr => attr.id))
 
     store.loading = true
     let filterRequest = page.enforce_user_col ? 
@@ -691,8 +735,13 @@ export function initCrud (page:Page, itemId:string|number='') {
       // Map data
       const data = response.data.map((row:any) => {
         // Build item using getNestedAttribute
-        const item = attributeIds.map((attr:string) => {
-          return getNestedAttribute(row, attr)
+        const item = attributeIds.map(attr => {
+          const attrValue = getNestedAttribute(row, attr.id)
+          let attrDetails = {} as { format: string }
+          if (attr.id.includes('(')) attrDetails = schema.getAttributeDetails(attr.id.split('(').slice(-2, -1)[0], attr.id.split('(').slice(-1)[0].split(')')[0])
+          else attrDetails = schema.getAttributeDetails(page.table_id, attr.id)
+          if (['json', 'jsonb'].includes(attrDetails.format)) attrValue[1] = JSON.stringify(attrValue[1])
+          return attrValue
         }).reduce((a:Object, v:string[]) => ({...a, [v[0]]: v[1]}), {}) as {[k:string]:any}
         // Add idCol into item
         const idCol = page.id_col || 'id'

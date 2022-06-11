@@ -60,7 +60,7 @@
               <!-- AttributeType.LongText -->
               <textarea v-else-if="attribute.type === AttributeType.LongText" :disabled="store.loading" :id="attribute.id" :value="item[attribute.id] || ''"
                 @input="update(attribute.id, ($event.target as HTMLInputElement).value)"
-                class="sm:text-sm w-full border shadow-sm transition bg-input dark:bg-input-dark border-neutral-300 focus:border-neutral-500 dark:border-neutral-700 dark:focus:border-neutral-500" />
+                class="sm:text-sm w-full border shadow-sm bg-input dark:bg-input-dark border-neutral-300 focus:border-neutral-500 dark:border-neutral-700 dark:focus:border-neutral-500" />
               <!-- AttributeType.Join -->
               <div v-else-if="attribute.type === AttributeType.Join" class="relative">
                 <div v-if="getJoinType(attribute.id) === 'single'">
