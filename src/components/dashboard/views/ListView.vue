@@ -5,18 +5,19 @@
         {{ page.name }}
       </div>
       <div class="flex gap-2 items-end">
-        <FilterMenu :attributes="page.attributes.filter(attr => !attr.hidden)" @close="filterItems"/>
-        <DeleteButton v-if="selected.length" @click="deleteRows">
+        <FilterMenu :attributes="page.attributes.filter(attr => !attr.hidden)" @close="filterItems" />
+        <DeleteButton v-if="selected.length && !page.readonly" @click="deleteRows">
           Delete
         </DeleteButton>
-        <PrimaryButton v-if="!selected.length" :to="`/${props.pageId}/new`">
+        <PrimaryButton v-if="!selected.length && !page.readonly" :to="`/${props.pageId}/new`">
           New
         </PrimaryButton>
       </div>
     </template>
     <!-- Triggers -->
     <div v-if="page.triggers.length" class="w-full py-2 px-4 md:px-10 flex gap-2 justify-end">
-      <SecondaryButton v-for="trigger, i in page.triggers" :key="i" @click="trigger.call ? trigger.call(selectedItems, store.user) : null">{{ trigger.label }}</SecondaryButton>
+      <SecondaryButton v-for="trigger, i in page.triggers" :key="i"
+        @click="trigger.call ? trigger.call(selectedItems, store.user) : null">{{ trigger.label }}</SecondaryButton>
     </div>
     <!-- Warning -->
     <div v-if="warning" class="py-2 px-4 md:px-10 text-sm text-red-500">
@@ -25,16 +26,20 @@
     <!-- Mobile view -->
     <div class="mt-2 sm:hidden">
       <div class="overflow-x-auto">
-        <Table :attributes="page.attributes.filter(attr => !attr.hidden).slice(0, 1)" :items="items" :countFrom="(paginationNum - 1) * maxItems" @viewItem="viewRow" />
+        <Table :attributes="page.attributes.filter(attr => !attr.hidden).slice(0, 1)" :items="items"
+          :countFrom="(paginationNum - 1) * maxItems" @viewItem="viewRow" :readonly="page.readonly" />
       </div>
-      <Pagination v-if="maxPagination > 1" class="mt-10" :paginationList="paginationList" :maxPagination="maxPagination" v-model="paginationNum" />
+      <Pagination v-if="maxPagination > 1" class="mt-10" :paginationList="paginationList" :maxPagination="maxPagination"
+        v-model="paginationNum" />
     </div>
     <!-- Normal view -->
     <div class="hidden sm:block mb-24">
       <div class="px-4 md:px-10">
-        <Table ref="table" :attributes="page.attributes.filter(attr => !attr.hidden)" :items="items" :countFrom="(paginationNum - 1) * maxItems" @viewItem="viewRow" />
+        <Table ref="table" :attributes="page.attributes.filter(attr => !attr.hidden)" :items="items"
+          :countFrom="(paginationNum - 1) * maxItems" @viewItem="viewRow" :readonly="page.readonly" />
       </div>
-      <Pagination v-if="maxPagination > 1" class="mt-10 px-10" :paginationList="paginationList" :maxPagination="maxPagination" v-model="paginationNum" />
+      <Pagination v-if="maxPagination > 1" class="mt-10 px-10" :paginationList="paginationList"
+        :maxPagination="maxPagination" v-model="paginationNum" />
     </div>
     <DeleteModal ref="deleteModal">
       <template #title>Confirm deletion</template>
@@ -66,7 +71,7 @@ const props = defineProps({
   },
 })
 
-const page = computed(():Page => {
+const page = computed((): Page => {
   const page = store.dashboard.pages.find(page => page.page_id === props.pageId) || {} as Page
   // Create functions
   page.triggers = page.triggers ? page.triggers.map(trigger => {
@@ -77,9 +82,9 @@ const page = computed(():Page => {
   return page
 })
 
-const deleteModal = ref<any|null>(null)
+const deleteModal = ref<any | null>(null)
 
-const table = ref<any|null>(null)
+const table = ref<any | null>(null)
 
 const { items, warning, maxItems, paginationNum, maxPagination, paginationList, deleteItems, filterItems } = initCrud(page.value)
 
@@ -89,26 +94,26 @@ const selected = computed(() => {
 })
 
 const selectedItems = computed(() => {
-  return selected.value.map((idx:number) => items.value[idx])
+  return selected.value.map((idx: number) => items.value[idx])
 })
 
-function viewRow (itemIdx:number) {
+function viewRow(itemIdx: number) {
   const itemId = items.value[itemIdx][page.value.id_col || 'id']
   router.push(`/${props.pageId}/view/${itemId}`)
 }
 
-async function deleteRows () {
+async function deleteRows() {
   if (!deleteModal.value) return
   const confirm = await deleteModal.value.confirm()
   if (confirm) {
     setTimeout(() => {
-      deleteItems(selected.value.map((idx:number) => items.value[idx][page.value.id_col || 'id']))
-      .then(() => table.value.selected = [])
+      deleteItems(selected.value.map((idx: number) => items.value[idx][page.value.id_col || 'id']))
+        .then(() => table.value.selected = [])
     }, 100)
   }
 }
 
-function runTrigger (code:string) {
+function runTrigger(code: string) {
   eval(code)
 }
 </script>

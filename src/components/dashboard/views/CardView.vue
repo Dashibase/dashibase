@@ -6,10 +6,10 @@
       </div>
       <div class="flex gap-2 items-end">
         <FilterMenu :attributes="page.attributes.filter(attr => !attr.hidden)" @close="filterItems"/>
-        <DeleteButton v-if="selected.length" @click="deleteCards">
+        <DeleteButton v-if="selected.length && !page.readonly" @click="deleteCards">
           Delete
         </DeleteButton>
-        <PrimaryButton v-if="!selected.length" :to="`/${props.pageId}/new`">
+        <PrimaryButton v-if="!selected.length && !page.readonly" :to="`/${props.pageId}/new`">
           New
         </PrimaryButton>
       </div>
@@ -107,6 +107,7 @@ const { items, warning, paginationNum, maxPagination, paginationList, deleteItem
 
 function selectCard (idx:number, event:Event) {
   event.stopPropagation()
+  if (page.value.readonly) return
   if (!selected.value.includes(idx)) selected.value.push(idx)
   else selected.value.splice(selected.value.indexOf(idx), 1)
 }

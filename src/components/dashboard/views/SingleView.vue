@@ -98,7 +98,7 @@
       <!-- Buttons -->
       <div class="px-4 md:px-10 flex justify-between gap-4">
         <div>
-          <DeleteButton v-if="itemId" :disabled="store.loading" @click="deleteItem">
+          <DeleteButton v-if="itemId && !page.readonly" :disabled="store.loading" @click="deleteItem">
             Delete
           </DeleteButton>
         </div>
@@ -106,7 +106,7 @@
           <TertiaryButton v-if="createMode || itemId" :to="`/${pageId}`">
             Back
           </TertiaryButton>
-          <PrimaryButton :disabled="!haveUnsavedChanges || store.loading" @click="upsertItem(item)">
+          <PrimaryButton v-if="!page.readonly" :disabled="!haveUnsavedChanges || store.loading" @click="upsertItem(item)">
             Save
           </PrimaryButton>
         </div>

@@ -24,12 +24,12 @@
           @click.exact="event => viewItem(i, event)"
           @click.shift.left.exact="event => selectRow(i, event)">
           <td class="hidden sm:table-cell w-10 px-1 py-2 whitespace-nowrap text-sm text-center transition group text-tertiary dark:text-tertiary-dark">
-            <span v-if="!selected.length" class="group-hover:hidden">{{ i + 1 + countFrom }}</span>
+            <span v-if="!selected.length" :class="props.readonly ? '' : 'group-hover:hidden'">{{ i + 1 + countFrom }}</span>
             <input type="checkbox"
-              class="hidden group-hover:inline-block cursor-pointer focus:outline-none focus:ring-0 focus:ring-offset-0 focus:border-0 h-4 w-4 rounded text-neutral-700 border-neutral-300 dark:bg-neutral-900 dark:border-neutral-600"
-              @click="event => selectRow(i, event)" :checked="selected.includes(i)" />
+              class="hidden cursor-pointer focus:outline-none focus:ring-0 focus:ring-offset-0 focus:border-0 h-4 w-4 rounded text-neutral-700 border-neutral-300 dark:bg-neutral-900 dark:border-neutral-600"
+              :class="props.readonly ? '' : 'group-hover:inline-block'" @click="event => selectRow(i, event)" :checked="selected.includes(i)" />
             <input v-if="selected.length" type="checkbox"
-              class="group-hover:hidden cursor-pointer focus:outline-none focus:ring-0 focus:ring-offset-0 focus:border-0 h-4 w-4 rounded text-neutral-700 border-neutral-300 dark:bg-neutral-900 dark:border-neutral-600"
+              class="cursor-pointer focus:outline-none focus:ring-0 focus:ring-offset-0 focus:border-0 h-4 w-4 rounded text-neutral-700 border-neutral-300 dark:bg-neutral-900 dark:border-neutral-600" :class="props.readonly ? '' : 'group-hover:hidden'"
               :checked="selected.includes(i)" />
           </td>
           <td v-for="attribute, i in attributes" :key="attribute.id"
@@ -70,6 +70,10 @@ const props = defineProps({
     type: Number,
     default: 0,
   },
+  readonly: {
+    type: Boolean,
+    default: false,
+  }
 })
 const emit = defineEmits(['createItem', 'viewItem', 'deleteItem'])
 
@@ -82,11 +86,13 @@ function viewItem (itemIdx:number, event:Event) {
 
 function selectRow (idx:number, event:Event) {
   event.stopPropagation()
+  if (props.readonly) return
   if (!selected.value.includes(idx)) selected.value.push(idx)
   else selected.value.splice(selected.value.indexOf(idx), 1)
 }
 
 function selectAll () {
+  if (props.readonly) return
   if (selected.value.length !== props.items.length) selected.value = [...Array(props.items.length).keys()]
   else selected.value = []
 }
