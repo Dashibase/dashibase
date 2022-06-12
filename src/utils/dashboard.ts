@@ -634,7 +634,8 @@ export function initCrud (page:Page, itemId:string|number='') {
               .delete()
               .match({ [schema.getFkColumns(joinTable, page.table_id)[0]]: item.id })
             if (deleteRequest.error) reject(deleteRequest.error.message)
-            const joinItems = item[`${foreignTable}(${schema.getPrimaryKey(foreignTable)})`]
+            const attributeId = Object.keys(item).find(attr => attr.includes(`${foreignTable}(${schema.getPrimaryKey(foreignTable)})`))
+            const joinItems = item[attributeId as string]
               .map((id:any) => {
                 return {
                   [schema.getFkColumns(joinTable, foreignTable)[0]]: id,
