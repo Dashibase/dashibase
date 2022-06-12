@@ -635,17 +635,19 @@ export function initCrud (page:Page, itemId:string|number='') {
               .match({ [schema.getFkColumns(joinTable, page.table_id)[0]]: item.id })
             if (deleteRequest.error) reject(deleteRequest.error.message)
             const attributeId = Object.keys(item).find(attr => attr.includes(`${foreignTable}(${schema.getPrimaryKey(foreignTable)})`))
-            const joinItems = item[attributeId as string]
-              .map((id:any) => {
-                return {
-                  [schema.getFkColumns(joinTable, foreignTable)[0]]: id,
-                  [schema.getFkColumns(joinTable, page.table_id)[0]]: item.id
-                }
-              })
-            const upsertRequest = await supabase
-              .from(joinTable)
-              .upsert(joinItems)
-            if (upsertRequest.error) reject(upsertRequest.error.message)
+            if (item[attributeId as string]) {
+              const joinItems = item[attributeId as string]
+                .map((id:any) => {
+                  return {
+                    [schema.getFkColumns(joinTable, foreignTable)[0]]: id,
+                    [schema.getFkColumns(joinTable, page.table_id)[0]]: item.id
+                  }
+                })
+              const upsertRequest = await supabase
+                .from(joinTable)
+                .upsert(joinItems)
+              if (upsertRequest.error) reject(upsertRequest.error.message)
+            }
           }
           resolve()
         })
