@@ -4,7 +4,7 @@
       <thead class="drop-shadow dark:border-b-2 dark:border-b-neutral-750">
         <tr class="transition bg-table-hover dark:bg-table-hover-dark">
           <th class="hidden sm:table-cell px-1 py-2 text-center text-xs font-medium uppercase tracking-wider w-[1rem] text-tertiary dark:text-tertiary-dark group">
-            <span v-if="!selected.length" class="py-[0.5px] inline-block" :class="props.readonly ? '' : 'group-hover:hidden'">#</span>
+            <span v-if="!selected.length" :class="props.readonly ? '' : 'group-hover:hidden'">#</span>
             <input v-if="!selected.length" type="checkbox"
               class="hidden cursor-pointer focus:outline-none focus:ring-0 focus:ring-offset-0 focus:border-0 h-4 w-4 rounded text-neutral-700 border-neutral-300 dark:bg-neutral-900 dark:border-neutral-600"
               @click="selectAll" :checked="selected.length === items.length" :class="props.readonly ? '' : 'group-hover:inline-block'" />
@@ -12,7 +12,7 @@
               class="cursor-pointer focus:outline-none focus:ring-0 focus:ring-offset-0 focus:border-0 h-4 w-4 rounded text-neutral-700 border-neutral-300 dark:bg-neutral-900 dark:border-neutral-600"
               @click="selectAll" :checked="selected.length === items.length" />
           </th>
-          <th v-for="attribute in attributes" :key="attribute.id" class="px-2 py-2 text-left text-xs font-medium uppercase tracking-wider w-[10rem] truncate whitespace-nowrap">
+          <th v-for="attribute in attributes" :key="attribute.id" class="px-2 py-[0.55rem] text-left text-xs font-medium uppercase tracking-wider w-[10rem] truncate whitespace-nowrap">
             <span class="lg:pl-2">{{ attribute.label }}</span>
           </th>
         </tr>
