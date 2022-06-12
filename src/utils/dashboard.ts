@@ -546,17 +546,34 @@ export function initCrud (page:Page, itemId:string|number='') {
     store.loading = true
     item.user = store.user.id
 
+    function getForeignKey (attributeId:string) {
+      if (!attributeId.includes('(')) return attributeId
+      const schema = new Schema(store.dashboard.schema)
+      const foreignTable = getForeignTable(attributeId)
+      const parts = attributeId.split('(')
+      let foreignKey = parts.map((str, i) => {
+        if (i < parts.length - 1) return str
+        else return schema.getPrimaryKey(foreignTable)
+      }).join('(')
+      parts.slice(0, -1).forEach(part => foreignKey += ')')
+      return foreignKey
+    }
+
     // Check required attributes
     const unfilledRequiredAttributes = page.attributes.filter((attribute:any) => {
       if (attribute.required) {
         const value = item[attribute.id]
-        if (!!value) {
-          return false
-        } else if (attribute.type === AttributeType.Bool) {
+        if (attribute.type === AttributeType.Bool) {
           item[attribute.id] = false
           return false
         } else if (attribute.type === AttributeType.Enum) {
           item[attribute.id] = attribute.enumOptions ? attribute.enumOptions[0] : ''
+          return false
+        } else if (attribute.type === AttributeType.Join) {
+          if (!item[getForeignKey(attribute.id)]) return true
+          else if (item[getForeignKey(attribute.id)].constructor === Array && item[getForeignKey(attribute.id)].length === 0) return true
+          else return false
+        } else if (!!value) {
           return false
         } else return true
       } else {

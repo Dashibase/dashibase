@@ -114,7 +114,6 @@ const innerSelected = computed({
     return props.selected
   },
   set (newSelected:any[]) {
-    console.log(newSelected)
     emit('update', newSelected)
   },
 })
