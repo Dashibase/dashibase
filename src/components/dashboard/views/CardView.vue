@@ -66,10 +66,10 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import router from '@/router'
-import { useRoute } from 'vue-router'
 import { Page, AttributeType } from '@/utils/config'
 import { initCrud } from '@/utils/dashboard'
 import { useStore } from '@/utils/store'
+import { Schema } from '@/utils/schema'
 import View from './View.vue'
 import FilterMenu from '../elements/FilterMenu.vue'
 import Pagination from '../elements/Pagination.vue'
@@ -87,6 +87,7 @@ const props = defineProps({
 })
 
 function getDisplayedAttributes (item:any) {
+  const schema = new Schema(store.dashboard.schema)
   const displayedAttributes = page.value.attributes
     .filter(attr => !attr.hidden) // Remove hidden attributes
     .slice(1) // Remove first one since this appears as title
@@ -94,6 +95,12 @@ function getDisplayedAttributes (item:any) {
     .filter(attr => item[attr.id] || (attr.type === AttributeType.Bool && ['true', 'false'].includes(String(item[attr.id]))))
     // Remove array attributes that have are empty
     .filter(attr => !(item[attr.id].constructor === Array && item[attr.id].length === 0))
+    // Remove attributes that are JSON/JSONB but null
+    .filter(attr => {
+      const details = schema.getAttributeDetails(page.value.table_id, attr.id)
+      if (details && ['json', 'jsonb'].includes(details.format) && item[attr.id] === 'null') return false
+      else return true
+    })
   return displayedAttributes
 }
 
