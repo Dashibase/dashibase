@@ -37,9 +37,11 @@
               class="cursor-pointer focus:outline-none focus:ring-0 focus:ring-offset-0 focus:border-0 h-4 w-4 rounded text-neutral-700 border-neutral-300 dark:bg-neutral-900 dark:border-neutral-600"
               @click="event => selectCard(i, event)" />
           </div>
-          <div v-for="attribute in page.attributes.filter(attr => !attr.hidden).slice(1).filter(attribute => item[attribute.id] || (attribute.type === AttributeType.Bool && ['true', 'false'].includes(String(item[attribute.id]))))" :key="attribute.id"
+          <div v-for="attribute in getDisplayedAttributes(item)" :key="attribute.id"
             class="flex flex-col w-full">
+            <!-- Label -->
             <div class="text-2xs text-tertiary dark:text-tertiary-dark uppercase">{{ attribute.label }}</div>
+            <!-- Value -->
             <div v-if="attribute.type === AttributeType.Enum" class="mt-0.5 truncate text-xs font-semibold bg-neutral-600 text-white w-max px-2 py-0.5 rounded dark:bg-neutral-400 dark:text-neutral-800">{{ item[attribute.id] }}</div>
             <div v-else-if="attribute.type === AttributeType.Bool" class="mt-0.5 truncate text-xs font-semibold bg-neutral-600 text-white w-max px-2 py-0.5 rounded dark:bg-neutral-400 dark:text-neutral-800">{{ String(item[attribute.id]) }}</div>
             <div v-else-if="attribute.type === AttributeType.Join && item[attribute.id] && item[attribute.id].constructor === Array" class="pt-1 leading-tight">
@@ -83,6 +85,17 @@ const props = defineProps({
     required: true,
   },
 })
+
+function getDisplayedAttributes (item:any) {
+  const displayedAttributes = page.value.attributes
+    .filter(attr => !attr.hidden) // Remove hidden attributes
+    .slice(1) // Remove first one since this appears as title
+    // Remove falsey attributes unless this is boolean
+    .filter(attr => item[attr.id] || (attr.type === AttributeType.Bool && ['true', 'false'].includes(String(item[attr.id]))))
+    // Remove array attributes that have are empty
+    .filter(attr => !(item[attr.id].constructor === Array && item[attr.id].length === 0))
+  return displayedAttributes
+}
 
 const selected = ref([] as number[])
 
