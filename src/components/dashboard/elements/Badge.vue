@@ -1,5 +1,5 @@
 <template>
-  <span class="inline-flex whitespace-nowrap rounded items-center py-0.5 pl-2.5 pr-1 text-sm font-medium bg-neutral-600 text-white dark:bg-neutral-400 dark:text-neutral-800">
+  <div class="inline-flex whitespace-nowrap rounded items-center py-0.5 pl-2.5 pr-1 text-sm font-medium bg-neutral-600 text-white dark:bg-neutral-400 dark:text-neutral-800">
     <slot />
     <button type="button" @click="emit('remove')"
         class="ml-1 flex-shrink-0 h-4 w-4 flex items-center justify-center text-white dark:text-neutral-800 hover:text-red-400 dark:hover:text-red-800">
@@ -8,7 +8,7 @@
         <path stroke-linecap="round" stroke-width="1.5" d="M1 1l6 6m0-6L1 7" />
       </svg>
     </button>
-  </span>
+  </div>
 </template>
 <script setup lang="ts">
 const emit = defineEmits(['remove'])
