@@ -6,14 +6,18 @@
       </div>
       <div class="flex gap-2 items-end">
         <FilterMenu :attributes="page.attributes.filter(attr => !attr.hidden)" @close="filterItems"/>
-        <DeleteButton v-if="selected.length" @click="deleteCards">
+        <DeleteButton v-if="selected.length && !page.readonly" @click="deleteCards">
           Delete
         </DeleteButton>
-        <PrimaryButton v-if="!selected.length" :to="`/${props.pageId}/new`">
+        <PrimaryButton v-if="!selected.length && !page.readonly" :to="`/${props.pageId}/new`">
           New
         </PrimaryButton>
       </div>
     </template>
+    <!-- Triggers -->
+    <div v-if="page.triggers.length" class="w-full py-2 px-4 md:px-10 flex gap-2 justify-end">
+      <SecondaryButton v-for="trigger, i in page.triggers" :key="i" @click="trigger.call ? trigger.call(selectedItems, store.user) : null">{{ trigger.label }}</SecondaryButton>
+    </div>
     <!-- Warning -->
     <div v-if="warning" class="py-2 px-4 md:px-10 text-sm text-red-500">
       {{ warning }}
@@ -33,11 +37,19 @@
               class="cursor-pointer focus:outline-none focus:ring-0 focus:ring-offset-0 focus:border-0 h-4 w-4 rounded text-neutral-700 border-neutral-300 dark:bg-neutral-900 dark:border-neutral-600"
               @click="event => selectCard(i, event)" />
           </div>
-          <div v-for="attribute in page.attributes.filter(attr => !attr.hidden).slice(1).filter(attribute => item[attribute.id] || (attribute.type === AttributeType.Bool && ['true', 'false'].includes(String(item[attribute.id]))))" :key="attribute.id"
-            class="flex flex-col">
+          <div v-for="attribute in getDisplayedAttributes(item)" :key="attribute.id"
+            class="flex flex-col w-full">
+            <!-- Label -->
             <div class="text-2xs text-tertiary dark:text-tertiary-dark uppercase">{{ attribute.label }}</div>
+            <!-- Value -->
             <div v-if="attribute.type === AttributeType.Enum" class="mt-0.5 truncate text-xs font-semibold bg-neutral-600 text-white w-max px-2 py-0.5 rounded dark:bg-neutral-400 dark:text-neutral-800">{{ item[attribute.id] }}</div>
             <div v-else-if="attribute.type === AttributeType.Bool" class="mt-0.5 truncate text-xs font-semibold bg-neutral-600 text-white w-max px-2 py-0.5 rounded dark:bg-neutral-400 dark:text-neutral-800">{{ String(item[attribute.id]) }}</div>
+            <div v-else-if="attribute.type === AttributeType.Join && item[attribute.id] && item[attribute.id].constructor === Array" class="pt-1 leading-tight">
+              <div v-for="i in item[attribute.id]" :title="i"
+                class="mr-1 inline-block whitespace-nowrap text-xs font-semibold bg-neutral-600 text-white w-max max-w-full truncate px-2 py-0.5 rounded dark:bg-neutral-400 dark:text-neutral-800">
+                {{ i }}
+              </div>
+            </div>
             <div v-else class=" truncate text-sm">{{ item[attribute.id] }}</div>
           </div>
         </div>
@@ -54,15 +66,16 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import router from '@/router'
-import { useRoute } from 'vue-router'
 import { Page, AttributeType } from '@/utils/config'
 import { initCrud } from '@/utils/dashboard'
 import { useStore } from '@/utils/store'
+import { Schema } from '@/utils/schema'
 import View from './View.vue'
 import FilterMenu from '../elements/FilterMenu.vue'
 import Pagination from '../elements/Pagination.vue'
 import DeleteButton from '../elements/buttons/DeleteButton.vue'
 import PrimaryButton from '../elements/buttons/PrimaryButton.vue'
+import SecondaryButton from '../elements/buttons/SecondaryButton.vue'
 import DeleteModal from '../modals/DeleteModal.vue'
 
 const store = useStore()
@@ -73,10 +86,39 @@ const props = defineProps({
   },
 })
 
+function getDisplayedAttributes (item:any) {
+  const schema = new Schema(store.dashboard.schema)
+  const displayedAttributes = page.value.attributes
+    .filter(attr => !attr.hidden) // Remove hidden attributes
+    .slice(1) // Remove first one since this appears as title
+    // Remove falsey attributes unless this is boolean
+    .filter(attr => item[attr.id] || (attr.type === AttributeType.Bool && ['true', 'false'].includes(String(item[attr.id]))))
+    // Remove array attributes that have are empty
+    .filter(attr => !(item[attr.id].constructor === Array && item[attr.id].length === 0))
+    // Remove attributes that are JSON/JSONB but null
+    .filter(attr => {
+      const details = schema.getAttributeDetails(page.value.table_id, attr.id)
+      if (details && ['json', 'jsonb'].includes(details.format) && item[attr.id] === 'null') return false
+      else return true
+    })
+  return displayedAttributes
+}
+
 const selected = ref([] as number[])
 
+const selectedItems = computed(() => {
+  return selected.value.map((idx:number) => items.value[idx])
+})
+
 const page = computed(():Page => {
-  return store.dashboard.pages.find(page => page.page_id === props.pageId) || {} as Page
+  const page = store.dashboard.pages.find(page => page.page_id === props.pageId) || {} as Page
+  // Create functions
+  page.triggers = page.triggers ? page.triggers.map(trigger => {
+    const args = ['items', 'user']
+    trigger.call = new Function(...args, trigger.code)
+    return trigger
+  }) : []
+  return page
 })
 
 const deleteModal = ref<any|null>(null)
@@ -85,6 +127,7 @@ const { items, warning, paginationNum, maxPagination, paginationList, deleteItem
 
 function selectCard (idx:number, event:Event) {
   event.stopPropagation()
+  if (page.value.readonly) return
   if (!selected.value.includes(idx)) selected.value.push(idx)
   else selected.value.splice(selected.value.indexOf(idx), 1)
 }

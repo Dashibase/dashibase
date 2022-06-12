@@ -23,7 +23,7 @@
             <div class="flex items-end w-max">
               <div v-if="i === 0">where</div>
               <select v-else-if="i === 1" v-model="conjunction"
-                class="w-max border-0 rounded-md -ml-1 py-0 px-0 pr-8 focus:outline-none focus:ring-0 text-xs cursor-pointer bg-overlay dark:bg-overlay-dark">
+                class="w-max border-0 rounded-md py-0 px-0 pr-8 focus:outline-none focus:ring-0 text-xs cursor-pointer bg-overlay dark:bg-overlay-dark">
                 <option value="and">and</option>
                 <option value="or">or</option>
               </select>
@@ -95,7 +95,7 @@
               <div v-else>then</div>
               <select :value="sort.column" @input="updateSort(i, 'column', ($event.target as HTMLInputElement).value)"
                 class="mt-1 block w-max max-w-[5rem] sm:max-w-max border-0 rounded-md py-0 px-1 pr-8 focus:outline-none focus:ring-0 text-xs cursor-pointer bg-white dark:bg-neutral-700">
-                <option v-for="attribute in attributes" :key="attribute.id" :value="attribute.id">{{ attribute.label }}
+                <option v-for="attribute in validFilterColumns" :key="attribute.id" :value="attribute.id">{{ attribute.label }}
                 </option>
               </select>
               <select :value="sort.ascending"
@@ -123,10 +123,10 @@
 import { ref, computed, PropType, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStore } from '@/utils/store'
-import { Attribute } from '@/utils/config'
+import { Attribute, AttributeType } from '@/utils/config'
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/vue'
-import { XIcon, PlusIcon, SwitchVerticalIcon } from '@heroicons/vue/solid'
-import { FilterIcon } from '@heroicons/vue/outline'
+import { XIcon, PlusIcon } from '@heroicons/vue/solid'
+import { FilterIcon, SwitchVerticalIcon } from '@heroicons/vue/outline'
 import { getSchema } from '@/utils/dashboard'
 
 
@@ -168,10 +168,11 @@ const tableId = computed(() => {
 
 function getSupabaseType(attributeId: string) {
   if (Object.keys(schema.value).length === 0) return
+  if (!schema.value[tableId.value].properties[attributeId]) return
   else return schema.value[tableId.value].properties[attributeId].format
 }
 
-onMounted(async () => {
+onMounted(() => {
   getSchema()
     .then(retrievedSchema => schema.value = retrievedSchema)
 })
@@ -237,6 +238,12 @@ interface Sort {
   column: string;
   ascending: boolean;
 }
+
+const validFilterColumns = computed(() => {
+  return props.attributes
+    .filter(attr => attr.type !== AttributeType.Join)
+    .filter(attr => !['json', 'jsonb'].includes(getSupabaseType(attr.id)))
+})
 
 const prevSorts = ref([] as Sort[])
 const sorts = ref([] as Sort[])

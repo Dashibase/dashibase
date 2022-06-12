@@ -1,4 +1,4 @@
-import { Page, Attribute, AttributeType, Config } from './utils/config'
+import { Page, Attribute, AttributeType, Config, Trigger } from './utils/config'
 
 // Change this to build your own dashboard - see `utils/config.ts` for documentation
 
@@ -19,7 +19,7 @@ const DASHIBASE_CONFIG:Config = {
           required: false,
           readonly: false,
           type: AttributeType.Text,
-        } as Attribute,
+        },
         {
           // Enum example - this will generate a dropdown with the provided options
           id: "foo",
@@ -28,8 +28,27 @@ const DASHIBASE_CONFIG:Config = {
           readonly: false,
           type: AttributeType.Enum,
           enumOptions: ['foo', 'bar'], // Specify enum options
-        } as Attribute,
-      ]
+        },
+        {
+          // Join example - for showing joined data from other tables
+          // This will also work with tables joined via join tables
+          // TODO: Add clearer documentation and examples
+          id: "foreign_table(foreign_table_col)",
+          label: "Join Example",
+          required: false,
+          readonly: false,
+          type: AttributeType.Join,
+        },
+      ] as Attribute[],
+      // Trigger example - for adding custom actions to the page
+      // See config.ts for more details
+      // TODO: Add clearer documentation and examples
+      triggers: [
+        {
+          label: 'My Action',
+          code: 'alert(user.email)'
+        }
+      ] as Trigger[]
     },
   ] as Page[],
 }

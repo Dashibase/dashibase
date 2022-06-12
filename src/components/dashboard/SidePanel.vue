@@ -9,7 +9,7 @@
           </div>
           <div class="sm:hidden flex items-center gap-4">
             <DarkMode />
-            <PopoverButton class="rounded-md p-2 inline-flex items-center justify-center text-neutral-400 hover:text-neutral-500 hover:bg-neutral-100 focus:outline-none focus:ring-0">
+            <PopoverButton class="rounded-md p-0 inline-flex items-center justify-center text-neutral-400 hover:text-neutral-500 hover:bg-neutral-100 focus:outline-none focus:ring-0">
               <span class="sr-only">Open menu</span>
               <MenuIcon class="h-6 w-6" aria-hidden="true" />
             </PopoverButton>
@@ -59,7 +59,7 @@
             <!-- Profile -->
             <a class="py-6 flex items-center space-x-3 px-4 sm:px-6 select-none w-full" :title="store.user?.email || ''">
               <div class="flex-shrink-0 h-12 w-12">
-                <UserCircleIcon class="h-12 w-auto text-neutral-400" />
+                <Avatar />
               </div>
               <div class="space-y-1 shrink font-medium truncate text-neutral-800 dark:text-neutral-200">
                 {{ store.user?.email || '' }}

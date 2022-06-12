@@ -1,15 +1,18 @@
 <template>
-  <div class="sm:rounded-lg border border-[#EAEAEA] dark:border-[#2F2F2F] shadow overflow-y-hidden">
-    <table class="w-full table-fixed transition text-primary dark:text-primary-dark overflow-x-auto">
+  <div class="sm:rounded-lg border border-[#EAEAEA] dark:border-[#2F2F2F] shadow overflow-y-hidden w-full">
+    <table class="w-full transition text-primary dark:text-primary-dark overflow-x-auto">
       <thead class="drop-shadow dark:border-b-2 dark:border-b-neutral-750">
         <tr class="transition bg-table-hover dark:bg-table-hover-dark">
-          <th class="hidden sm:table-cell px-1 py-2 text-center text-xs font-medium uppercase tracking-wider w-[1rem] text-tertiary dark:text-tertiary-dark">
-            <span v-if="!selected.length">#</span>
+          <th class="hidden sm:table-cell px-1 py-2 text-center text-xs font-medium uppercase tracking-wider w-[1rem] text-tertiary dark:text-tertiary-dark group">
+            <span v-if="!selected.length" :class="props.readonly ? '' : 'group-hover:hidden'">#</span>
+            <input v-if="!selected.length" type="checkbox"
+              class="hidden cursor-pointer focus:outline-none focus:ring-0 focus:ring-offset-0 focus:border-0 h-4 w-4 rounded text-neutral-700 border-neutral-300 dark:bg-neutral-900 dark:border-neutral-600"
+              @click="selectAll" :checked="selected.length === items.length" :class="props.readonly ? '' : 'group-hover:inline-block'" />
             <input v-if="selected.length" type="checkbox"
               class="cursor-pointer focus:outline-none focus:ring-0 focus:ring-offset-0 focus:border-0 h-4 w-4 rounded text-neutral-700 border-neutral-300 dark:bg-neutral-900 dark:border-neutral-600"
               @click="selectAll" :checked="selected.length === items.length" />
           </th>
-          <th v-for="attribute in attributes" :key="attribute.id" class="px-2 py-2 text-left text-xs font-medium uppercase tracking-wider w-[10rem]">
+          <th v-for="attribute in attributes" :key="attribute.id" class="px-2 py-[0.55rem] text-left text-xs font-medium uppercase tracking-wider min-w-[6rem] whitespace-nowrap">
             <span class="lg:pl-2">{{ attribute.label }}</span>
           </th>
         </tr>
@@ -24,18 +27,24 @@
           @click.exact="event => viewItem(i, event)"
           @click.shift.left.exact="event => selectRow(i, event)">
           <td class="hidden sm:table-cell w-10 px-1 py-2 whitespace-nowrap text-sm text-center transition group text-tertiary dark:text-tertiary-dark">
-            <span v-if="!selected.length" class="group-hover:hidden">{{ i + 1 + countFrom }}</span>
+            <span v-if="!selected.length" :class="props.readonly ? '' : 'group-hover:hidden'">{{ i + 1 + countFrom }}</span>
             <input type="checkbox"
-              class="hidden group-hover:inline-block cursor-pointer focus:outline-none focus:ring-0 focus:ring-offset-0 focus:border-0 h-4 w-4 rounded text-neutral-700 border-neutral-300 dark:bg-neutral-900 dark:border-neutral-600"
-              @click="event => selectRow(i, event)" :checked="selected.includes(i)" />
+              class="hidden cursor-pointer focus:outline-none focus:ring-0 focus:ring-offset-0 focus:border-0 h-4 w-4 rounded text-neutral-700 border-neutral-300 dark:bg-neutral-900 dark:border-neutral-600"
+              :class="props.readonly ? '' : 'group-hover:inline-block'" @click="event => selectRow(i, event)" :checked="selected.includes(i)" />
             <input v-if="selected.length" type="checkbox"
-              class="group-hover:hidden cursor-pointer focus:outline-none focus:ring-0 focus:ring-offset-0 focus:border-0 h-4 w-4 rounded text-neutral-700 border-neutral-300 dark:bg-neutral-900 dark:border-neutral-600"
+              class="cursor-pointer focus:outline-none focus:ring-0 focus:ring-offset-0 focus:border-0 h-4 w-4 rounded text-neutral-700 border-neutral-300 dark:bg-neutral-900 dark:border-neutral-600" :class="props.readonly ? '' : 'group-hover:hidden'"
               :checked="selected.includes(i)" />
           </td>
           <td v-for="attribute, i in attributes" :key="attribute.id"
-            class="px-2 py-2 max-w-0 whitespace-nowrap text-sm" :class="i === 0 ? 'font-medium' : ''">
-            <div class="flex items-center space-x-3 lg:pl-2">
+            class="px-2 py-1 max-w-0 text-sm overflow-hidden sm:table-cell align-top" :class="i === 0 ? 'font-medium' : ''">
+            <div class="flex lg:pl-2 pt-1">
               <div v-if="(attribute.type === AttributeType.Enum && item[attribute.id]) || (attribute.type === AttributeType.Bool && ['true', 'false'].includes(String(item[attribute.id])))" class="truncate text-xs font-semibold bg-neutral-600 text-white w-max px-2 py-0.5 rounded dark:bg-neutral-400 dark:text-neutral-800">{{ item[attribute.id] }}</div>
+              <div v-else-if="attribute.type === AttributeType.Join && item[attribute.id] && item[attribute.id].constructor === Array" class="pt-[0.05rem] w-full">
+                <div v-for="i in item[attribute.id]" :title="i"
+                  class="mr-1 inline-block max-w-full truncate text-xs font-semibold bg-neutral-600 text-white w-max max-w-[100%] px-2 py-0.5 rounded dark:bg-neutral-400 dark:text-neutral-800">
+                  {{ i }}
+                </div>
+              </div>
               <div v-else class="truncate" :title="item[attribute.id]">
                 {{ item[attribute.id] }}
               </div>
@@ -64,6 +73,10 @@ const props = defineProps({
     type: Number,
     default: 0,
   },
+  readonly: {
+    type: Boolean,
+    default: false,
+  }
 })
 const emit = defineEmits(['createItem', 'viewItem', 'deleteItem'])
 
@@ -76,11 +89,13 @@ function viewItem (itemIdx:number, event:Event) {
 
 function selectRow (idx:number, event:Event) {
   event.stopPropagation()
+  if (props.readonly) return
   if (!selected.value.includes(idx)) selected.value.push(idx)
   else selected.value.splice(selected.value.indexOf(idx), 1)
 }
 
 function selectAll () {
+  if (props.readonly) return
   if (selected.value.length !== props.items.length) selected.value = [...Array(props.items.length).keys()]
   else selected.value = []
 }

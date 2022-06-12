@@ -28,6 +28,13 @@
                 <Toggle :modelValue="item[attribute.id] || false" :disabled="true" />
                 <span class="capitalize">{{ [true, 'true'].includes(item[attribute.id]) }}</span>
               </div>
+              <!-- AttributeType.Join && Array -->
+              <div v-else-if="attribute.type === AttributeType.Join && item[attribute.id] && item[attribute.id].constructor === Array" class="sm:text-sm flex items-center gap-2">
+                <div v-for="i in item[attribute.id]" :title="i"
+                  class="truncate text-xs font-semibold bg-neutral-600 text-white w-max max-w-[100%] px-2 py-0.5 rounded dark:bg-neutral-400 dark:text-neutral-800">
+                  {{ i }}
+                </div>
+              </div>
               <!-- Default -->
               <input v-else type="text" readonly :id="attribute.id" :value="item[attribute.id] || ''"
                 class="sm:text-sm w-full shadow-sm bg-input-disabled dark:bg-input-disabled-dark transition border-neutral-300 focus:border-neutral-300 dark:border-neutral-700 dark:focus:border-neutral-700" />
@@ -53,7 +60,25 @@
               <!-- AttributeType.LongText -->
               <textarea v-else-if="attribute.type === AttributeType.LongText" :disabled="store.loading" :id="attribute.id" :value="item[attribute.id] || ''"
                 @input="update(attribute.id, ($event.target as HTMLInputElement).value)"
-                class="sm:text-sm w-full border shadow-sm transition bg-input dark:bg-input-dark border-neutral-300 focus:border-neutral-500 dark:border-neutral-700 dark:focus:border-neutral-500" />
+                class="sm:text-sm w-full border shadow-sm bg-input dark:bg-input-dark border-neutral-300 focus:border-neutral-500 dark:border-neutral-700 dark:focus:border-neutral-500" />
+              <!-- AttributeType.Join -->
+              <div v-else-if="attribute.type === AttributeType.Join" class="relative">
+                <div v-if="getJoinType(attribute.id) === 'single'">
+                  <select :disabled="store.loading" :id="attribute.id"
+                    :value="item[`${getForeignTable(attribute.id)}(${getForeignId(attribute.id)})`]"
+                    @input="update(`${getForeignTable(attribute.id)}(${getForeignId(attribute.id)})`, ($event.target as HTMLInputElement).value)"
+                    class="sm:text-sm shadow-sm pr-8 cursor-pointer transition bg-input dark:bg-input-dark border-neutral-300 focus:border-neutral-500 dark:border-neutral-700 dark:focus:border-neutral-500">
+                    <option v-for="option in getForeignOptions(attribute.id)" :value="option.value">
+                      {{ option.label }}
+                    </option>
+                  </select>
+                </div>
+                <div v-else-if="getJoinType(attribute.id) === 'multi'">
+                  <Combobox :options="getForeignOptions(attribute.id)" :selected="item[getForeignKey(attribute.id)]"
+                    @update="value => update(getForeignKey(attribute.id), value)" />
+                </div>
+                <div v-else class="h-10 rounded bg-neutral-200 dark:bg-neutral-800 w-48 flex items-center px-5 text-sm animate-pulse">Loading...</div>
+              </div>
               <!-- Default -->
               <input v-else type="text" :disabled="store.loading" :id="attribute.id" :value="item[attribute.id] || ''"
                 @input="update(attribute.id, ($event.target as HTMLInputElement).value)"
@@ -66,10 +91,14 @@
       <div v-if="warning" class="px-4 md:px-10 text-sm text-red-500">
         {{ warning }}
       </div>
+      <!-- Triggers -->
+      <div v-if="page.triggers.length" class="w-full py-2 px-4 md:px-10 flex gap-2 justify-end">
+        <SecondaryButton v-for="trigger, i in page.triggers" :key="i" @click="trigger.call ? trigger.call([item], store.user) : null">{{ trigger.label }}</SecondaryButton>
+      </div>
       <!-- Buttons -->
       <div class="px-4 md:px-10 flex justify-between gap-4">
         <div>
-          <DeleteButton v-if="itemId" :disabled="store.loading" @click="deleteItem">
+          <DeleteButton v-if="itemId && !page.readonly" :disabled="store.loading" @click="deleteItem">
             Delete
           </DeleteButton>
         </div>
@@ -77,7 +106,7 @@
           <TertiaryButton v-if="createMode || itemId" :to="`/${pageId}`">
             Back
           </TertiaryButton>
-          <PrimaryButton :disabled="!haveUnsavedChanges || store.loading" @click="upsertItem(item)">
+          <PrimaryButton v-if="!page.readonly" :disabled="!haveUnsavedChanges || store.loading" @click="upsertItem(item)">
             Save
           </PrimaryButton>
         </div>
@@ -99,8 +128,11 @@ import View from './View.vue'
 import Toggle from '../elements/Toggle.vue'
 import DeleteButton from '../elements/buttons/DeleteButton.vue'
 import PrimaryButton from '../elements/buttons/PrimaryButton.vue'
+import SecondaryButton from '../elements/buttons/SecondaryButton.vue'
 import TertiaryButton from '../elements/buttons/TertiaryButton.vue'
 import DeleteModal from '../modals/DeleteModal.vue'
+import Combobox from '../elements/Combobox.vue'
+import { Schema } from '@/utils/schema'
 
 const store = useStore()
 const props = defineProps({
@@ -119,10 +151,17 @@ const props = defineProps({
 })
 
 const page = computed(():Page => {
-  return store.dashboard.pages.find(page => page.page_id === props.pageId) || {} as Page
+  const page = store.dashboard.pages.find(page => page.page_id === props.pageId) || {} as Page
+  // Create functions
+  page.triggers = page.triggers ? page.triggers.map(trigger => {
+    const args = ['items', 'user']
+    trigger.call = new Function(...args, trigger.code)
+    return trigger
+  }) : []
+  return page
 })
 
-const { item, warning, haveUnsavedChanges, getItem, upsertItem, deleteItems } = initCrud(page.value, props.itemId)
+const { item, warning, haveUnsavedChanges, joinedData, getItem, upsertItem, deleteItems } = initCrud(page.value, props.itemId)
 
 if (props.createMode) {
   item.value = {} as {[k:string]:any}
@@ -137,6 +176,7 @@ if (props.createMode) {
 }
 
 function update (attributeId:string, newVal:any) {
+  const schema = new Schema(store.dashboard.schema)
   item.value[attributeId] = newVal
   haveUnsavedChanges.value = true
 }
@@ -148,6 +188,64 @@ async function deleteItem () {
   if (confirm) {
     setTimeout(() => deleteItems([props.itemId]), 100) 
   }
+}
+
+function getJoinType (attributeId:string) {
+  return Object.keys(joinedData.value).length ? joinedData.value[getForeignTable(attributeId)].type : ''
+}
+
+function getForeignTable (attributeId:string) {
+  // return attributeId.split('(')[0]
+  const nestedRgx = /(.*?(\(|$))+?/g
+  const match = attributeId.match(nestedRgx)?.slice(0, -1)
+  if (!match) return ''
+  return match[match.length - 2].slice(0, -1)
+}
+
+function getForeignKey (attributeId:string) {
+  if (!attributeId.includes('(')) return attributeId
+  const schema = new Schema(store.dashboard.schema)
+  const foreignTable = getForeignTable(attributeId)
+  const parts = attributeId.split('(')
+  let foreignKey = parts.map((str, i) => {
+    if (i < parts.length - 1) return str
+    else return schema.getPrimaryKey(foreignTable)
+  }).join('(')
+  parts.slice(0, -1).forEach(part => foreignKey += ')')
+  return foreignKey
+}
+
+function getForeignId (attributeId:string) {
+  return Object.keys(joinedData.value).length ? joinedData.value[getForeignTable(attributeId)].idCol : ''
+}
+
+function getForeignAttr (attributeId:string) {
+  // let foreignAttr = ''
+  // if (attributeId.indexOf('(') > 0) foreignAttr = attributeId.slice(attributeId.indexOf('(')+1).slice(0, -1)
+  // else foreignAttr = attributeId.split('(')[1].slice(0, -1)
+  // return foreignAttr
+
+  const nestedRgx = /(.*?(\(|$))+?/g
+  const bracketRgx = /(.*?)(\(|\)|$)+?/
+  const subAttrs = attributeId.match(nestedRgx)?.slice(0, -1)
+  if (!subAttrs) return null
+  const foreignTable = subAttrs[subAttrs.length - 2].slice(0, -1)
+  let foreignAttr = ''
+  const bracketMatch = subAttrs[subAttrs.length - 1].match(bracketRgx)
+  if (bracketMatch) foreignAttr = bracketMatch[1]
+  else foreignAttr = subAttrs[subAttrs.length - 1]
+  return foreignAttr
+}
+
+function getForeignOptions (attributeId:string) {
+  const options = Object.keys(joinedData.value).length ? joinedData.value[getForeignTable(attributeId)].data
+    .map((i:any) => {
+      return {
+        label: i[getForeignAttr(attributeId) as string],
+        value: i[joinedData.value[getForeignTable(attributeId)].idCol],
+      }
+    }) : []
+  return options
 }
 
 if (props.itemId) getItem(props.itemId)
