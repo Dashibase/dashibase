@@ -95,7 +95,7 @@
               <div v-else>then</div>
               <select :value="sort.column" @input="updateSort(i, 'column', ($event.target as HTMLInputElement).value)"
                 class="mt-1 block w-max max-w-[5rem] sm:max-w-max border-0 rounded-md py-0 px-1 pr-8 focus:outline-none focus:ring-0 text-xs cursor-pointer bg-white dark:bg-neutral-700">
-                <option v-for="attribute in attributes.filter(attr => attr.type !== AttributeType.Join)" :key="attribute.id" :value="attribute.id">{{ attribute.label }}
+                <option v-for="attribute in validFilterColumns" :key="attribute.id" :value="attribute.id">{{ attribute.label }}
                 </option>
               </select>
               <select :value="sort.ascending"
@@ -238,6 +238,12 @@ interface Sort {
   column: string;
   ascending: boolean;
 }
+
+const validFilterColumns = computed(() => {
+  return props.attributes
+    .filter(attr => attr.type !== AttributeType.Join)
+    .filter(attr => !['json', 'jsonb'].includes(getSupabaseType(attr.id)))
+})
 
 const prevSorts = ref([] as Sort[])
 const sorts = ref([] as Sort[])
