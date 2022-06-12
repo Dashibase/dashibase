@@ -1,10 +1,10 @@
 <template>
   <div class="sm:rounded-lg border border-[#EAEAEA] dark:border-[#2F2F2F] shadow overflow-y-hidden w-full">
-    <table class="w-full table-fixed transition text-primary dark:text-primary-dark overflow-x-auto">
+    <table class="w-full transition text-primary dark:text-primary-dark overflow-x-auto">
       <thead class="drop-shadow dark:border-b-2 dark:border-b-neutral-750">
         <tr class="transition bg-table-hover dark:bg-table-hover-dark">
           <th class="hidden sm:table-cell px-1 py-2 text-center text-xs font-medium uppercase tracking-wider w-[1rem] text-tertiary dark:text-tertiary-dark group">
-            <span v-if="!selected.length" class="py-[0.5px] inline-block" :class="props.readonly ? '' : 'group-hover:hidden'">#</span>
+            <span v-if="!selected.length" :class="props.readonly ? '' : 'group-hover:hidden'">#</span>
             <input v-if="!selected.length" type="checkbox"
               class="hidden cursor-pointer focus:outline-none focus:ring-0 focus:ring-offset-0 focus:border-0 h-4 w-4 rounded text-neutral-700 border-neutral-300 dark:bg-neutral-900 dark:border-neutral-600"
               @click="selectAll" :checked="selected.length === items.length" :class="props.readonly ? '' : 'group-hover:inline-block'" />
@@ -12,7 +12,7 @@
               class="cursor-pointer focus:outline-none focus:ring-0 focus:ring-offset-0 focus:border-0 h-4 w-4 rounded text-neutral-700 border-neutral-300 dark:bg-neutral-900 dark:border-neutral-600"
               @click="selectAll" :checked="selected.length === items.length" />
           </th>
-          <th v-for="attribute in attributes" :key="attribute.id" class="px-2 py-2 text-left text-xs font-medium uppercase tracking-wider w-[10rem] truncate whitespace-nowrap">
+          <th v-for="attribute in attributes" :key="attribute.id" class="px-2 py-[0.55rem] text-left text-xs font-medium uppercase tracking-wider min-w-[6rem] whitespace-nowrap">
             <span class="lg:pl-2">{{ attribute.label }}</span>
           </th>
         </tr>
@@ -36,12 +36,12 @@
               :checked="selected.includes(i)" />
           </td>
           <td v-for="attribute, i in attributes" :key="attribute.id"
-            class="px-2 py-2 max-w-0 text-sm overflow-hidden" :class="i === 0 ? 'font-medium' : ''">
-            <div class="flex items-center lg:pl-2">
+            class="px-2 py-1 max-w-0 text-sm overflow-hidden sm:table-cell align-top" :class="i === 0 ? 'font-medium' : ''">
+            <div class="flex lg:pl-2 pt-1">
               <div v-if="(attribute.type === AttributeType.Enum && item[attribute.id]) || (attribute.type === AttributeType.Bool && ['true', 'false'].includes(String(item[attribute.id])))" class="truncate text-xs font-semibold bg-neutral-600 text-white w-max px-2 py-0.5 rounded dark:bg-neutral-400 dark:text-neutral-800">{{ item[attribute.id] }}</div>
-              <div v-else-if="attribute.type === AttributeType.Join && item[attribute.id] && item[attribute.id].constructor === Array">
+              <div v-else-if="attribute.type === AttributeType.Join && item[attribute.id] && item[attribute.id].constructor === Array" class="pt-[0.05rem] w-full">
                 <div v-for="i in item[attribute.id]" :title="i"
-                  class="mr-1 inline-block truncate text-xs font-semibold bg-neutral-600 text-white w-max max-w-[100%] px-2 py-0.5 rounded dark:bg-neutral-400 dark:text-neutral-800">
+                  class="mr-1 inline-block max-w-full truncate text-xs font-semibold bg-neutral-600 text-white w-max max-w-[100%] px-2 py-0.5 rounded dark:bg-neutral-400 dark:text-neutral-800">
                   {{ i }}
                 </div>
               </div>

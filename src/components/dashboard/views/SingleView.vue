@@ -75,7 +75,7 @@
                 </div>
                 <div v-else-if="getJoinType(attribute.id) === 'multi'">
                   <Combobox :options="getForeignOptions(attribute.id)" :selected="item[getForeignKey(attribute.id)]"
-                    @update="value => update(`${getForeignTable(attribute.id)}(${getForeignId(attribute.id)})`, value)" />
+                    @update="value => update(getForeignKey(attribute.id), value)" />
                 </div>
                 <div v-else class="h-10 rounded bg-neutral-200 dark:bg-neutral-800 w-48 flex items-center px-5 text-sm animate-pulse">Loading...</div>
               </div>
@@ -212,9 +212,6 @@ function getForeignKey (attributeId:string) {
     else return schema.getPrimaryKey(foreignTable)
   }).join('(')
   parts.slice(0, -1).forEach(part => foreignKey += ')')
-  console.log(foreignKey)
-  console.log(item.value)
-  console.log(item.value[foreignKey])
   return foreignKey
 }
 
@@ -241,13 +238,14 @@ function getForeignAttr (attributeId:string) {
 }
 
 function getForeignOptions (attributeId:string) {
-  return Object.keys(joinedData.value).length ? joinedData.value[getForeignTable(attributeId)].data
+  const options = Object.keys(joinedData.value).length ? joinedData.value[getForeignTable(attributeId)].data
     .map((i:any) => {
       return {
         label: i[getForeignAttr(attributeId) as string],
         value: i[joinedData.value[getForeignTable(attributeId)].idCol],
       }
     }) : []
+  return options
 }
 
 if (props.itemId) getItem(props.itemId)
