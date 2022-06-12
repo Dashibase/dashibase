@@ -112,8 +112,4 @@ async function deleteRows() {
     }, 100)
   }
 }
-
-function runTrigger(code: string) {
-  eval(code)
-}
 </script>
