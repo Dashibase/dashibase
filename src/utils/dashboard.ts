@@ -39,7 +39,7 @@ export async function initDashboard () {
     const baseSupabase = createClient(baseSupabaseUrl, baseSupabaseAnonKey)
     baseSupabase.auth.session = () => null
 
-    let appId = 'demo' // Placeholder ID
+    let appId = 'demo3' // Placeholder ID
     // If in production, get appId from host name
     if (process.env.NODE_ENV !== 'development') {
       const host = window.location.host
@@ -597,7 +597,7 @@ export function initCrud (page:Page, itemId:string|number='') {
         try {
           if (['json', 'jsonb'].includes(attrDetails.format)) mainItem[attr.id] = JSON.parse(mainItem[attr.id])
         } catch (error) {
-          throw Error(`Could not parse ${attr.id}`)
+          throw Error(`Could not parse ${attr.id}, enter "null" without the quotes if this is meant to be an empty JSON`)
         }
       })
     } catch (error) {
