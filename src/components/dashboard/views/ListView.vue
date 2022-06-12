@@ -26,7 +26,7 @@
     <!-- Mobile view -->
     <div class="mt-2 sm:hidden">
       <div class="overflow-x-auto">
-        <Table :attributes="page.attributes.filter(attr => !attr.hidden).slice(0, 1)" :items="items"
+        <Table :attributes="page.attributes.filter(attr => !attr.hidden).slice(0, 1)" :items="displayItems"
           :countFrom="(paginationNum - 1) * maxItems" @viewItem="viewRow" :readonly="page.readonly" />
       </div>
       <Pagination v-if="maxPagination > 1" class="mt-10" :paginationList="paginationList" :maxPagination="maxPagination"
@@ -35,7 +35,7 @@
     <!-- Normal view -->
     <div class="hidden sm:block mb-24 w-full">
       <div class="px-4 md:px-10 w-full">
-        <Table ref="table" :attributes="page.attributes.filter(attr => !attr.hidden)" :items="items"
+        <Table ref="table" :attributes="page.attributes.filter(attr => !attr.hidden)" :items="displayItems"
           :countFrom="(paginationNum - 1) * maxItems" @viewItem="viewRow" :readonly="page.readonly" />
       </div>
       <Pagination v-if="maxPagination > 1" class="mt-10 px-10" :paginationList="paginationList"
@@ -54,6 +54,7 @@ import router from '@/router'
 import { Page } from '@/utils/config'
 import { initCrud } from '@/utils/dashboard'
 import { useStore } from '@/utils/store'
+import { Schema } from '@/utils/schema'
 import View from './View.vue'
 import FilterMenu from '../elements/FilterMenu.vue'
 import Pagination from '../elements/Pagination.vue'
@@ -88,6 +89,18 @@ const table = ref<any | null>(null)
 
 const { items, warning, maxItems, paginationNum, maxPagination, paginationList, deleteItems, filterItems } = initCrud(page.value)
 
+const displayItems = computed(() => {
+  const schema = new Schema(store.dashboard.schema)
+  const displayItems = items.value.map((row:any) => {
+    page.value.attributes.forEach(attr => {
+      const attrDetails = schema.getAttributeDetails(page.value.table_id, attr.id)
+      if (attrDetails && ['json', 'jsonb'].includes(attrDetails.format) && row[attr.id] === 'null') row[attr.id] = ''
+    })
+    return row
+  })
+  return displayItems
+})
+
 const selected = computed(() => {
   if (!table.value) return []
   else return table.value.selected
@@ -111,9 +124,5 @@ async function deleteRows() {
         .then(() => table.value.selected = [])
     }, 100)
   }
-}
-
-function runTrigger(code: string) {
-  eval(code)
 }
 </script>
