@@ -9,7 +9,7 @@ A Page corresponds to a page in the dashboard
 Each Page is mapped to a Supabase table, which needs to fulfill 2 conditions
 1. The table must contain a column that is a foreign key to the `id` column in the auth.users table, which defaults to
    'user' if unspecified - see `Page.user_col` below
-2. The table must have an ID column, which defaults to 'id' if unspecified - see `Page.id_col` below
+2. [Deprecating Page.id_col] The table must have an ID column, which defaults to 'id' if unspecified - see `Page.id_col` below
 
 We currently support 3 display modes
 - 'single' shows a single page, meant of tables where each user can have a maximum of 1 row
@@ -22,7 +22,6 @@ export interface Page {
   table_id: string; // Name of the Supabase table (required)
   mode: string; // One of ['single', 'list', 'card'] (required)
   readonly: boolean; // Whether this page is read-only
-  id_col: string; // Name of column that refers to the row or item ID - defaults to 'id'
   user_col: string; // Name of column that refers to the user ID and is a foreign key to auth.users - defaults to 'user'
   enforce_user_col: boolean; // Whether this page enforces having a user_col foreign key in the corresponding Supabase table
   attributes: Array<Attribute>; // Which columns/attributes to show to the user

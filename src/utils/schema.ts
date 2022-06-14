@@ -1,20 +1,51 @@
 
 import * as _ from 'lodash'
+import { useStore } from '@/utils/store'
+import { loadDashboardMetadata } from './supabase'
+
+export async function getSchema () {
+  const metadata = await loadDashboardMetadata()
+  const response = await fetch(`${metadata.supabaseUrl}/rest/v1/?apikey=${metadata.supabaseAnonKey}`)
+  const schema = await (await response.json()).definitions
+  const store = useStore()
+  store.dashboard.schema = new Schema(schema)
+  return schema 
+}
+
+interface TableSchema {
+  required: string[];
+  properties: { [attributeId:string]: { type:string, format:string, description?:string} };
+  attributeIds: string[];
+  pk: string;
+  fk: ({ attributeId:string, table:string }|null)[];
+}
 
 export class Schema {
-  schema:any;
+  _schema:any;
+  t: { [tableId:string]:TableSchema };
 
   constructor (schema:any) {
-    this.schema = schema
+    this._schema = schema
+    this.t = {}
+    // Initialize schema properties for easy access
+    Object.keys(schema).forEach(tableId => {
+      const table = schema[tableId] as any
+      this.t[tableId] = {
+        required: table.required,
+        properties: table.properties,
+        attributeIds: Object.keys(table.properties),
+        pk: this._getPrimaryKey(table),
+        fk: this._getForeignKeys(table),
+      }
+    })
   }
 
-  getAttributeIds (tableId:string) {
-    return Object.keys(this.schema[tableId].properties)
-  }
-
-  getPrimaryKey (tableId:string) {
+  /*
+  Retrieve primary key of specific table
+  */
+  _getPrimaryKey (table:any) {
     const pkRegex = /<pk\/>/
-    const primaryAttribute = Object.entries(this.schema[tableId].properties).find((attr:any) => {
+    const primaryAttribute = Object.entries(table.properties).find((attr:any) => {
       const attributeVal = attr[1]
       if (!attributeVal.description) return false
       const match = attributeVal.description.match(pkRegex)
@@ -22,11 +53,35 @@ export class Schema {
       else return false
     })
     if (primaryAttribute) return primaryAttribute[0]
-    else return null
+    else return ''
+  }
+
+  /*
+  Retrieve foreign keys and corresponding foreign tables
+  */
+  _getForeignKeys (table:any) {
+    const outgoing = Object.entries(table.properties)
+      .map((attr:any) => {
+        const attributeId = attr[0]
+        const attributeVal = attr[1]
+        const fkRegex = /<fk table='(?<tableId>.*?)' column=/
+        if (!attributeVal.description) return null
+        const match = attributeVal.description.match(fkRegex)
+        if (match) {
+          return {
+            attributeId,
+            table: match.groups.tableId as string
+          }
+        } else {
+          return null
+        }
+      })
+      .filter(table => table)
+    return outgoing
   }
 
   getForeignTable (tableId:string, foreignKey:string) {
-    const column = this.schema[tableId].properties[foreignKey]
+    const column = this._schema[tableId].properties[foreignKey]
     if (!column.description) return null
     const foreignTableRgx = /<fk table='(?<foreignTableId>.*?)' column='(?<foreignJoinId>.*?)'\/>/
     const foreignTableMatch = column.description.match(foreignTableRgx)
@@ -42,95 +97,14 @@ export class Schema {
 
   getFkColumns (sourceTable:string, foreignTable:string) {
     // Might be more than one
-    return this.getOutgoingJoins(sourceTable)
+    return this._getForeignKeys(this.t[sourceTable])
       .filter((out:any) => out.table === foreignTable)
       .map((out:any) => out.attributeId)
   }
 
-  // Get all relevant attributes, including from joined tables
-  getRelevantAttributes (tableId:string, attributeIds:string[]) {
-    function unionArray (obj:string[], src:string[]) {
-      if (!obj) return src
-      if (!src) return obj
-      return _.union(obj, src)
-    }
-    const attributesObjs = attributeIds.map(attributeId => {
-      const foreignTableRgx = /^(?<foreignTableId>@.*?)\.(?<foreignAttributeId>.*?)$/
-      const foreignKeyRgx = /^(?<foreignKey>.*?)\.(?<foreignAttributeId>.*?)$/
-      const foreignTableMatch = attributeId.match(foreignTableRgx)
-      const foreignKeyMatch = attributeId.match(foreignKeyRgx)
-      let attributes = {} as {[k:string]:string[]}
-      if (foreignTableMatch) {
-        // e.g. @TagRelations.tag.label or @Actors.name
-        const foreignTableId = (foreignTableMatch.groups as any).foreignTableId
-        const foreignAttributeId = (foreignTableMatch.groups as any).foreignAttributeId
-        const subAttributes = this.getRelevantAttributes(foreignTableId, [foreignAttributeId])
-        attributes = _.mergeWith(attributes, subAttributes, unionArray)
-        return attributes
-      } else if (foreignKeyMatch) {
-        // e.g. director.name
-        const foreignKey = (foreignKeyMatch.groups as any).foreignKey
-        const foreignTable = this.getForeignTable(tableId, foreignKey)
-        const foreignTableId = foreignTable?.tableId
-        const foreignJoinId = foreignTable?.joinId
-        const foreignAttributeId = (foreignKeyMatch.groups as any).foreignAttributeId
-        const subAttributes = this.getRelevantAttributes(foreignTableId, [foreignAttributeId])
-        attributes = _.mergeWith(attributes, subAttributes, unionArray)
-        attributes = _.mergeWith(attributes, {[tableId]: [foreignKey]}, unionArray)
-        attributes = _.mergeWith(attributes, {[foreignTableId]: [foreignJoinId]}, unionArray)
-        return attributes
-      } else {
-        attributes[tableId] = [attributeId]
-        return attributes
-      }
-    })
-    let allAttributes = {} as {[k:string]:string[]}
-    attributesObjs.forEach(obj => {
-      allAttributes = _.mergeWith(allAttributes, obj, unionArray)
-    })
-    return allAttributes
-  }
-
-  getOutgoingJoins (tableId:string) {
-    const outgoing = Object.entries(this.schema[tableId].properties).map((attr:any) => {
-      const attributeId = attr[0]
-      const attributeVal = attr[1]
-      const fkRegex = /<fk table='(?<tableId>.*?)' column=/
-      if (!attributeVal.description) return null
-      const match = attributeVal.description.match(fkRegex)
-      if (match) {
-        return {
-          attributeId,
-          table: match.groups.tableId as string
-        }
-      } else {
-        return null
-      }
-    }).filter(table => table)
-    return outgoing
-  }
-
-  getIncomingJoins (tableId:string) {
-    const firstDegreeTables = Object.keys(this.schema).filter(table => this.getOutgoingJoins(table).map((foreignTable:any) => foreignTable.table).includes(tableId))
-    // Also get outgoing tables of incoming tables
-    const incomingTables = [] as string[]
-    firstDegreeTables.forEach(table => {
-      incomingTables.push(table)
-      this.getOutgoingJoins(table).map((foreignTable:any) => foreignTable.table)
-        .forEach(foreignTable => {
-          if (foreignTable !== tableId && !incomingTables.includes(foreignTable)) incomingTables.push(foreignTable)
-        })
-    })
-    return incomingTables
-  }
-
   getJoinTable (table1:string, table2:string) {
-    const incoming1 = Object.keys(this.schema).filter(table => this.getOutgoingJoins(table).map((foreignTable:any) => foreignTable.table).includes(table1))
-    const incoming2 = Object.keys(this.schema).filter(table => this.getOutgoingJoins(table).map((foreignTable:any) => foreignTable.table).includes(table2))
+    const incoming1 = Object.keys(this._schema).filter(table => this._getForeignKeys(this.t[table]).map((foreignTable:any) => foreignTable.table).includes(table1))
+    const incoming2 = Object.keys(this._schema).filter(table => this._getForeignKeys(this.t[table]).map((foreignTable:any) => foreignTable.table).includes(table2))
     return _.intersection(incoming1, incoming2)[0]
-  }
-
-  getAttributeDetails (tableId:string, attributeId:string) {
-    return this.schema[tableId].properties[attributeId]
   }
 }

@@ -38,12 +38,9 @@
           <td v-for="attribute, i in attributes" :key="attribute.id"
             class="px-2 py-1 max-w-0 text-sm overflow-hidden sm:table-cell align-top" :class="i === 0 ? 'font-medium' : ''">
             <div class="flex lg:pl-2 pt-1">
-              <div v-if="(attribute.type === AttributeType.Enum && item[attribute.id]) || (attribute.type === AttributeType.Bool && ['true', 'false'].includes(String(item[attribute.id])))" class="truncate text-xs font-semibold bg-neutral-600 text-white w-max px-2 py-0.5 rounded dark:bg-neutral-400 dark:text-neutral-800">{{ item[attribute.id] }}</div>
+              <Badge v-if="(attribute.type === AttributeType.Enum && item[attribute.id]) || (attribute.type === AttributeType.Bool && ['true', 'false'].includes(String(item[attribute.id])))" :size="'sm'">{{ item[attribute.id] }}</Badge>
               <div v-else-if="attribute.type === AttributeType.Join && item[attribute.id] && item[attribute.id].constructor === Array" class="pt-[0.05rem] w-full">
-                <div v-for="i in item[attribute.id]" :title="i"
-                  class="mr-1 inline-block max-w-full truncate text-xs font-semibold bg-neutral-600 text-white w-max max-w-[100%] px-2 py-0.5 rounded dark:bg-neutral-400 dark:text-neutral-800">
-                  {{ i }}
-                </div>
+                <Badge v-for="i in item[attribute.id]" :title="i" :size="'sm'" class="mr-1">{{ i }}</Badge>
               </div>
               <div v-else class="truncate" :title="item[attribute.id]">
                 {{ item[attribute.id] }}
@@ -59,6 +56,7 @@
 <script setup lang="ts">
 import { ref, PropType } from 'vue'
 import { Attribute, AttributeType } from '@/utils/config'
+import Badge from '../elements/Badge.vue'
 
 const props = defineProps({
   attributes: {

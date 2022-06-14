@@ -2,6 +2,7 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { User } from '@supabase/supabase-js'
 import { Page } from './config'
+import { Schema } from './schema'
 
 export const useStore = defineStore(
   'main',
@@ -15,9 +16,9 @@ export const useStore = defineStore(
       supabaseUrl: '',
       supabaseAnonKey: '',
       pages: [] as Page[],
-      schema: null as any,
+      schema: null as unknown as Schema,
     })
-    const data = ref([] as { id: string; data: unknown; count: number; }[])
+    const data = ref([] as { id: string; data: unknown; count: number; joinedData: unknown }[])
     const initializing = ref({
       dashboard: false,
       data: false,
@@ -35,6 +36,7 @@ export const useStore = defineStore(
       afterRestore: context => {
         // Escape hatch for infinite loading
         context.store.loading = false
+        if (context.store.dashboard.schema) context.store.dashboard.schema = new Schema(context.store.dashboard.schema._schema)
       },
     },
   },
