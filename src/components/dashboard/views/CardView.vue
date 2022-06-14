@@ -28,7 +28,7 @@
         No cards found.
       </div>
       <button v-for="(item, i) in items" :key="i" class="text-left border border-2 rounded-lg p-7 flex justify-between hover:shadow-md hover:scale-[101%] transition border-neutral-100 bg-overlay dark:bg-overlay-dark dark:border-neutral-750 shadow"
-        @click.exact="router.push(`/${page.page_id}/view/${item[page.id_col || 'id']}`)"
+        @click.exact="router.push(`/${page.page_id}/view/${item[primaryKey]}`)"
         @click.shift.left.exact="event => selectCard(i, event)">
         <div class="flex flex-col gap-2 w-full">
           <div class="font-semibold text-2xl flex items-center justify-between">
@@ -42,15 +42,11 @@
             <!-- Label -->
             <div class="text-2xs text-tertiary dark:text-tertiary-dark uppercase">{{ attribute.label }}</div>
             <!-- Value -->
-            <div v-if="attribute.type === AttributeType.Enum" class="mt-0.5 truncate text-xs font-semibold bg-neutral-600 text-white w-max px-2 py-0.5 rounded dark:bg-neutral-400 dark:text-neutral-800">{{ item[attribute.id] }}</div>
-            <div v-else-if="attribute.type === AttributeType.Bool" class="mt-0.5 truncate text-xs font-semibold bg-neutral-600 text-white w-max px-2 py-0.5 rounded dark:bg-neutral-400 dark:text-neutral-800">{{ String(item[attribute.id]) }}</div>
+            <Badge v-if="(attribute.type === AttributeType.Enum && item[attribute.id]) || (attribute.type === AttributeType.Bool && ['true', 'false'].includes(String(item[attribute.id])))" :size="'sm'" class="w-max mt-0.5">{{ item[attribute.id] }}</Badge>
             <div v-else-if="attribute.type === AttributeType.Join && item[attribute.id] && item[attribute.id].constructor === Array" class="pt-1 leading-tight">
-              <div v-for="i in item[attribute.id]" :title="i"
-                class="mr-1 inline-block whitespace-nowrap text-xs font-semibold bg-neutral-600 text-white w-max max-w-full truncate px-2 py-0.5 rounded dark:bg-neutral-400 dark:text-neutral-800">
-                {{ i }}
-              </div>
+              <Badge v-for="i in item[attribute.id]" :title="i" :size="'sm'" class="mr-1">{{ i }}</Badge>
             </div>
-            <div v-else class=" truncate text-sm">{{ item[attribute.id] }}</div>
+            <div v-else class="truncate text-sm">{{ item[attribute.id] }}</div>
           </div>
         </div>
       </button>
@@ -69,7 +65,6 @@ import router from '@/router'
 import { Page, AttributeType } from '@/utils/config'
 import { initCrud } from '@/utils/dashboard'
 import { useStore } from '@/utils/store'
-import { Schema } from '@/utils/schema'
 import View from './View.vue'
 import FilterMenu from '../elements/FilterMenu.vue'
 import Pagination from '../elements/Pagination.vue'
@@ -77,6 +72,7 @@ import DeleteButton from '../elements/buttons/DeleteButton.vue'
 import PrimaryButton from '../elements/buttons/PrimaryButton.vue'
 import SecondaryButton from '../elements/buttons/SecondaryButton.vue'
 import DeleteModal from '../modals/DeleteModal.vue'
+import Badge from '../elements/Badge.vue'
 
 const store = useStore()
 const props = defineProps({
@@ -87,7 +83,6 @@ const props = defineProps({
 })
 
 function getDisplayedAttributes (item:any) {
-  const schema = new Schema(store.dashboard.schema)
   const displayedAttributes = page.value.attributes
     .filter(attr => !attr.hidden) // Remove hidden attributes
     .slice(1) // Remove first one since this appears as title
@@ -97,7 +92,7 @@ function getDisplayedAttributes (item:any) {
     .filter(attr => !(item[attr.id].constructor === Array && item[attr.id].length === 0))
     // Remove attributes that are JSON/JSONB but null
     .filter(attr => {
-      const details = schema.getAttributeDetails(page.value.table_id, attr.id)
+      const details = store.dashboard.schema.t[page.value.table_id].properties[attr.id]
       if (details && ['json', 'jsonb'].includes(details.format) && item[attr.id] === 'null') return false
       else return true
     })
@@ -121,6 +116,8 @@ const page = computed(():Page => {
   return page
 })
 
+const primaryKey = store.dashboard.schema.t[page.value.table_id].pk
+
 const deleteModal = ref<any|null>(null)
 
 const { items, warning, paginationNum, maxPagination, paginationList, deleteItems, filterItems } = initCrud(page.value)
@@ -137,7 +134,7 @@ async function deleteCards () {
   const confirm = await deleteModal.value.confirm()
   if (confirm) {
     setTimeout(() => {
-      deleteItems(selected.value.map((idx:number) => items.value[idx][page.value.id_col || 'id']))
+      deleteItems(selected.value.map((idx:number) => items.value[idx][primaryKey]))
         .then(() => selected.value = [])
     }, 100)
   }

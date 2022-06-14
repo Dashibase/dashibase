@@ -120,14 +120,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, PropType, onMounted } from 'vue'
+import { ref, computed, PropType } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStore } from '@/utils/store'
 import { Attribute, AttributeType } from '@/utils/config'
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/vue'
 import { XIcon, PlusIcon } from '@heroicons/vue/solid'
 import { FilterIcon, SwitchVerticalIcon } from '@heroicons/vue/outline'
-import { getSchema } from '@/utils/dashboard'
 
 
 const route = useRoute()
@@ -157,8 +156,6 @@ function apply() {
 
 // Customize the filters based on attribute type inferred from Supabase schema
 
-const schema = ref({} as any)
-
 const tableId = computed(() => {
   const pageId = route.params.pageId
   const page = store.dashboard.pages.find(page => page.page_id === pageId)
@@ -167,15 +164,9 @@ const tableId = computed(() => {
 })
 
 function getSupabaseType(attributeId: string) {
-  if (Object.keys(schema.value).length === 0) return
-  if (!schema.value[tableId.value].properties[attributeId]) return
-  else return schema.value[tableId.value].properties[attributeId].format
+  if (!store.dashboard.schema.t[tableId.value].properties[attributeId]) return ''
+  else return store.dashboard.schema.t[tableId.value].properties[attributeId].format
 }
-
-onMounted(() => {
-  getSchema()
-    .then(retrievedSchema => schema.value = retrievedSchema)
-})
 
 // Filters
 

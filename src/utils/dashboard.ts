@@ -5,9 +5,9 @@ import config from '@/dashibaseConfig'
 import router from '@/router'
 import { Page, Attribute, AttributeType } from './config'
 import { useStore } from './store'
-import { isHostedByDashibase, supabase } from './supabase'
-import { isUUID } from './utils'
-import { Schema } from './schema'
+import { isHostedByDashibase, supabase, getDashboardMetadata, loadDashboardMetadata } from './supabase'
+import { getSchema } from './schema'
+import { getQueryAttributes, getForeignPrimaryKeyAttribute } from './joins'
 
 const pageConfigs = {
   list: {
@@ -25,8 +25,9 @@ const pageConfigs = {
 Initialize dashboard pages and store in Pinia store
 */
 export async function initDashboard () {
+  await getSchema()
   const store = useStore()
-  if (!store.user.id) return
+  if (!store.user || !store.user.id) return
   if (!isHostedByDashibase) {
     store.dashboard.pages = config.pages
     return
@@ -39,26 +40,13 @@ export async function initDashboard () {
     const baseSupabase = createClient(baseSupabaseUrl, baseSupabaseAnonKey)
     baseSupabase.auth.session = () => null
 
-    let appId = 'demo3' // Placeholder ID
-    // If in production, get appId from host name
-    if (process.env.NODE_ENV !== 'development') {
-      const host = window.location.host
-      appId = host.split('.')[0]
-    }
-    const response = await baseSupabase.from('dashboards').select('id,supabase_url,supabase_anon_key,app_name').eq('app_id', appId).single()
-    if (response.error) {
-      throw Error(response.error.message)
-    } else {
-      store.dashboard.supabaseUrl = response.data.supabase_url as string
-      store.dashboard.supabaseAnonKey = response.data.supabase_anon_key as string
-      store.dashboard.name = response.data.app_name
-      document.title = response.data.app_name
-    }
+    // Refresh metadata
+    const metadata = await getDashboardMetadata()
 
     const { data, error } = await baseSupabase
       .from('views')
-      .select('label,page_id,table_id,attributes,mode,readonly,id_col,user_col,enforce_user_col,triggers')
-      .eq('dashboard', store.dashboard.id)
+      .select('label,page_id,table_id,attributes,mode,readonly,user_col,enforce_user_col,triggers')
+      .eq('dashboard', metadata.dashboardId)
       .order('order')
 
     if (error) {
@@ -72,7 +60,6 @@ export async function initDashboard () {
         table_id: view.table_id,
         mode: view.mode,
         readonly: view.readonly,
-        id_col: view.id_col || 'id',
         enforce_user_col: typeof view.enforce_user_col === "boolean" ? view.enforce_user_col : true,
         user_col: view.user_col || 'user',
         attributes: view.attributes.map((attribute:any) => {
@@ -97,74 +84,11 @@ export async function initDashboard () {
 }
 
 /*
-Get foreign table from an attributeId
-*/
-function getForeignTable (attributeId:string) {
-  if (!attributeId.includes('(')) return ''
-  const nestedRgx = /(.*?(\(|$))+?/g
-  const match = attributeId.match(nestedRgx)?.slice(0, -1)
-  if (!match) return ''
-  return match[match.length - 2].slice(0, -1)
-}
-
-/*
-Get appropriate Foreign Key 
-*/
-function getForeignKey (attributeId:string) {
-  const store = useStore()
-  if (!attributeId.includes('(')) return attributeId
-  const schema = new Schema(store.dashboard.schema)
-  const foreignTable = getForeignTable(attributeId)
-  const parts = attributeId.split('(')
-  let foreignKey = parts.map((str, i) => {
-    if (i < parts.length - 1) return str
-    else return schema.getPrimaryKey(foreignTable)
-  }).join('(')
-  parts.slice(0, -1).forEach(part => foreignKey += ')')
-  return foreignKey
-}
-
-/*
-Add relevant primary key and foreign key attributes
-e.g. Given ["title", "actors(name)"]
-Add the relevant foreign primary key from the "actors" table
-We need this to key items in the foreign table
-*/
-function addForeignKeyAttributes (attributes:Attribute[], primaryKey:string|null=null) {
-  // Add primaryKey if provided
-  if (primaryKey) {
-    attributes = attributes.concat({
-      id: primaryKey,
-      label: primaryKey,
-      required: false,
-      readonly: false,
-      hidden: false,
-      type: AttributeType.Text
-    })
-  }
-  // For each foreign table, add the foreign primary key
-  attributes.filter(attr => attr.id.includes('('))
-    .forEach(attr => {
-      const foreignPrimaryKey = getForeignKey(attr.id)
-      if (!attributes.some(attr => attr.id === foreignPrimaryKey)) attributes.push({
-        id: foreignPrimaryKey,
-        label: foreignPrimaryKey,
-        required: false,
-        readonly: false,
-        hidden: false,
-        type: AttributeType.Text
-      })
-    })
-  return attributes
-}
-
-/*
 Build a SELECT query from multiple attributes strings
 e.g. "title", "actors(name)", "actors(age)" -> "title,actors(name,age)"
 */
 function buildQuery (attributes:string[]) {
   const store = useStore()
-  const schema = new Schema(store.dashboard.schema)
   // Combine attributes to build query string
   // TODO: Design better regex
   const nestedRgx = /(.*?(\(|$))+?/g
@@ -184,7 +108,7 @@ function buildQuery (attributes:string[]) {
     let tmpObj = queryObj
     split.forEach((attr, i) => {
       if (!(attr in tmpObj)) tmpObj[attr] = {} as {[k:string]:any}
-      if (i < split.length - 1) tmpObj[attr][schema.getPrimaryKey(attr) as string] = {}
+      if (i < split.length - 1) tmpObj[attr][store.dashboard.schema.t[attr].pk as string] = {}
       tmpObj = tmpObj[attr]
     })
   })
@@ -271,6 +195,74 @@ function getNestedAttribute (item:any, attr:string):[string, any] {
 }
 
 /*
+Convert retrieved data into a properly formatted item
+- Map nested attributes
+- Stringify JSON/JSONB
+- Add primary keys
+*/
+function rowToItem (row:any, page:Page, attributeIds:Attribute[]) {
+  const store = useStore()
+  // Build item using getNestedAttribute
+  const item = attributeIds.map(attr => {
+    const attrValue = getNestedAttribute(row, attr.id)
+    let attrDetails = {} as { format: string }
+    if (attr.id.includes('(')) {
+      // Attribute is from a foreign table
+      const foreignTable = attr.id.split('(').slice(-2, -1)[0]
+      const foreignAttr = attr.id.split('(').slice(-1)[0].split(')')[0]
+      attrDetails = store.dashboard.schema.t[foreignTable].properties[foreignAttr]
+    } else attrDetails = store.dashboard.schema.t[page.table_id].properties[attr.id]
+    if (['json', 'jsonb'].includes(attrDetails.format)) attrValue[1] = JSON.stringify(attrValue[1], null, 2)
+    return attrValue
+  }).reduce((a:Object, v:string[]) => ({...a, [v[0]]: v[1]}), {}) as {[k:string]:any}
+  // Add primaryKey into item
+  const primaryKey = store.dashboard.schema.t[page.table_id].pk
+  if (!(primaryKey in item)) {
+    item[primaryKey] = row[primaryKey]
+  }
+  return item
+}
+
+/*
+Retrieve data from joined tables for dropdowns when editing items
+*/
+async function getJoinedData (page:Page) {
+  const store = useStore()
+  const attrTables = getJoinedTablesAndAttributes(page.attributes.map(attr => attr.id))
+  const selectPromises = Object.keys(attrTables)
+    .filter(foreignTableId => foreignTableId !== page.table_id)
+    .map(foreignTableId => {
+      return new Promise(async (resolve, reject) => {
+        const type = store.dashboard.schema.getFkColumns(page.table_id, foreignTableId).length ? 'single' : 'multi'
+        const foreignAttributes = attrTables[foreignTableId]
+        const foreignPrimaryKey = store.dashboard.schema.t[foreignTableId].pk as string
+        if (!foreignAttributes.includes(foreignPrimaryKey)) foreignAttributes.push(foreignPrimaryKey)
+        const response = await supabase.from(foreignTableId)
+          .select(foreignAttributes.join(','))
+        if (response.error) reject(response.error.message)
+        
+        // May data to foreignAttributes
+        const data = response.data?.map((row:any) => {
+          // Build item using getNestedAttribute
+          const item = foreignAttributes.map((attr:string) => {
+            return getNestedAttribute(row, attr)
+          }).reduce((a:Object, v:string[]) => ({...a, [v[0]]: v[1]}), {}) as {[k:string]:any}
+          return item
+        })
+        
+        resolve({
+          tableId: foreignTableId,
+          data,
+          type,
+        })
+      })
+    })
+  const joins = await Promise.all(selectPromises)
+    .then(responses => responses.reduce((a:any, v:any) => ({...a, [v.tableId]: v}), {}))
+  return joins
+}
+
+/*
 Initialize user data and store in Pinia store
 */
 export async function initUserData () {
@@ -278,15 +270,15 @@ export async function initUserData () {
   if (!store.dashboard.schema) {
     await getSchema()
   }
-  const schema = new Schema(store.dashboard.schema)
   if (!store.user.id) return
   if (store.initializing.data) return
   store.initializing.data = true
   try {
-    const supabase = createClient(store.dashboard.supabaseUrl, store.dashboard.supabaseAnonKey)
+    const metadata = await loadDashboardMetadata()
+    const supabase = createClient(metadata.supabaseUrl, metadata.supabaseAnonKey)
     const promises = store.dashboard.pages.map(page => {
 
-      const attributeIds = addForeignKeyAttributes(page.attributes, page.id_col || 'id')
+      const attributeIds = getQueryAttributes(page)
       const selectionQuery = buildQuery(attributeIds.map(attr => attr.id))
 
       return new Promise(async (resolve, reject) => {
@@ -307,31 +299,20 @@ export async function initUserData () {
       })
     })
     await Promise.all(promises)
-      .then(responses => {
-        store.data = responses.map((response:any, i) => {
+      .then(async responses => {
+        store.data = await Promise.all(responses.map(async (response:any, i) => {
           const data = response.data.map((row:any) => {
             const page = response.page as Page
-            const attributeIds = addForeignKeyAttributes(page.attributes, page.id_col || 'id')
-            // Build item using getNestedAttribute
-            const item = attributeIds.map(attr => {
-              const attrValue = getNestedAttribute(row, attr.id)
-              let attrDetails = {} as { format: string }
-              if (attr.id.includes('(')) attrDetails = schema.getAttributeDetails(attr.id.split('(').slice(-2, -1)[0], attr.id.split('(').slice(-1)[0].split(')')[0])
-              else attrDetails = schema.getAttributeDetails(page.table_id, attr.id)
-              if (['json', 'jsonb'].includes(attrDetails.format)) {
-                if (attr.type === AttributeType.LongText) attrValue[1] = JSON.stringify(attrValue[1], null, 2)
-                else attrValue[1] = JSON.stringify(attrValue[1])
-              }
-              return attrValue
-            }).reduce((a:Object, v:string[]) => ({...a, [v[0]]: v[1]}), {}) as {[k:string]:any}
-            return item
+            const attributeIds = getQueryAttributes(page)
+            return rowToItem(row, page, attributeIds)
           })
           return {
             id: store.dashboard.pages[i].page_id,
             data,
-            count: response.count
+            count: response.count,
+            joinedData: await getJoinedData(response.page as Page),
           }
-        })
+        }))
       })
   } catch (error) {
     console.error(error)
@@ -345,8 +326,8 @@ Initialize CRUD functions and related variables
 */
 export function initCrud (page:Page, itemId:string|number='') {
   const store = useStore()
-  const schema = new Schema(store.dashboard.schema)
-  if (typeof itemId === 'string' && !isUUID(itemId)) itemId = parseInt(itemId)
+  const primaryKey = store.dashboard.schema.t[page.table_id].pk as string
+  if (typeof itemId === 'string' && store.dashboard.schema.t[page.table_id].properties[primaryKey].type === 'integer') itemId = parseInt(itemId)
   // warning will be displayed upon any CRUD errors
   const warning = ref('')
   // items stores the retrieved items when reading
@@ -356,21 +337,22 @@ export function initCrud (page:Page, itemId:string|number='') {
   })
   // If page.mode is 'single' make sure there is at least an empty object
   const items = ref(JSON.parse(JSON.stringify(cache.value.data || [])))
-  const item = ref(JSON.parse(JSON.stringify(itemId  ? items.value.find((item:any) => item[page.id_col || 'id'] === itemId) || {} : items.value[0] || {})))
+  const item = ref(JSON.parse(JSON.stringify(itemId  ? items.value.find((item:any) => item[primaryKey] === itemId) || {} : items.value[0] || {})))
   // total number of items in Supabase table
   const itemsCount = ref(cache.value.count)
   // haveUnsavedChanges is used to denote if changes have been made by the user
   const haveUnsavedChanges = ref(false)
   // joinedData is used to store data related to joined tables
-  const joinedData = ref({} as any)
-  getJoinedData()
+  const joinedData = ref(JSON.parse(JSON.stringify(cache.value.joinedData || {})))
+  // getJoinedData(page)
 
   // Update items when cache updates
   watch (cache, (newCache, prevCache) => {
     if (prevCache.data) return
     items.value = JSON.parse(JSON.stringify(cache.value.data || []))
-    item.value = JSON.parse(JSON.stringify(itemId ? cache.value.data.find((item:any) => item[page.id_col || 'id'] === itemId) || {} : cache.value.data[0] || {}))
+    item.value = JSON.parse(JSON.stringify(itemId ? cache.value.data.find((item:any) => item[primaryKey] === itemId) || {} : cache.value.data[0] || {}))
     itemsCount.value = cache.value.count
+    joinedData.value = JSON.parse(JSON.stringify(cache.value.joinedData || {}))
   })
 
   // Filters and sorts
@@ -399,7 +381,7 @@ export function initCrud (page:Page, itemId:string|number='') {
     store.loading = true
     const startRow = Math.max(0, currentPagination - 1) * maxItems
 
-    const attributeIds = addForeignKeyAttributes(page.attributes, page.id_col || 'id')
+    const attributeIds = getQueryAttributes(page)
     const selectionQuery = buildQuery(attributeIds.map(attr => attr.id))
 
     let request = page.enforce_user_col ?
@@ -435,66 +417,11 @@ export function initCrud (page:Page, itemId:string|number='') {
     } else {
       // Map data
       const data = response.data.map((row:any) => {
-        // Build item using getNestedAttribute
-        const item = attributeIds.map(attr => {
-          const attrValue = getNestedAttribute(row, attr.id)
-          let attrDetails = {} as { format: string }
-          if (attr.id.includes('(')) attrDetails = schema.getAttributeDetails(attr.id.split('(').slice(-2, -1)[0], attr.id.split('(').slice(-1)[0].split(')')[0])
-          else attrDetails = schema.getAttributeDetails(page.table_id, attr.id)
-          if (['json', 'jsonb'].includes(attrDetails.format)) attrValue[1] = JSON.stringify(attrValue[1])
-          return attrValue
-        }).reduce((a:Object, v:string[]) => ({...a, [v[0]]: v[1]}), {}) as {[k:string]:any}
-        // Add idCol into item
-        const idCol = page.id_col || 'id'
-        if (!(idCol in item)) {
-          item[idCol] = row[idCol]
-        }
-        return item
+        return rowToItem(row, page, attributeIds)
       })
       items.value = data
     }
   })
-
-  /*
-  Retrieve data from joined tables for dropdowns when editing items
-  */
-  function getJoinedData () {
-    const attrTables = getJoinedTablesAndAttributes(page.attributes.map(attr => attr.id))
-    const selectPromises = Object.keys(attrTables)
-      .filter(foreignTableId => foreignTableId !== page.table_id)
-      .map(foreignTableId => {
-        return new Promise(async (resolve, reject) => {
-          const type = schema.getFkColumns(page.table_id, foreignTableId).length ? 'single' : 'multi'
-          const foreignAttributes = attrTables[foreignTableId]
-          const foreignPrimaryKey = schema.getPrimaryKey(foreignTableId) as string
-          if (!foreignAttributes.includes(foreignPrimaryKey)) foreignAttributes.push(foreignPrimaryKey)
-          const response = await supabase.from(foreignTableId)
-            .select(foreignAttributes.join(','))
-          if (response.error) reject(response.error.message)
-          
-          // May data to foreignAttributes
-          const data = response.data?.map((row:any) => {
-            // Build item using getNestedAttribute
-            const item = foreignAttributes.map((attr:string) => {
-              return getNestedAttribute(row, attr)
-            }).reduce((a:Object, v:string[]) => ({...a, [v[0]]: v[1]}), {}) as {[k:string]:any}
-            return item
-          })
-          
-          resolve({
-            tableId: foreignTableId,
-            idCol: foreignPrimaryKey,
-            data,
-            type,
-          })
-        })
-      })
-    Promise.all(selectPromises)
-      .then(responses => {
-        const joins = responses.reduce((a:any, v:any) => ({...a, [v.tableId]: v}), {})
-        joinedData.value = joins
-      })
-  }
 
   /*
   Retrieve row from <page.table_id> with id corresponding to itemId
@@ -502,39 +429,26 @@ export function initCrud (page:Page, itemId:string|number='') {
   async function getItem (itemId:string|number) {
     warning.value = ''
     // If itemId is a number instead of UUID, run parseInt
-    if (typeof itemId === 'string' && !isUUID(itemId)) itemId = parseInt(itemId)
+    const primaryKey = store.dashboard.schema.t[page.table_id].pk as string
+    if (typeof itemId === 'string' && store.dashboard.schema.t[page.table_id].properties[primaryKey].type === 'integer') itemId = parseInt(itemId)
     if (!page.attributes) return
-    if (items.value.find((item:any) => item[page.id_col || 'id'] === itemId)) {
-      item.value = items.value.find((item:any) => item[page.id_col || 'id'] === itemId)
+    if (items.value.find((item:any) => item[primaryKey] === itemId)) {
+      item.value = items.value.find((item:any) => item[primaryKey] === itemId)
       return
     }
     store.loading = true
-    const attributeIds = addForeignKeyAttributes(page.attributes, page.id_col || 'id')
+    const attributeIds = getQueryAttributes(page)
     const selectionQuery = buildQuery(attributeIds.map(attr => attr.id))
     const { data, error } = await supabase
       .from(page.table_id)
       .select(selectionQuery)
-      .eq(page.id_col || 'id', itemId)
+      .eq(primaryKey, itemId)
       .single()
       store.loading = false
     if (error) {
       warning.value = error.message
     } else {
-      // Build item using getNestedAttribute
-      const retrievedItem = attributeIds.map(attr => {
-        const attrValue = getNestedAttribute(data, attr.id)
-        let attrDetails = {} as { format: string }
-        if (attr.id.includes('(')) attrDetails = schema.getAttributeDetails(attr.id.split('(').slice(-2, -1)[0], attr.id.split('(').slice(-1)[0].split(')')[0])
-        else attrDetails = schema.getAttributeDetails(page.table_id, attr.id)
-        if (['json', 'jsonb'].includes(attrDetails.format)) attrValue[1] = JSON.stringify(attrValue[1])
-        return attrValue
-      }).reduce((a:Object, v:string[]) => ({...a, [v[0]]: v[1]}), {}) as {[k:string]:any}
-      // Add idCol into item
-      const idCol = page.id_col || 'id'
-      if (!(idCol in retrievedItem)) {
-        retrievedItem[idCol] = data[idCol]
-      }
-      item.value = retrievedItem
+      item.value = rowToItem(data, page, attributeIds)
     }
   }
 
@@ -545,19 +459,6 @@ export function initCrud (page:Page, itemId:string|number='') {
     warning.value = ''
     store.loading = true
     item.user = store.user.id
-
-    function getForeignKey (attributeId:string) {
-      if (!attributeId.includes('(')) return attributeId
-      const schema = new Schema(store.dashboard.schema)
-      const foreignTable = getForeignTable(attributeId)
-      const parts = attributeId.split('(')
-      let foreignKey = parts.map((str, i) => {
-        if (i < parts.length - 1) return str
-        else return schema.getPrimaryKey(foreignTable)
-      }).join('(')
-      parts.slice(0, -1).forEach(part => foreignKey += ')')
-      return foreignKey
-    }
 
     // Check required attributes
     const unfilledRequiredAttributes = page.attributes.filter((attribute:any) => {
@@ -570,8 +471,10 @@ export function initCrud (page:Page, itemId:string|number='') {
           item[attribute.id] = attribute.enumOptions ? attribute.enumOptions[0] : ''
           return false
         } else if (attribute.type === AttributeType.Join) {
-          if (!item[getForeignKey(attribute.id)]) return true
-          else if (item[getForeignKey(attribute.id)].constructor === Array && item[getForeignKey(attribute.id)].length === 0) return true
+          // If required, join attributes should be non-null and if array, have length > 0
+          const foreignKeyValue = item[getForeignPrimaryKeyAttribute(attribute.id)]
+          if (!foreignKeyValue) return true
+          else if (foreignKeyValue.constructor === Array && foreignKeyValue.length === 0) return true
           else return false
         } else if (!!value) {
           return false
@@ -593,7 +496,7 @@ export function initCrud (page:Page, itemId:string|number='') {
     const mainItem = mainAttributes.map(attr => [attr.id, item[attr.id]]).reduce((a, v) => ({...a, [v[0]]: v[1]}), {}) as {[k:string]:any}
     try {
       mainAttributes.map(attr => {
-        const attrDetails = schema.getAttributeDetails(page.table_id, attr.id)
+        const attrDetails = store.dashboard.schema.t[page.table_id].properties[attr.id]
         try {
           if (['json', 'jsonb'].includes(attrDetails.format)) mainItem[attr.id] = JSON.parse(mainItem[attr.id])
         } catch (error) {
@@ -606,58 +509,58 @@ export function initCrud (page:Page, itemId:string|number='') {
       return
     }
     // Include outgoing foreign keys
-    Object.keys(foreignTableAttrs).filter(foreignTable => schema.getFkColumns(page.table_id, foreignTable).length)
+    Object.keys(foreignTableAttrs).filter(foreignTable => store.dashboard.schema.getFkColumns(page.table_id, foreignTable).length)
       .forEach(foreignTable => {
-        mainItem[schema.getFkColumns(page.table_id, foreignTable)[0]] = item[`${foreignTable}(${schema.getPrimaryKey(foreignTable)})`]
+        mainItem[store.dashboard.schema.getFkColumns(page.table_id, foreignTable)[0]] = item[`${foreignTable}(${store.dashboard.schema.t[foreignTable].pk})`]
       })
-    if (item.id) mainItem[schema.getPrimaryKey(page.table_id) as string] = item.id
+    if (item.id) mainItem[store.dashboard.schema.t[page.table_id].pk as string] = item.id
     const upsertRequest = await supabase
       .from(page.table_id)
       .upsert([mainItem])
     if (upsertRequest.error) throw Error(upsertRequest.error.message)
-    if (!item.id) item.id = upsertRequest.data[0][schema.getPrimaryKey(page.table_id) as string]
+    if (!item.id) item.id = upsertRequest.data[0][store.dashboard.schema.t[page.table_id].pk as string]
     
     // Then update rest of the tables
-    const updatePromises = Object.keys(foreignTableAttrs).filter(foreignTable => schema.getFkColumns(page.table_id, foreignTable).length === 0)
+    const updatePromises = Object.keys(foreignTableAttrs).filter(foreignTable => store.dashboard.schema.getFkColumns(page.table_id, foreignTable).length === 0)
       .map(foreignTable => {
         return new Promise<void>(async (resolve, reject) => {
-          if (schema.getFkColumns(foreignTable, page.table_id).length) {
+          if (store.dashboard.schema.getFkColumns(foreignTable, page.table_id).length) {
             // Foreign table points to main table directly
             // We will run an update to set main table's primary key appropriately
-            const foreignItems = item[`${foreignTable}(${schema.getPrimaryKey(foreignTable)})`]
+            const foreignItems = item[`${foreignTable}(${store.dashboard.schema.t[foreignTable].pk})`]
               .map((id:any) => {
                 return {
-                  [schema.getPrimaryKey(foreignTable) as string]: id,
-                  [schema.getFkColumns(foreignTable, page.table_id)[0]]: item.id
+                  [store.dashboard.schema.t[foreignTable].pk as string]: id,
+                  [store.dashboard.schema.getFkColumns(foreignTable, page.table_id)[0]]: item.id
                 }
               })
             // Instead of deleting, we leave the unselected items empty
             await supabase
               .from(foreignTable)
-              .update({ [schema.getFkColumns(foreignTable, page.table_id)[0]]: null })
-              .match({ [schema.getFkColumns(foreignTable, page.table_id)[0]]: item.id })
+              .update({ [store.dashboard.schema.getFkColumns(foreignTable, page.table_id)[0]]: null })
+              .match({ [store.dashboard.schema.getFkColumns(foreignTable, page.table_id)[0]]: item.id })
             // And update the selected items
             await supabase
               .from(foreignTable)
-              .update({ [schema.getFkColumns(foreignTable, page.table_id)[0]]: item.id })
-              .or(foreignItems.map((i:any) => `${schema.getPrimaryKey(foreignTable)}.eq.${i.id}`).join(','))
+              .update({ [store.dashboard.schema.getFkColumns(foreignTable, page.table_id)[0]]: item.id })
+              .or(foreignItems.map((i:any) => `${store.dashboard.schema.t[foreignTable].pk}.eq.${i.id}`).join(','))
           } else {
             // Foreign table is connected via join table
             // Find join table
-            const joinTable = schema.getJoinTable(page.table_id, foreignTable)
+            const joinTable = store.dashboard.schema.getJoinTable(page.table_id, foreignTable)
             // Delete previous entries
             const deleteRequest = await supabase
               .from(joinTable)
               .delete()
-              .match({ [schema.getFkColumns(joinTable, page.table_id)[0]]: item.id })
+              .match({ [store.dashboard.schema.getFkColumns(joinTable, page.table_id)[0]]: item.id })
             if (deleteRequest.error) reject(deleteRequest.error.message)
-            const attributeId = Object.keys(item).find(attr => attr.includes(`${foreignTable}(${schema.getPrimaryKey(foreignTable)})`))
+            const attributeId = Object.keys(item).find(attr => attr.includes(`${foreignTable}(${store.dashboard.schema.t[foreignTable].pk})`))
             if (item[attributeId as string]) {
               const joinItems = item[attributeId as string]
                 .map((id:any) => {
                   return {
-                    [schema.getFkColumns(joinTable, foreignTable)[0]]: id,
-                    [schema.getFkColumns(joinTable, page.table_id)[0]]: item.id
+                    [store.dashboard.schema.getFkColumns(joinTable, foreignTable)[0]]: id,
+                    [store.dashboard.schema.getFkColumns(joinTable, page.table_id)[0]]: item.id
                   }
                 })
               const upsertRequest = await supabase
@@ -688,7 +591,7 @@ export function initCrud (page:Page, itemId:string|number='') {
     const { error } = await supabase
       .from(page.table_id)
       .delete()
-      .or(itemIds.map(id => `${page.id_col || 'id'}.eq.${id}`).join(','))
+      .or(itemIds.map(id => `${primaryKey}.eq.${id}`).join(','))
     if (error) {
       store.loading = false
       warning.value = error.message
@@ -696,7 +599,7 @@ export function initCrud (page:Page, itemId:string|number='') {
       initUserData()
         .then(() => {
           items.value = JSON.parse(JSON.stringify(cache.value.data || []))
-          item.value = JSON.parse(JSON.stringify(itemId ? cache.value.data.find((item:any) => item[page.id_col || 'id'] === itemId) || {} : cache.value.data[0] || {}))
+          item.value = JSON.parse(JSON.stringify(itemId ? cache.value.data.find((item:any) => item[primaryKey] === itemId) || {} : cache.value.data[0] || {}))
           itemsCount.value = cache.value.count
           router.push({path: `/${page.page_id}`})
           store.loading = false
@@ -714,7 +617,7 @@ export function initCrud (page:Page, itemId:string|number='') {
     conjunction.value = newConjunction
     sorts.value = newSorts
 
-    const attributeIds = addForeignKeyAttributes(page.attributes, page.id_col || 'id')
+    const attributeIds = getQueryAttributes(page)
     const selectionQuery = buildQuery(attributeIds.map(attr => attr.id))
 
     store.loading = true
@@ -754,21 +657,7 @@ export function initCrud (page:Page, itemId:string|number='') {
     } else {
       // Map data
       const data = response.data.map((row:any) => {
-        // Build item using getNestedAttribute
-        const item = attributeIds.map(attr => {
-          const attrValue = getNestedAttribute(row, attr.id)
-          let attrDetails = {} as { format: string }
-          if (attr.id.includes('(')) attrDetails = schema.getAttributeDetails(attr.id.split('(').slice(-2, -1)[0], attr.id.split('(').slice(-1)[0].split(')')[0])
-          else attrDetails = schema.getAttributeDetails(page.table_id, attr.id)
-          if (['json', 'jsonb'].includes(attrDetails.format)) attrValue[1] = JSON.stringify(attrValue[1])
-          return attrValue
-        }).reduce((a:Object, v:string[]) => ({...a, [v[0]]: v[1]}), {}) as {[k:string]:any}
-        // Add idCol into item
-        const idCol = page.id_col || 'id'
-        if (!(idCol in item)) {
-          item[idCol] = row[idCol]
-        }
-        return item
+        return rowToItem(row, page, attributeIds)
       })
       items.value = data
       itemsCount.value = response.count
@@ -791,12 +680,4 @@ export function initCrud (page:Page, itemId:string|number='') {
     deleteItems,
     filterItems,
   }
-}
-
-export async function getSchema () {
-  const store = useStore()
-  const response = await fetch(`${store.dashboard.supabaseUrl}/rest/v1/?apikey=${store.dashboard.supabaseAnonKey}`)
-  const schema = await (await response.json()).definitions
-  store.dashboard.schema = schema
-  return schema 
 }
