@@ -31,10 +31,7 @@
               </div>
               <!-- AttributeType.Join && Array -->
               <div v-else-if="attribute.type === AttributeType.Join && item[attribute.id] && item[attribute.id].constructor === Array" class="sm:text-sm flex items-center gap-2">
-                <div v-for="i in item[attribute.id]" :title="i"
-                  class="truncate text-xs font-semibold bg-neutral-600 text-white w-max max-w-[100%] px-2 py-0.5 rounded dark:bg-neutral-400 dark:text-neutral-800">
-                  {{ i }}
-                </div>
+                <Badge v-for="i in item[attribute.id]" :title="i">{{ i }}</Badge>
               </div>
               <!-- Default -->
               <input v-else type="text" readonly :id="attribute.id" :value="item[attribute.id] || ''"
@@ -135,6 +132,7 @@ import SecondaryButton from '../elements/buttons/SecondaryButton.vue'
 import TertiaryButton from '../elements/buttons/TertiaryButton.vue'
 import DeleteModal from '../modals/DeleteModal.vue'
 import Combobox from '../elements/Combobox.vue'
+import Badge from '../elements/Badge.vue'
 
 const store = useStore()
 const props = defineProps({
