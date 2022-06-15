@@ -40,7 +40,7 @@
             <div class="flex lg:pl-2 pt-1">
               <Badge v-if="(attribute.type === AttributeType.Enum && item[attribute.id]) || (attribute.type === AttributeType.Bool && ['true', 'false'].includes(String(item[attribute.id])))" :size="'sm'">{{ item[attribute.id] }}</Badge>
               <div v-else-if="attribute.type === AttributeType.Join && item[attribute.id] && item[attribute.id].constructor === Array" class="pt-[0.05rem] w-full">
-                <Badge v-for="i in item[attribute.id]" :title="i" :size="'sm'" class="mr-1">{{ i }}</Badge>
+                <Badge v-for="i in item[attribute.id]" :title="i" :size="'sm'" class="mr-1 mb-1">{{ i }}</Badge>
               </div>
               <div v-else class="truncate" :title="item[attribute.id]">
                 {{ item[attribute.id] }}
