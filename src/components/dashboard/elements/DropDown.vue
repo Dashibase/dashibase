@@ -26,7 +26,7 @@
 <script setup lang="ts">
 import { computed, PropType } from 'vue'
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/vue'
-import { SelectorIcon, ChevronDownIcon } from '@heroicons/vue/solid'
+import { ChevronDownIcon } from '@heroicons/vue/solid'
 
 interface Option {
   label: string;
