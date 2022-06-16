@@ -3,7 +3,7 @@
     <div class="flex justify-between px-4 py-3 text-sm font-medium items-center text-neutral-500 dark:text-neutral-400">
       <div class="flex items-center gap-1">
         Page
-        <input type="text" :value="paginationNum" @keyup.enter="updatePaginationNum"
+        <input type="text" :value="paginationNum" @keyup.enter="updatePaginationNum" :key="inputKey"
           class="text-sm py-1 px-2 w-12 border-neutral-300 dark:border-neutral-700 focus:border-neutral-300 focus:dark:border-neutral-700" />
         of {{ maxPagination }}
       </div>
@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, PropType } from 'vue'
+import { ref, computed, PropType } from 'vue'
 
 const props = defineProps({
   paginationList: {
@@ -39,6 +39,7 @@ const props = defineProps({
   },
 })
 const emits = defineEmits(['update:modelValue'])
+const inputKey = ref('')
 
 const paginationNum = computed({
   get () {
@@ -52,10 +53,13 @@ const paginationNum = computed({
 
 function updatePaginationNum (event:Event) {
   try {
+    // Refresh key to reset input box
+    inputKey.value = ''
     const inputTarget = event.target as HTMLInputElement
     const newPage = parseInt(inputTarget.value)
     if (!newPage) return
     paginationNum.value = newPage
+    inputKey.value = newPage.toString()
   } catch {
     return
   }
