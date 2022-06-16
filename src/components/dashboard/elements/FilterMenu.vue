@@ -19,7 +19,7 @@
         <div v-if="filters.length"
           class="px-3 py-3 text-xs flex flex-col gap-2 w-full text-primary dark:text-primary-dark">
           <div>Show rows</div>
-          <div class="flex items-end w-full justify-between" v-for="filter, i in filters" :key="i">
+          <div class="flex items-center w-full justify-between" v-for="filter, i in filters" :key="i">
             <div class="flex items-center w-max">
               <div v-if="i === 0">where</div>
               <DropDown v-else-if="i === 1" v-model="conjunction" :options="['and', 'or'].map(i => {return {label: i, value: i}})" size="sm" />
@@ -27,13 +27,13 @@
               <DropDown :modelValue="filter.column" @update:modelValue="value => updateFilter(i, 'column', value)"
                 :options="attributes.filter(attr => Object.keys(filterOps).includes(getSupabaseType(attr.id))).map(i => {return {label: i.label, value: i.id}})"
                 size="sm" class="ml-2" />
-              <DropDown  v-if="filterOps[getSupabaseType(filter.column)].length > 1"
+              <DropDown v-if="filterOps[getSupabaseType(filter.column)].length > 1"
                 :modelValue="filter.operator" @update:modelValue="value => updateFilter(i, 'operator', value)"
                 :options="filterOps[getSupabaseType(filter.column)].map(i => {return {label: i.label, value: i.id}})"
                 size="sm" class="ml-2" />
               <div v-else class="text-xs font-normal">{{ filterOps[getSupabaseType(filter.column)][0].label }}
               </div>
-              <input v-if="getSupabaseType(filter.column) === 'text'" :value="filter.value"
+              <input v-if="['text', 'character varying'].includes(getSupabaseType(filter.column))" :value="filter.value"
                 @input="updateFilter(i, 'value', ($event.target as HTMLInputElement).value)"
                 placeholder="Enter condition"
                 class="ml-2 w-24 sm:w-32 rounded-md py-0 focus:outline-none focus:ring-0 text-xs border-neutral-300 focus:border-neutral-500 bg-overlay dark:bg-overlay-dark dark:border-neutral-700 dark:focus:border-neutral-500 dark:placeholder:text-neutral-400" />
@@ -165,6 +165,10 @@ const filters = ref([] as Filter[])
 
 const filterOps = {
   'text': [
+    { label: 'contains', id: 'fts', },
+    { label: 'is not', id: 'neq', },
+  ],
+  'character varying': [
     { label: 'contains', id: 'fts', },
     { label: 'is not', id: 'neq', },
   ],
