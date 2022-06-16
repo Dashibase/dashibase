@@ -3,7 +3,8 @@
     <div class="flex justify-between px-4 py-3 text-sm font-medium items-center text-neutral-500 dark:text-neutral-400">
       <div class="flex items-center gap-1">
         Page
-        <DropDown :options="paginationList" v-model="paginationNum" />
+        <input type="text" :value="paginationNum" @keyup.enter="updatePaginationNum"
+          class="text-sm py-1 px-2 w-12 border-neutral-300 dark:border-neutral-700 focus:border-neutral-300 focus:dark:border-neutral-700" />
         of {{ maxPagination }}
       </div>
       <div class="flex gap-2">
@@ -22,7 +23,6 @@
 
 <script setup lang="ts">
 import { computed, PropType } from 'vue'
-import DropDown from './DropDown.vue'
 
 const props = defineProps({
   paginationList: {
@@ -45,7 +45,19 @@ const paginationNum = computed({
     return props.modelValue
   },
   set (newValue:number) {
+    newValue = Math.max(1, Math.min(props.maxPagination, newValue))
     emits('update:modelValue', newValue)
   }
 })
+
+function updatePaginationNum (event:Event) {
+  try {
+    const inputTarget = event.target as HTMLInputElement
+    const newPage = parseInt(inputTarget.value)
+    if (!newPage) return
+    paginationNum.value = newPage
+  } catch {
+    return
+  }
+}
 </script>
