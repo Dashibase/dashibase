@@ -19,45 +19,32 @@
         <div v-if="filters.length"
           class="px-3 py-3 text-xs flex flex-col gap-2 w-full text-primary dark:text-primary-dark">
           <div>Show rows</div>
-          <div class="flex items-end w-full justify-between" v-for="filter, i in filters" :key="i">
-            <div class="flex items-end w-max">
+          <div class="flex items-center w-full justify-between" v-for="filter, i in filters" :key="i">
+            <div class="flex items-center w-max">
               <div v-if="i === 0">where</div>
-              <select v-else-if="i === 1" v-model="conjunction"
-                class="w-max border-0 rounded-md py-0 px-0 pr-8 focus:outline-none focus:ring-0 text-xs cursor-pointer bg-overlay dark:bg-overlay-dark">
-                <option value="and">and</option>
-                <option value="or">or</option>
-              </select>
+              <DropDown v-else-if="i === 1" v-model="conjunction" :options="['and', 'or'].map(i => {return {label: i, value: i}})" size="sm" />
               <div v-else>{{ conjunction }}</div>
-              <select :value="filter.column"
-                @input="updateFilter(i, 'column', ($event.target as HTMLInputElement).value)"
-                class="mt-1 block w-max max-w-[4rem] sm:max-w-max border-0 rounded-md py-0 px-1 pr-8 focus:outline-none focus:ring-0 text-xs cursor-pointer bg-overlay dark:bg-overlay-dark">
-                <option
-                  v-for="attribute in attributes.filter(attr => Object.keys(filterOps).includes(getSupabaseType(attr.id)))"
-                  :key="attribute.id" :value="attribute.id">{{ attribute.label }}</option>
-              </select>
-              <select :value="filter.operator" v-if="filterOps[getSupabaseType(filter.column)].length > 1"
-                @input="updateFilter(i, 'operator', ($event.target as HTMLInputElement).value)"
-                class="w-max max-w-[4rem] sm:max-w-max border-0 rounded-md py-0 px-1 pr-8 focus:outline-none focus:ring-0 text-xs cursor-pointer bg-overlay dark:bg-overlay-dark">
-                <option v-for="op in filterOps[getSupabaseType(filter.column)]" :key="op.id" :value="op.id">{{
-                    op.label
-                }}</option>
-              </select>
+              <DropDown :modelValue="filter.column" @update:modelValue="value => updateFilter(i, 'column', value)"
+                :options="attributes.filter(attr => Object.keys(filterOps).includes(getSupabaseType(attr.id))).map(i => {return {label: i.label, value: i.id}})"
+                size="sm" class="ml-2" />
+              <DropDown v-if="filterOps[getSupabaseType(filter.column)].length > 1"
+                :modelValue="filter.operator" @update:modelValue="value => updateFilter(i, 'operator', value)"
+                :options="filterOps[getSupabaseType(filter.column)].map(i => {return {label: i.label, value: i.id}})"
+                size="sm" class="ml-2" />
               <div v-else class="text-xs font-normal">{{ filterOps[getSupabaseType(filter.column)][0].label }}
               </div>
-              <input v-if="getSupabaseType(filter.column) === 'text'" :value="filter.value"
+              <input v-if="['text', 'character varying'].includes(getSupabaseType(filter.column))" :value="filter.value"
                 @input="updateFilter(i, 'value', ($event.target as HTMLInputElement).value)"
                 placeholder="Enter condition"
-                class="w-24 sm:w-32 rounded-md py-0 focus:outline-none focus:ring-0 text-xs border-neutral-300 focus:border-neutral-500 bg-overlay dark:bg-overlay-dark dark:border-neutral-700 dark:focus:border-neutral-500 dark:placeholder:text-neutral-400" />
+                class="ml-2 w-24 sm:w-32 rounded-md py-0 focus:outline-none focus:ring-0 text-xs border-neutral-300 focus:border-neutral-500 bg-overlay dark:bg-overlay-dark dark:border-neutral-700 dark:focus:border-neutral-500 dark:placeholder:text-neutral-400" />
               <input v-else-if="getSupabaseType(filter.column) === 'date'" type="date" :value="filter.value"
                 @input="updateFilter(i, 'value', ($event.target as HTMLInputElement).value)"
                 placeholder="Enter condition"
-                class="rounded-md p-0 border-none focus:outline-none focus:ring-0 text-xs border-neutral-300 focus:border-neutral-500 bg-overlay dark:bg-overlay-dark dark:border-neutral-700 dark:focus:border-neutral-500 dark:placeholder:text-neutral-400" />
-              <select v-else-if="getSupabaseType(filter.column) === 'boolean'" :value="filter.value"
-                @input="updateFilter(i, 'value', ($event.target as HTMLInputElement).value)"
-                class="rounded-md py-0 border-none focus:outline-none focus:ring-0 text-xs border-neutral-300 focus:border-neutral-500 bg-overlay dark:bg-overlay-dark dark:border-neutral-700 dark:focus:border-neutral-500 dark:placeholder:text-neutral-400">
-                <option :value="true">true</option>
-                <option :value="false">false</option>
-              </select>
+                class="ml-2 rounded-md p-0 border-none focus:outline-none focus:ring-0 text-xs border-neutral-300 focus:border-neutral-500 bg-overlay dark:bg-overlay-dark dark:border-neutral-700 dark:focus:border-neutral-500 dark:placeholder:text-neutral-400" />
+              <DropDown  v-else-if="getSupabaseType(filter.column) === 'boolean'"
+                :modelValue="filter.value" @update:modelValue="value => updateFilter(i, 'value', value)"
+                :options="[true, false].map(i => {return {label: i.toString(), value: i}})"
+                size="sm" class="ml-2" />
             </div>
             <XIcon class="w-3.5 hover:text-red-600 cursor-pointer" @click="deleteFilter(i)" />
           </div>
@@ -88,28 +75,23 @@
       <PopoverPanel
         class="min-w-[20rem] origin-top-right fixed sm:absolute left-4 sm:right-0 sm:left-auto mt-2 rounded-md shadow-lg ring-0 ring-opacity-5 focus:outline-none z-50 bg-overlay text-primary dark:bg-overlay-dark dark:text-primary-dark">
         <div v-if="sorts.length"
-          class="px-3 py-3 text-xs flex flex-col gap-2 w-full text-primary dark:text-primary-dark">
-          <div class="flex items-end w-full justify-between" v-for="sort, i in sorts" :key="i">
-            <div class="flex items-end w-max">
+          class="px-3 pt-3 text-xs flex flex-col gap-2 w-full text-primary dark:text-primary-dark">
+          <div class="flex items-center w-full justify-between" v-for="sort, i in sorts" :key="i">
+            <div class="flex items-center w-max">
               <div v-if="i === 0">Sort by</div>
               <div v-else>then</div>
-              <select :value="sort.column" @input="updateSort(i, 'column', ($event.target as HTMLInputElement).value)"
-                class="mt-1 block w-max max-w-[5rem] sm:max-w-max border-0 rounded-md py-0 px-1 pr-8 focus:outline-none focus:ring-0 text-xs cursor-pointer bg-white dark:bg-neutral-700">
-                <option v-for="attribute in validFilterColumns" :key="attribute.id" :value="attribute.id">{{ attribute.label }}
-                </option>
-              </select>
-              <select :value="sort.ascending"
-                @input="updateSort(i, 'ascending', ($event.target as HTMLInputElement).value)"
-                class="w-max border-0 rounded-md py-0 px-1 pr-8 focus:outline-none focus:ring-0 text-xs cursor-pointer bg-white dark:bg-neutral-700">
-                <option :value="true">Ascending</option>
-                <option :value="false">Descending</option>
-              </select>
+              <DropDown :modelValue="sort.column" @update:modelValue="value => updateSort(i, 'column', value)"
+                :options="validFilterColumns.map(i => {return {label: i.label, value: i.id}})"
+                size="sm" class="ml-2" />
+              <DropDown :modelValue="sort.ascending" @update:modelValue="value => updateSort(i, 'ascending', value)"
+                :options="[{ label: 'Ascending', value: true }, { label: 'Descending', value: false }]"
+                size="sm" class="ml-2" />
             </div>
             <XIcon class="w-3.5 hover:text-red-600 cursor-pointer" @click="deleteSort(i)" />
           </div>
         </div>
         <button
-          class="group px-3 py-3 w-full text-left bg-transparent rounded-b-md inline-flex text-xs focus:outline-none focus:ring-0 transition flex justify-between"
+          class="group px-3 pb-3 w-full text-left bg-transparent rounded-b-md inline-flex text-xs focus:outline-none focus:ring-0 transition flex justify-between"
           @click="addSort">
           <span>Add sort</span>
           <PlusIcon class="w-3.5 group-hover:text-green-600 dark:group-hover:text-green-300" />
@@ -120,15 +102,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, PropType, onMounted } from 'vue'
+import { ref, computed, PropType } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStore } from '@/utils/store'
 import { Attribute, AttributeType } from '@/utils/config'
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/vue'
 import { XIcon, PlusIcon } from '@heroicons/vue/solid'
 import { FilterIcon, SwitchVerticalIcon } from '@heroicons/vue/outline'
-import { getSchema } from '@/utils/dashboard'
-
+import DropDown from './DropDown.vue'
 
 const route = useRoute()
 const store = useStore()
@@ -157,8 +138,6 @@ function apply() {
 
 // Customize the filters based on attribute type inferred from Supabase schema
 
-const schema = ref({} as any)
-
 const tableId = computed(() => {
   const pageId = route.params.pageId
   const page = store.dashboard.pages.find(page => page.page_id === pageId)
@@ -167,15 +146,9 @@ const tableId = computed(() => {
 })
 
 function getSupabaseType(attributeId: string) {
-  if (Object.keys(schema.value).length === 0) return
-  if (!schema.value[tableId.value].properties[attributeId]) return
-  else return schema.value[tableId.value].properties[attributeId].format
+  if (!store.dashboard.schema.t[tableId.value].properties[attributeId]) return ''
+  else return store.dashboard.schema.t[tableId.value].properties[attributeId].format
 }
-
-onMounted(() => {
-  getSchema()
-    .then(retrievedSchema => schema.value = retrievedSchema)
-})
 
 // Filters
 
@@ -192,6 +165,10 @@ const filters = ref([] as Filter[])
 
 const filterOps = {
   'text': [
+    { label: 'contains', id: 'fts', },
+    { label: 'is not', id: 'neq', },
+  ],
+  'character varying': [
     { label: 'contains', id: 'fts', },
     { label: 'is not', id: 'neq', },
   ],

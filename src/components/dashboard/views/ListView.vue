@@ -54,7 +54,6 @@ import router from '@/router'
 import { Page } from '@/utils/config'
 import { initCrud } from '@/utils/dashboard'
 import { useStore } from '@/utils/store'
-import { Schema } from '@/utils/schema'
 import View from './View.vue'
 import FilterMenu from '../elements/FilterMenu.vue'
 import Pagination from '../elements/Pagination.vue'
@@ -83,6 +82,8 @@ const page = computed((): Page => {
   return page
 })
 
+const primaryKey = store.dashboard.schema.t[page.value.table_id].pk
+
 const deleteModal = ref<any | null>(null)
 
 const table = ref<any | null>(null)
@@ -90,10 +91,9 @@ const table = ref<any | null>(null)
 const { items, warning, maxItems, paginationNum, maxPagination, paginationList, deleteItems, filterItems } = initCrud(page.value)
 
 const displayItems = computed(() => {
-  const schema = new Schema(store.dashboard.schema)
   const displayItems = items.value.map((row:any) => {
     page.value.attributes.forEach(attr => {
-      const attrDetails = schema.getAttributeDetails(page.value.table_id, attr.id)
+      const attrDetails = store.dashboard.schema.t[page.value.table_id].properties[attr.id]
       if (attrDetails && ['json', 'jsonb'].includes(attrDetails.format) && row[attr.id] === 'null') row[attr.id] = ''
     })
     return row
@@ -111,7 +111,7 @@ const selectedItems = computed(() => {
 })
 
 function viewRow(itemIdx: number) {
-  const itemId = items.value[itemIdx][page.value.id_col || 'id']
+  const itemId = items.value[itemIdx][primaryKey]
   router.push(`/${props.pageId}/view/${itemId}`)
 }
 
@@ -120,7 +120,7 @@ async function deleteRows() {
   const confirm = await deleteModal.value.confirm()
   if (confirm) {
     setTimeout(() => {
-      deleteItems(selected.value.map((idx: number) => items.value[idx][page.value.id_col || 'id']))
+      deleteItems(selected.value.map((idx: number) => items.value[idx][primaryKey]))
         .then(() => table.value.selected = [])
     }, 100)
   }

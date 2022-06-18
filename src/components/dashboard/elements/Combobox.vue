@@ -2,7 +2,7 @@
   <div class="text-primary dark:text-primary-dark">
     <Combobox as="div" v-model="innerSelected" multiple>
       <div v-if="innerSelected.length > 0 && options.length > 0">
-        <Badge v-for="i in innerSelected" @remove="remove(i)" class="mr-1 mb-1">
+        <Badge v-for="i in innerSelected" :removable="true" @remove="remove(i)" class="mr-1 mb-1">
           {{ options.find(opt => opt.value === i).label }}
         </Badge>
       </div>

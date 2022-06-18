@@ -34,7 +34,7 @@ import { User as SupabaseUser } from '@supabase/supabase-js'
 import config from '@/dashibaseConfig'
 import router from '@/router'
 import { useStore } from '@/utils/store'
-import { isHostedByDashibase, supabase } from '@/utils/supabase'
+import { isHostedByDashibase, loadDashboardMetadata, supabase } from '@/utils/supabase'
 import Placeholder from './dashboard/Placeholder.vue'
 
 const store = useStore()
@@ -57,20 +57,17 @@ function checkUser () {
 }
 
 if (isHostedByDashibase) {
-  const intervalId = setInterval(() => {
+  const intervalId = setInterval(async () => {
     if (supabase) {
       clearInterval(intervalId)
-      store.dashboard.supabaseAnonKey = window.localStorage.getItem('dashibase.supabase_anon_key') || ''
-      store.dashboard.supabaseUrl = window.localStorage.getItem('dashibase.supabase_url') || ''
-      store.dashboard.name = window.localStorage.getItem('dashibase.app_name') || ''
-      store.dashboard.id = window.localStorage.getItem('dashibase.dashboard_id') || ''
+      const metadata = await loadDashboardMetadata()
+      store.dashboard.name = metadata.appName
       checkUser()
     }
   }, 100)
 } else {
-  store.dashboard.supabaseAnonKey = config.supabase_anon_key
-  store.dashboard.supabaseUrl = config.supabase_url
   store.dashboard.name = config.name
   checkUser()
 }
+
 </script>
