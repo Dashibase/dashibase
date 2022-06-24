@@ -514,6 +514,7 @@ export function initCrud (page:Page, itemId:string|number='') {
         mainItem[store.dashboard.schema.getFkColumns(page.table_id, foreignTable)[0]] = item[`${foreignTable}(${store.dashboard.schema.t[foreignTable].pk})`]
       })
     if (item.id) mainItem[store.dashboard.schema.t[page.table_id].pk as string] = item.id
+    if (page.enforce_user_col) mainItem[page.user_col] = store.user.id
     const upsertRequest = await supabase
       .from(page.table_id)
       .upsert([mainItem])
