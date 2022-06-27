@@ -22,7 +22,7 @@ export function getForeignPrimaryKeyAttribute (attributeId:string) {
   const parts = attributeId.split('(')
   let foreignKey = parts.map((str, i) => {
     if (i < parts.length - 1) return str
-    else return store.dashboard.schema.t[foreignTable].pk
+    else return store.dashboard.schema.t[foreignTable].pk || 'id'
   }).join('(')
   parts.slice(0, -1).forEach(() => foreignKey += ')')
   return foreignKey
@@ -37,8 +37,8 @@ export function getQueryAttributes (page:Page) {
   const queryAttributes = JSON.parse(JSON.stringify(page.attributes)) as Attribute[]
   // Add primaryKey
   queryAttributes.push({
-    id: store.dashboard.schema.t[page.table_id].pk,
-    label: store.dashboard.schema.t[page.table_id].pk,
+    id: store.dashboard.schema.t[page.table_id].pk || 'id',
+    label: store.dashboard.schema.t[page.table_id].pk || 'id',
     required: false,
     readonly: false,
     hidden: false,
