@@ -108,7 +108,7 @@ function buildQuery (attributes:string[]) {
     let tmpObj = queryObj
     split.forEach((attr, i) => {
       if (!(attr in tmpObj)) tmpObj[attr] = {} as {[k:string]:any}
-      if (i < split.length - 1) tmpObj[attr][store.dashboard.schema.t[attr].pk as string] = {}
+      if (i < split.length - 1) tmpObj[attr][store.dashboard.schema.t[attr].pk as string || 'id'] = {}
       tmpObj = tmpObj[attr]
     })
   })
@@ -216,7 +216,7 @@ function rowToItem (row:any, page:Page, attributeIds:Attribute[]) {
     return attrValue
   }).reduce((a:Object, v:string[]) => ({...a, [v[0]]: v[1]}), {}) as {[k:string]:any}
   // Add primaryKey into item
-  const primaryKey = store.dashboard.schema.t[page.table_id].pk
+  const primaryKey = store.dashboard.schema.t[page.table_id].pk || 'id'
   if (!(primaryKey in item)) {
     item[primaryKey] = row[primaryKey]
   }
@@ -235,7 +235,7 @@ async function getJoinedData (page:Page) {
       return new Promise(async (resolve, reject) => {
         const type = store.dashboard.schema.getFkColumns(page.table_id, foreignTableId).length ? 'single' : 'multi'
         const foreignAttributes = attrTables[foreignTableId]
-        const foreignPrimaryKey = store.dashboard.schema.t[foreignTableId].pk as string
+        const foreignPrimaryKey = store.dashboard.schema.t[foreignTableId].pk as string || 'id'
         if (!foreignAttributes.includes(foreignPrimaryKey)) foreignAttributes.push(foreignPrimaryKey)
         const response = await supabase.from(foreignTableId)
           .select(foreignAttributes.join(','))
@@ -326,7 +326,7 @@ Initialize CRUD functions and related variables
 */
 export function initCrud (page:Page, itemId:string|number='') {
   const store = useStore()
-  const primaryKey = store.dashboard.schema.t[page.table_id].pk as string
+  const primaryKey = store.dashboard.schema.t[page.table_id].pk as string || 'id'
   if (typeof itemId === 'string' && store.dashboard.schema.t[page.table_id].properties[primaryKey].type === 'integer') itemId = parseInt(itemId)
   // warning will be displayed upon any CRUD errors
   const warning = ref('')
@@ -429,7 +429,7 @@ export function initCrud (page:Page, itemId:string|number='') {
   async function getItem (itemId:string|number) {
     warning.value = ''
     // If itemId is a number instead of UUID, run parseInt
-    const primaryKey = store.dashboard.schema.t[page.table_id].pk as string
+    const primaryKey = store.dashboard.schema.t[page.table_id].pk as string || 'id'
     if (typeof itemId === 'string' && store.dashboard.schema.t[page.table_id].properties[primaryKey].type === 'integer') itemId = parseInt(itemId)
     if (!page.attributes) return
     if (items.value.find((item:any) => item[primaryKey] === itemId)) {
@@ -511,15 +511,15 @@ export function initCrud (page:Page, itemId:string|number='') {
     // Include outgoing foreign keys
     Object.keys(foreignTableAttrs).filter(foreignTable => store.dashboard.schema.getFkColumns(page.table_id, foreignTable).length)
       .forEach(foreignTable => {
-        mainItem[store.dashboard.schema.getFkColumns(page.table_id, foreignTable)[0]] = item[`${foreignTable}(${store.dashboard.schema.t[foreignTable].pk})`]
+        mainItem[store.dashboard.schema.getFkColumns(page.table_id, foreignTable)[0]] = item[`${foreignTable}(${store.dashboard.schema.t[foreignTable].pk || 'id'})`]
       })
-    if (item.id) mainItem[store.dashboard.schema.t[page.table_id].pk as string] = item.id
+    if (item.id) mainItem[store.dashboard.schema.t[page.table_id].pk as string || 'id'] = item.id
     if (page.enforce_user_col) mainItem[page.user_col] = store.user.id
     const upsertRequest = await supabase
       .from(page.table_id)
       .upsert([mainItem])
     if (upsertRequest.error) throw Error(upsertRequest.error.message)
-    if (!item.id) item.id = upsertRequest.data[0][store.dashboard.schema.t[page.table_id].pk as string]
+    if (!item.id) item.id = upsertRequest.data[0][store.dashboard.schema.t[page.table_id].pk as string || 'id']
     
     // Then update rest of the tables
     const updatePromises = Object.keys(foreignTableAttrs).filter(foreignTable => store.dashboard.schema.getFkColumns(page.table_id, foreignTable).length === 0)
@@ -528,10 +528,10 @@ export function initCrud (page:Page, itemId:string|number='') {
           if (store.dashboard.schema.getFkColumns(foreignTable, page.table_id).length) {
             // Foreign table points to main table directly
             // We will run an update to set main table's primary key appropriately
-            const foreignItems = item[`${foreignTable}(${store.dashboard.schema.t[foreignTable].pk})`]
+            const foreignItems = item[`${foreignTable}(${store.dashboard.schema.t[foreignTable].pk || 'id'})`]
               .map((id:any) => {
                 return {
-                  [store.dashboard.schema.t[foreignTable].pk as string]: id,
+                  [store.dashboard.schema.t[foreignTable].pk as string || 'id']: id,
                   [store.dashboard.schema.getFkColumns(foreignTable, page.table_id)[0]]: item.id
                 }
               })
@@ -544,7 +544,7 @@ export function initCrud (page:Page, itemId:string|number='') {
             await supabase
               .from(foreignTable)
               .update({ [store.dashboard.schema.getFkColumns(foreignTable, page.table_id)[0]]: item.id })
-              .or(foreignItems.map((i:any) => `${store.dashboard.schema.t[foreignTable].pk}.eq.${i.id}`).join(','))
+              .or(foreignItems.map((i:any) => `${store.dashboard.schema.t[foreignTable].pk || 'id'}.eq.${i.id}`).join(','))
           } else {
             // Foreign table is connected via join table
             // Find join table
@@ -555,7 +555,7 @@ export function initCrud (page:Page, itemId:string|number='') {
               .delete()
               .match({ [store.dashboard.schema.getFkColumns(joinTable, page.table_id)[0]]: item.id })
             if (deleteRequest.error) reject(deleteRequest.error.message)
-            const attributeId = Object.keys(item).find(attr => attr.includes(`${foreignTable}(${store.dashboard.schema.t[foreignTable].pk})`))
+            const attributeId = Object.keys(item).find(attr => attr.includes(`${foreignTable}(${store.dashboard.schema.t[foreignTable].pk || 'id'})`))
             if (item[attributeId as string]) {
               const joinItems = item[attributeId as string]
                 .map((id:any) => {
