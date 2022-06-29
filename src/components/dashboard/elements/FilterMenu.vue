@@ -33,11 +33,19 @@
                 size="sm" class="ml-2" />
               <div v-else class="text-xs font-normal">{{ filterOps[getSupabaseType(filter.column)][0].label }}
               </div>
-              <input v-if="['text', 'character varying'].includes(getSupabaseType(filter.column))" :value="filter.value"
+              <input v-if="['uuid', 'text', 'character varying', 'smallint', 'integer', 'bigint', 'real', 'double precision', 'numeric'].includes(getSupabaseType(filter.column))" :value="filter.value"
                 @input="updateFilter(i, 'value', ($event.target as HTMLInputElement).value)"
                 placeholder="Enter condition"
                 class="ml-2 w-24 sm:w-32 rounded-md py-0 focus:outline-none focus:ring-0 text-xs border-neutral-300 focus:border-neutral-500 bg-overlay dark:bg-overlay-dark dark:border-neutral-700 dark:focus:border-neutral-500 dark:placeholder:text-neutral-400" />
-              <input v-else-if="getSupabaseType(filter.column) === 'date'" type="date" :value="filter.value"
+              <input v-else-if="['date'].includes(getSupabaseType(filter.column))" type="date" :value="filter.value"
+                @input="updateFilter(i, 'value', ($event.target as HTMLInputElement).value)"
+                placeholder="Enter condition"
+                class="ml-2 rounded-md p-0 border-none focus:outline-none focus:ring-0 text-xs border-neutral-300 focus:border-neutral-500 bg-overlay dark:bg-overlay-dark dark:border-neutral-700 dark:focus:border-neutral-500 dark:placeholder:text-neutral-400" />
+              <input v-else-if="['time without time zone', 'time with time zone'].includes(getSupabaseType(filter.column))" type="time" :value="filter.value"
+                @input="updateFilter(i, 'value', ($event.target as HTMLInputElement).value)"
+                placeholder="Enter condition"
+                class="ml-2 rounded-md p-0 border-none focus:outline-none focus:ring-0 text-xs border-neutral-300 focus:border-neutral-500 bg-overlay dark:bg-overlay-dark dark:border-neutral-700 dark:focus:border-neutral-500 dark:placeholder:text-neutral-400" />
+              <input v-else-if="['timestamp without time zone', 'timestamp with time zone'].includes(getSupabaseType(filter.column))" type="datetime-local" :value="filter.value"
                 @input="updateFilter(i, 'value', ($event.target as HTMLInputElement).value)"
                 placeholder="Enter condition"
                 class="ml-2 rounded-md p-0 border-none focus:outline-none focus:ring-0 text-xs border-neutral-300 focus:border-neutral-500 bg-overlay dark:bg-overlay-dark dark:border-neutral-700 dark:focus:border-neutral-500 dark:placeholder:text-neutral-400" />
@@ -164,6 +172,9 @@ const prevFilters = ref([] as Filter[])
 const filters = ref([] as Filter[])
 
 const filterOps = {
+  'uuid': [
+    { label: 'equals', id: 'eq', },
+  ],
   'text': [
     { label: 'contains', id: 'fts', },
     { label: 'is not', id: 'neq', },
@@ -177,17 +188,72 @@ const filterOps = {
     { label: 'on', id: 'eq', },
     { label: 'before', id: 'lt', },
   ],
+  'time without time zone': [
+    { label: 'after', id: 'gt', },
+    { label: 'on', id: 'eq', },
+    { label: 'before', id: 'lt', },
+  ],
+  'time with time zone': [
+    { label: 'after', id: 'gt', },
+    { label: 'on', id: 'eq', },
+    { label: 'before', id: 'lt', },
+  ],
+  'timestamp without time zone': [
+    { label: 'after', id: 'gt', },
+    { label: 'on', id: 'eq', },
+    { label: 'before', id: 'lt', },
+  ],
+  'timestamp with time zone': [
+    { label: 'after', id: 'gt', },
+    { label: 'on', id: 'eq', },
+    { label: 'before', id: 'lt', },
+  ],
   'boolean': [
     { label: 'is', id: 'is', },
+  ],
+  'integer': [
+    { label: 'more than', id: 'gt', },
+    { label: 'equal to', id: 'eq', },
+    { label: 'less than', id: 'lt', },
+  ],
+  'smallint': [
+    { label: 'more than', id: 'gt', },
+    { label: 'equal to', id: 'eq', },
+    { label: 'less than', id: 'lt', },
+  ],
+  'bigint': [
+    { label: 'more than', id: 'gt', },
+    { label: 'equal to', id: 'eq', },
+    { label: 'less than', id: 'lt', },
+  ],
+  'real': [
+    { label: 'more than', id: 'gt', },
+    { label: 'equal to', id: 'eq', },
+    { label: 'less than', id: 'lt', },
+  ],
+  'double precision': [
+    { label: 'more than', id: 'gt', },
+    { label: 'equal to', id: 'eq', },
+    { label: 'less than', id: 'lt', },
+  ],
+  'numeric': [
+    { label: 'more than', id: 'gt', },
+    { label: 'equal to', id: 'eq', },
+    { label: 'less than', id: 'lt', },
   ],
 } as { [k: string]: any[] }
 
 function addFilter() {
-  filters.value.push({
-    column: props.attributes[0].id,
-    operator: 'fts',
-    value: '',
-  })
+  // Filter out JSON and JSONB
+  const filteredAttributes = props.attributes
+    .filter(attr => !['json', 'jsonb'].includes(getSupabaseType(attr.id)))
+  if (filteredAttributes.length) {
+    filters.value.push({
+      column: filteredAttributes[0].id,
+      operator: filterOps[getSupabaseType(filteredAttributes[0].id)][0].id,
+      value: '',
+    })
+  }
 }
 
 function updateFilter(idx: number, key: string, value: string) {
