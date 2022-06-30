@@ -6,7 +6,7 @@ import { Schema } from './schema'
 import { supabase } from './supabase'
 import router from '@/router'
 
-const latestVersion = '0.1.2'
+const latestVersion = '0.1.3'
 
 export const useStore = defineStore(
   'main',
