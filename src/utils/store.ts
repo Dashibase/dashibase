@@ -6,7 +6,7 @@ import { Schema } from './schema'
 import { supabase } from './supabase'
 import router from '@/router'
 
-const latestVersion = '0.1.2'
+export const latestVersion = '0.1.3'
 
 export const useStore = defineStore(
   'main',
@@ -60,6 +60,9 @@ async function signOut () {
   const store = useStore()
   store.loading = true
   window.localStorage.clear()
+  while (!supabase) {
+    await new Promise(r => setTimeout(r, 200))
+  } 
   const { error } = await supabase.auth.signOut()
   store.loading = false
   if (error) {

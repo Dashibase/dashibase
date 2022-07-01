@@ -2,11 +2,13 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import './index.css'
 import router from './router'
+import { latestVersion } from './utils/store'
 import { createPinia, Store } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 
 function resetStore({ store }:{store:Store}) {
   const initialState = {
+    version: latestVersion,
     loading: false,
     user: {},
     dashboard: {
