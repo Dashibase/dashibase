@@ -60,6 +60,10 @@ async function signOut () {
   const store = useStore()
   store.loading = true
   window.localStorage.clear()
+  while (!supabase) {
+    await new Promise(r => setTimeout(r, 500))
+    console.log('waiting...')
+  } 
   const { error } = await supabase.auth.signOut()
   store.loading = false
   if (error) {
