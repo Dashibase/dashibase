@@ -6,27 +6,31 @@ After creating and embedding your forms and tables, you can customize their look
 
 1. Styling table header row
 
-  <style>
-    div::part(dashi-table-headings) {
-      background-color: #e0e7ff;
-    }
-  </style>
+```
+<style>
+  div::part(dashi-table-headings) {
+    background-color: #e0e7ff;
+  }
+</style>
+```
 
 ![Styled table](./assets/styled-table.png)
 
 2. Styling form labels and button
 
-  <style>
-    div::part(dashi-label) {
-      color: #585859;
-    }
+```
+<style>
+  div::part(dashi-label) {
+    color: #585859;
+  }
 
-    div::part(dashi-button) {
-      background-color: #6366f1;
-      border-radius: 0.375rem;
-      padding: 8px 16px;
-    }
-  </style>
+  div::part(dashi-button) {
+    background-color: #6366f1;
+    border-radius: 0.375rem;
+    padding: 8px 16px;
+  }
+</style>
+```
 
 ![Styled form](./assets/styled-form.png)
 
