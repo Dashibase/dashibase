@@ -49,9 +49,9 @@
             <div v-else-if="item[attribute.id] && linkify.test(item[attribute.id].toString())" class="truncate text-sm" :title="item[attribute.id]">
               <a :href="linkify.find(item[attribute.id])[0].href" target="_blank" class="underline hover:text-neutral-900" @click="$event.stopImmediatePropagation()">{{ item[attribute.id] }}</a>
             </div>
-            <div v-else-if="item[attribute.id] && !isNaN((new Date(item[attribute.id].toString())).getTime())" class="truncate text-sm" :title="item[attribute.id]">
+            <!-- <div v-else-if="item[attribute.id] && !isNaN((new Date(item[attribute.id].toString())).getTime())" class="truncate text-sm" :title="item[attribute.id]">
               {{ (new Date(item[attribute.id])).toLocaleString() }}
-            </div>
+            </div> -->
             <div v-else class="truncate text-sm" :title="item[attribute.id]">
               {{ item[attribute.id] }}
             </div>
