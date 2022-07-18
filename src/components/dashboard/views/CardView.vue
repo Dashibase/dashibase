@@ -46,7 +46,15 @@
             <div v-else-if="attribute.type === AttributeType.Join && item[attribute.id] && item[attribute.id].constructor === Array" class="pt-1 leading-tight">
               <Badge v-for="i in item[attribute.id]" :title="i" :size="'sm'" class="mr-1">{{ i }}</Badge>
             </div>
-            <div v-else class="truncate text-sm">{{ item[attribute.id] }}</div>
+            <div v-else-if="item[attribute.id] && linkify.test(item[attribute.id].toString())" class="truncate text-sm" :title="item[attribute.id]">
+              <a :href="linkify.find(item[attribute.id])[0].href" target="_blank" class="underline hover:text-neutral-900" @click="$event.stopImmediatePropagation()">{{ item[attribute.id] }}</a>
+            </div>
+            <!-- <div v-else-if="item[attribute.id] && !isNaN((new Date(item[attribute.id].toString())).getTime())" class="truncate text-sm" :title="item[attribute.id]">
+              {{ (new Date(item[attribute.id])).toLocaleString() }}
+            </div> -->
+            <div v-else class="truncate text-sm" :title="item[attribute.id]">
+              {{ item[attribute.id] }}
+            </div>
           </div>
         </div>
       </button>
@@ -61,6 +69,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import * as linkify from 'linkifyjs'
 import router from '@/router'
 import { Page, AttributeType } from '@/utils/config'
 import { initCrud } from '@/utils/dashboard'
