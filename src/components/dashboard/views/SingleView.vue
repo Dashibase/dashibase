@@ -33,6 +33,16 @@
               <div v-else-if="attribute.type === AttributeType.Join && item[attribute.id] && item[attribute.id].constructor === Array" class="sm:text-sm flex items-center gap-2">
                 <Badge v-for="i in item[attribute.id]" :title="i">{{ i }}</Badge>
               </div>
+              <!-- Handle URLs -->
+              <div v-else-if="item[attribute.id] && linkify.test(item[attribute.id].toString())" :title="item[attribute.id]"
+                class="border px-3 py-2 rounded-md sm:text-sm w-full shadow-sm bg-input-disabled dark:bg-input-disabled-dark transition border-neutral-300 focus:border-neutral-300 dark:border-neutral-700 dark:focus:border-neutral-700 truncate">
+                <a :href="linkify.find(item[attribute.id])[0].href" target="_blank" class="underline hover:text-neutral-900" @click="$event.stopImmediatePropagation()">{{ item[attribute.id] }}</a>
+              </div>
+              <!-- Handle timestamps -->
+              <div v-else-if="item[attribute.id] && !isNaN((new Date(item[attribute.id].toString())).getTime())" :title="item[attribute.id]"
+                class="border px-3 py-2 rounded-md sm:text-sm w-full shadow-sm bg-input-disabled dark:bg-input-disabled-dark transition border-neutral-300 focus:border-neutral-300 dark:border-neutral-700 dark:focus:border-neutral-700 truncate">
+                {{ (new Date(item[attribute.id])).toLocaleString() }}
+              </div>
               <!-- Default -->
               <input v-else type="text" readonly :id="attribute.id" :value="item[attribute.id] || ''"
                 class="sm:text-sm w-full shadow-sm bg-input-disabled dark:bg-input-disabled-dark transition border-neutral-300 focus:border-neutral-300 dark:border-neutral-700 dark:focus:border-neutral-700" />
@@ -120,6 +130,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import * as linkify from 'linkifyjs'
 import { Page, AttributeType } from '@/utils/config'
 import { initCrud } from '@/utils/dashboard'
 import { useStore } from '@/utils/store'
