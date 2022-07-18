@@ -38,9 +38,19 @@
           <td v-for="attribute, i in attributes" :key="attribute.id"
             class="px-2 py-1 max-w-0 text-sm overflow-hidden sm:table-cell align-top" :class="i === 0 ? 'font-medium' : ''">
             <div class="flex lg:pl-2 pt-1">
-              <Badge v-if="(attribute.type === AttributeType.Enum && item[attribute.id]) || (attribute.type === AttributeType.Bool && ['true', 'false'].includes(String(item[attribute.id])))" :size="'sm'">{{ item[attribute.id] }}</Badge>
+              <Badge v-if="(attribute.type === AttributeType.Enum && item[attribute.id]) || (attribute.type === AttributeType.Bool && ['true', 'false'].includes(String(item[attribute.id])))" :size="'sm'">
+                {{ item[attribute.id] }}
+              </Badge>
               <div v-else-if="attribute.type === AttributeType.Join && item[attribute.id] && item[attribute.id].constructor === Array" class="pt-[0.05rem] w-full">
-                <Badge v-for="i in item[attribute.id]" :title="i" :size="'sm'" class="mr-1 mb-1">{{ i }}</Badge>
+                <Badge v-for="i in item[attribute.id]" :title="i" :size="'sm'" class="mr-1 mb-1">
+                  {{ i }}
+                </Badge>
+              </div>
+              <div v-else-if="item[attribute.id] && linkify.test(item[attribute.id].toString())" class="truncate" :title="item[attribute.id]">
+                <a :href="linkify.find(item[attribute.id])[0].href" target="_blank" class="underline hover:text-neutral-900" @click="$event.stopImmediatePropagation()">{{ item[attribute.id] }}</a>
+              </div>
+              <div v-else-if="item[attribute.id] && !isNaN((new Date(item[attribute.id].toString())).getTime())" class="truncate" :title="item[attribute.id]">
+                {{ (new Date(item[attribute.id])).toLocaleString() }}
               </div>
               <div v-else class="truncate" :title="item[attribute.id]">
                 {{ item[attribute.id] }}
@@ -55,6 +65,7 @@
 
 <script setup lang="ts">
 import { ref, PropType } from 'vue'
+import * as linkify from 'linkifyjs'
 import { Attribute, AttributeType } from '@/utils/config'
 import Badge from '../elements/Badge.vue'
 

@@ -13,6 +13,7 @@
     "@supabase/supabase-js": "^1.35.3",
     "@tailwindcss/forms": "^0.5.2",
     "crypto-js": "^4.1.1",
+    "linkifyjs": "^3.0.5",
     "lodash": "^4.17.21",
     "pinia": "^2.0.14",
     "pinia-plugin-persistedstate": "^1.5.2",
