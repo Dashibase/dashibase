@@ -22,8 +22,8 @@ Beautiful presets in light and dark modes. CRUD interfaces with cards and table 
   <a href="https://twitter.com/dashibase">
     <img src="https://img.shields.io/badge/Twitter-00acee?logo=twitter&logoColor=white" />
   </a>
-  <a href="https://join.slack.com/t/dashibase-community/shared_invite/zt-180rycyqv-ifRwyiQAiXUlBBVxgxQE7g">
-    <img src="https://img.shields.io/badge/Slack-E4405F?logo=slack&logoColor=white" />
+  <a href="https://discord.gg/CqgZGh4ZA8">
+    <img src="https://img.shields.io/badge/Discord-E4405F?logo=discord&logoColor=white" />
   </a>
   <img src="https://img.shields.io/github/license/dashibase/dashibase" />
   <br />
@@ -90,4 +90,4 @@ npm run dev
 
 ## Like what you're seeing?
 
-We're hoping to turn this into our full-time job! Support us by [joining our beta](https://dashibase.com#join-waitlist), visit us in our [Slack](https://join.slack.com/t/dashibase-community/shared_invite/zt-180rycyqv-ifRwyiQAiXUlBBVxgxQE7g) and follow us on [Twitter](https://twitter.com/dashibase) for more updates.
+We're hoping to turn this into our full-time job! Support us by [joining our beta](https://dashibase.com#join-waitlist), visit us in our [Discord server](https://discord.gg/CqgZGh4ZA8) and follow us on [Twitter](https://twitter.com/dashibase) for more updates.
