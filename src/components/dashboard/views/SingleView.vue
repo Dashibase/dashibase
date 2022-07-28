@@ -115,7 +115,7 @@
           <TertiaryButton v-if="createMode || itemId" :to="`/${pageId}`">
             Back
           </TertiaryButton>
-          <PrimaryButton v-if="!page.readonly" :disabled="!haveUnsavedChanges || store.loading" @click="upsertItem(item)">
+          <PrimaryButton v-if="!page.readonly" :disabled="!haveUnsavedChanges || store.loading" @click="save(item)">
             Save
           </PrimaryButton>
         </div>
@@ -172,7 +172,7 @@ const page = computed(():Page => {
   return page
 })
 
-const { item, warning, haveUnsavedChanges, joinedData, getItem, upsertItem, deleteItems } = initCrud(page.value, props.itemId)
+const { item, warning, haveUnsavedChanges, joinedData, getItem, upsertItem, updateItem, deleteItems } = initCrud(page.value, props.itemId)
 
 if (props.createMode) {
   item.value = {} as {[k:string]:any}
@@ -220,6 +220,16 @@ function getForeignOptions (attributeId:string) {
       }
     }) : []
   return options
+}
+
+function save (item:any) {
+  if (props.createMode) {
+    upsertItem(item)
+  } else if (props.itemId) {
+    updateItem(item)
+  } else {
+    upsertItem(item)
+  }
 }
 
 if (props.itemId) getItem(props.itemId)

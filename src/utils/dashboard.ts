@@ -583,6 +583,137 @@ export function initCrud (page:Page, itemId:string|number='') {
   }
 
   /*
+  Upsert row into <page.table_id> with user corresponding to user_id and id corresponding to itemId
+  */
+  async function updateItem (item:any) {
+    warning.value = ''
+    store.loading = true
+    item.user = store.user.id
+
+    // Check required attributes
+    const unfilledRequiredAttributes = page.attributes.filter((attribute:any) => {
+      if (attribute.required) {
+        const value = item[attribute.id]
+        if (attribute.type === AttributeType.Bool) {
+          item[attribute.id] = false
+          return false
+        } else if (attribute.type === AttributeType.Enum) {
+          item[attribute.id] = attribute.enumOptions ? attribute.enumOptions[0] : ''
+          return false
+        } else if (attribute.type === AttributeType.Join) {
+          // If required, join attributes should be non-null and if array, have length > 0
+          const foreignKeyValue = item[getForeignPrimaryKeyAttribute(attribute.id)]
+          if (!foreignKeyValue) return true
+          else if (foreignKeyValue.constructor === Array && foreignKeyValue.length === 0) return true
+          else return false
+        } else if (!!value) {
+          return false
+        } else return true
+      } else {
+        return false
+      }
+    })
+    if (unfilledRequiredAttributes.length) {
+      warning.value = `${unfilledRequiredAttributes.map((attribute:any) => attribute.label).join(', ')} need${unfilledRequiredAttributes.length === 1 ? 's' : ''} to be filled`
+      store.loading = false
+      return
+    }
+
+    const foreignTableAttrs = getJoinedTablesAndAttributes(page.attributes.filter(attr => !attr.readonly).map(attr => attr.id))
+    // First update main table
+    // Gather main attributes
+    const mainAttributes = page.attributes.filter(attr => !attr.readonly).filter(attr => !attr.id.includes('('))
+    const mainItem = mainAttributes.map(attr => [attr.id, item[attr.id]]).reduce((a, v) => ({...a, [v[0]]: v[1]}), {}) as {[k:string]:any}
+    try {
+      mainAttributes.map(attr => {
+        const attrDetails = store.dashboard.schema.t[page.table_id].properties[attr.id]
+        try {
+          if (['json', 'jsonb'].includes(attrDetails.format)) mainItem[attr.id] = JSON.parse(mainItem[attr.id])
+        } catch (error) {
+          throw Error(`Could not parse ${attr.id}, enter "null" without the quotes if this is meant to be an empty JSON`)
+        }
+      })
+    } catch (error) {
+      warning.value = (error as Error).message
+      store.loading = false
+      return
+    }
+    // Include outgoing foreign keys
+    Object.keys(foreignTableAttrs).filter(foreignTable => store.dashboard.schema.getFkColumns(page.table_id, foreignTable).length)
+      .forEach(foreignTable => {
+        mainItem[store.dashboard.schema.getFkColumns(page.table_id, foreignTable)[0]] = item[`${foreignTable}(${store.dashboard.schema.t[foreignTable].pk || 'id'})`]
+      })
+    if (item.id) mainItem[store.dashboard.schema.t[page.table_id].pk as string || 'id'] = item.id
+    if (page.enforce_user_col) mainItem[page.user_col] = store.user.id
+    const updateRequest = await supabase
+      .from(page.table_id)
+      .update([mainItem])
+      .match({ [store.dashboard.schema.t[page.table_id].pk as string || 'id']: mainItem[store.dashboard.schema.t[page.table_id].pk as string || 'id'] })
+    if (updateRequest.error) throw Error(updateRequest.error.message)
+    if (!item.id) item.id = updateRequest.data[0][store.dashboard.schema.t[page.table_id].pk as string || 'id']
+    
+    // Then update rest of the tables
+    const updatePromises = Object.keys(foreignTableAttrs).filter(foreignTable => store.dashboard.schema.getFkColumns(page.table_id, foreignTable).length === 0)
+      .map(foreignTable => {
+        return new Promise<void>(async (resolve, reject) => {
+          if (store.dashboard.schema.getFkColumns(foreignTable, page.table_id).length) {
+            // Foreign table points to main table directly
+            // We will run an update to set main table's primary key appropriately
+            const foreignItems = item[`${foreignTable}(${store.dashboard.schema.t[foreignTable].pk || 'id'})`]
+              .map((id:any) => {
+                return {
+                  [store.dashboard.schema.t[foreignTable].pk as string || 'id']: id,
+                  [store.dashboard.schema.getFkColumns(foreignTable, page.table_id)[0]]: item.id
+                }
+              })
+            // Instead of deleting, we leave the unselected items empty
+            await supabase
+              .from(foreignTable)
+              .update({ [store.dashboard.schema.getFkColumns(foreignTable, page.table_id)[0]]: null })
+              .match({ [store.dashboard.schema.getFkColumns(foreignTable, page.table_id)[0]]: item.id })
+            // And update the selected items
+            await supabase
+              .from(foreignTable)
+              .update({ [store.dashboard.schema.getFkColumns(foreignTable, page.table_id)[0]]: item.id })
+              .or(foreignItems.map((i:any) => `${store.dashboard.schema.t[foreignTable].pk || 'id'}.eq.${i.id}`).join(','))
+          } else {
+            // Foreign table is connected via join table
+            // Find join table
+            const joinTable = store.dashboard.schema.getJoinTable(page.table_id, foreignTable)
+            // Delete previous entries
+            const deleteRequest = await supabase
+              .from(joinTable)
+              .delete()
+              .match({ [store.dashboard.schema.getFkColumns(joinTable, page.table_id)[0]]: item.id })
+            if (deleteRequest.error) reject(deleteRequest.error.message)
+            const attributeId = Object.keys(item).find(attr => attr.includes(`${foreignTable}(${store.dashboard.schema.t[foreignTable].pk || 'id'})`))
+            if (item[attributeId as string]) {
+              const joinItems = item[attributeId as string]
+                .map((id:any) => {
+                  return {
+                    [store.dashboard.schema.getFkColumns(joinTable, foreignTable)[0]]: id,
+                    [store.dashboard.schema.getFkColumns(joinTable, page.table_id)[0]]: item.id
+                  }
+                })
+              const upsertRequest = await supabase
+                .from(joinTable)
+                .upsert(joinItems)
+              if (upsertRequest.error) reject(upsertRequest.error.message)
+            }
+          }
+          resolve()
+        })
+      })
+
+    Promise.all(updatePromises)
+      .then(initUserData)
+      .then(async () => {
+        await router.push({path: `/${page.page_id}`})
+        setTimeout(() => store.loading = false, 200)
+      })
+  }
+
+  /*
   Delete rows from <page.table_id> with id corresponding to itemId
   */
   async function deleteItems (itemIds:string[], event:Event|null=null) {
@@ -678,6 +809,7 @@ export function initCrud (page:Page, itemId:string|number='') {
     joinedData,
     getItem,
     upsertItem,
+    updateItem,
     deleteItems,
     filterItems,
   }
