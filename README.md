@@ -23,7 +23,7 @@ Beautiful presets in light and dark modes. CRUD interfaces with cards and table 
     <img src="https://img.shields.io/badge/Twitter-00acee?logo=twitter&logoColor=white" />
   </a>
   <a href="https://discord.gg/CqgZGh4ZA8">
-    <img src="https://img.shields.io/badge/Discord-E4405F?logo=discord&logoColor=white" />
+    <img src="https://img.shields.io/badge/Discord-5865F2?logo=discord&logoColor=white" />
   </a>
   <img src="https://img.shields.io/github/license/dashibase/dashibase" />
   <br />
